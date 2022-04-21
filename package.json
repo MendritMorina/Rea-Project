@@ -1,0 +1,36 @@
+{
+  "name": "rea-server",
+  "version": "1.0.0",
+  "description": "API for Rea App.",
+  "main": "./src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./src/server.js",
+    "dev": "nodemon ./src/server.js"
+  },
+  "author": "Appbites",
+  "license": "ISC",
+  "prettier": {
+    "arrowParens": "always",
+    "bracketSpacing": true,
+    "endOfLine": "lf",
+    "singleQuote": true,
+    "printWidth": 120,
+    "proseWrap": "preserve",
+    "semi": true,
+    "tabWidth": 2,
+    "trailingComma": "es5"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "express-validation": "^4.0.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.3.0",
+    "mongoose-aggregate-paginate-v2": "^1.0.6",
+    "mongoose-paginate-v2": "^1.6.3",
+    "nodemailer": "^6.7.3"
+  }
+}
