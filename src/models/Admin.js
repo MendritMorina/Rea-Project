@@ -16,13 +16,24 @@ const AdminSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    select: false,
+  },
+  passwordChangedAt: {
+    type: Date,
+    required: false,
+    default: null,
+  },
+  accountConfirmed: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
   ...Base,
 });
 
 // Plugins.
-TechniqueSchema.plugin(mongoosePaginate);
-TechniqueSchema.plugin(mongooseAggregatePaginate);
+AdminSchema.plugin(mongoosePaginate);
+AdminSchema.plugin(mongooseAggregatePaginate);
 
 // Exports of this file.
 module.exports = mongoose.model('Admin', AdminSchema);

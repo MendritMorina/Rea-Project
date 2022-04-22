@@ -6,13 +6,13 @@ const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
 // Imports: local files.
 const Base = require('./Base');
 
-// UsersCoupon Schema that is used to represent single UsersCoupon in our API.
-const UserCouponsSchema = new mongoose.Schema({
-  cuponID: {
+// UsedCoupon Schema that is used to represent single UsedCoupon in our API.
+const UsedCouponSchema = new mongoose.Schema({
+  cupon: {
     type: String,
     required: true,
   },
-  userID: {
+  user: {
     type: String,
     required: true,
   },
@@ -20,16 +20,12 @@ const UserCouponsSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  crateDate: {
-    type: Date,
-    required: true,
-  },
   ...Base,
 });
 
 // Plugins.
-TechniqueSchema.plugin(mongoosePaginate);
-TechniqueSchema.plugin(mongooseAggregatePaginate);
+UsedCouponSchema.plugin(mongoosePaginate);
+UsedCouponSchema.plugin(mongooseAggregatePaginate);
 
 // Exports of this file.
-module.exports = mongoose.model('UserCoupons', UserCouponsSchema);
+module.exports = mongoose.model('UsedCoupon', UsedCouponSchema);

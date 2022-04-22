@@ -5,6 +5,7 @@ const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
 
 // Imports: local files.
 const Base = require('./Base');
+const File = require('./File');
 
 // Story Schema that is used to represent single Story in our API.
 const StorySchema = new mongoose.Schema({
@@ -21,65 +22,46 @@ const StorySchema = new mongoose.Schema({
     required: true,
   },
   photo: {
-    url: {
-      type: String,
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    mimetype: {
-      type: String,
-      required: true,
-    },
-    size: {
-      type: Number,
-      required: true,
-    },
-    type: Object,
-    required: false,
-    default: null,
+    ...File,
   },
   audio: {
-    url: {
-      type: String,
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    mimetype: {
-      type: String,
-      required: true,
-    },
-    size: {
-      type: Number,
-      required: true,
-    },
-    type: Object,
-    required: false,
-    default: null,
+    ...File,
   },
   author: {
-    type: String,
+    authorName: {
+      type: String,
+    },
+    authorSurname: {
+      type: String,
+    },
     required: true,
   },
   narrator: {
+    type: { narratorName: String, narratorSurname: String },
+    required: true,
+  },
+  category: {
+    type: String,
+    enum: ['Child', 'Adult'],
+    required: true,
+  },
+  length: {
+    type: Number,
+    required: true,
+  },
+  thumbnail: {
+    ...File,
+  },
+  backgroundUrl: {
     type: String,
     required: true,
   },
-  category: {},
-  length: {},
-  thumbnail: {},
-  backgroundUrl: {},
   ...Base,
 });
 
 // Plugins.
-TechniqueSchema.plugin(mongoosePaginate);
-TechniqueSchema.plugin(mongooseAggregatePaginate);
+StorySchema.plugin(mongoosePaginate);
+StorySchema.plugin(mongooseAggregatePaginate);
 
 // Exports of this file.
 module.exports = mongoose.model('Story', StorySchema);

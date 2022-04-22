@@ -8,10 +8,6 @@ const Base = require('./Base');
 
 // Coupon Schema that is used to represent single Coupon in our API.
 const CouponSchema = new mongoose.Schema({
-  code: {
-    type: String,
-    required: true,
-  },
   description: {
     type: String,
     required: true,
@@ -20,17 +16,17 @@ const CouponSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  experationDate: {
+  expirationDate: {
     type: Date,
-    default: Date.now,
+    default: false,
   },
   company: {},
   ...Base,
 });
 
 // Plugins.
-TechniqueSchema.plugin(mongoosePaginate);
-TechniqueSchema.plugin(mongooseAggregatePaginate);
+CouponSchema.plugin(mongoosePaginate);
+CouponSchema.plugin(mongooseAggregatePaginate);
 
 // Exports of this file.
 module.exports = mongoose.model('Coupon', CouponSchema);
