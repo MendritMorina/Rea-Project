@@ -25,7 +25,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
   },
   age: {
-    type: String, // in form of range [20 - 30], ... etj
+    type: String,
     required: true,
   },
   gender: {
@@ -41,14 +41,6 @@ const UserSchema = new mongoose.Schema({
     type: Array,
     required: true,
     default: [],
-  },
-  weather: {
-    type: String,
-    required: false,
-  },
-  aqi: {
-    type: Number,
-    required: false,
   },
   hasChildren: {
     type: Boolean,

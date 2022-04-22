@@ -5,6 +5,7 @@ const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
 // Imports: local files.
 const Base = require('./Base');
 
+// SubscriptionType Schema that is used to represent single SubscriptionType in our API.
 const SubscriptionTypeSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -19,7 +20,8 @@ const SubscriptionTypeSchema = new mongoose.Schema({
 });
 
 // Plugins.
-UserSchema.plugin(mongoosePaginate);
-UserSchema.plugin(mongooseAggregatePaginate);
+SubscriptionTypeSchema.plugin(mongoosePaginate);
+SubscriptionTypeSchema.plugin(mongooseAggregatePaginate);
 
+// Exports of this file.
 module.exports = mongoose.model('SubscriptionType', SubscriptionTypeSchema);
