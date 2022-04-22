@@ -27,17 +27,20 @@ const StorySchema = new mongoose.Schema({
   audio: {
     ...File,
   },
-  author: {
-    authorName: {
-      type: String,
-    },
-    authorSurname: {
-      type: String,
-    },
+  authorName: {
+    type: String,
     required: true,
   },
-  narrator: {
-    type: { narratorName: String, narratorSurname: String },
+  authorSurname: {
+    type: String,
+    required: true,
+  },
+  narratorName: {
+    type: String,
+    required: true,
+  },
+  narratorSurname: {
+    type: String,
     required: true,
   },
   category: {

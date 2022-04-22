@@ -8,15 +8,17 @@ const Base = require('./Base');
 
 // UsedCoupon Schema that is used to represent single UsedCoupon in our API.
 const UsedCouponSchema = new mongoose.Schema({
-  cupon: {
-    type: String,
+  coupon: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Coupon',
     required: true,
   },
   user: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Coupon',
     required: true,
   },
-  cuponCode: {
+  couponCode: {
     type: String,
     required: true,
   },
