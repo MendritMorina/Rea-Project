@@ -18,9 +18,13 @@ const CouponSchema = new mongoose.Schema({
   },
   expirationDate: {
     type: Date,
-    default: false,
+    required: true,
   },
-  company: {},
+  company: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company',
+    required: true,
+  },
   ...Base,
 });
 
