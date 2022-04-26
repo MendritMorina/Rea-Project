@@ -2,7 +2,7 @@
 const { ValidationError } = require('express-validation');
 
 // Local file imports.
-const ApiError = require('../utils/classes');
+const { ApiError } = require('../utils/classes');
 const { httpCodes } = require('../configs');
 const { getMode } = require('../utils/functions');
 
