@@ -36,8 +36,18 @@ const getAll = asyncHandler(async (req, res) => {
 // };
 
 const getOne = asyncHandler(async (req, res) => {
-  const result = await RecommendationCard.findById(req.params.id);
-  res.status(200).json({ success: true, data: result, error: null });
+  const { id } = req.params;
+
+  const recommendationCard = await RecommendationCard.findOne({ _id: id, isDeleted: false })
+    .select('name description')
+    .populate('recommendation');
+
+  if (!recommendationCard) {
+    next(new ApiError('RecommendationCard not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  res.status(httpCodes.OK).json({ success: true, data: { recommendationCard }, error: null });
 });
 
 // exports.getOne = async (req, res) => {

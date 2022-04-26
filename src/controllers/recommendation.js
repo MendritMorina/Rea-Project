@@ -10,11 +10,11 @@ const { httpCodes } = require('../configs');
  * @access      Public.
  */
 const getAll = asyncHandler(async (req, res) => {
-  const result = await Recommendation.find()
+  const recommendations = await Recommendation.find()
     .select('name description recommendationCards')
     .populate('recommendationCards');
 
-  res.status(200).json({ success: true, data: result, error: null });
+  res.status(200).json({ success: true, count: result.length, data: recommendations, error: null });
 });
 
 /**
@@ -52,7 +52,6 @@ const getOne = asyncHandler(async (req, res) => {
 
 const create = asyncHandler(async (req, res, next) => {
   const userId = '625e6c53419131c236181826';
-  const { id } = req.params;
   const {
     name,
     description,
@@ -101,13 +100,12 @@ const create = asyncHandler(async (req, res, next) => {
  * @route       DELETE /api/recommendations/:id.
  * @access      Private.
  */
-
 const deleteOne = asyncHandler(async (req, res, next) => {
   const userId = '625e6c53419131c236181826';
   const { id } = req.params;
 
   const recommendation = await Recommendation.findOne({ _id: id, isDeleted: false });
-  if (!product) {
+  if (!recommendation) {
     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
     return;
   }
@@ -128,7 +126,7 @@ const deleteOne = asyncHandler(async (req, res, next) => {
     return;
   }
 
-  response.status(httpCodes.OK).json({ success: true, data: { recommendation: deletedRecommendation }, error: null });
+  res.status(httpCodes.OK).json({ success: true, data: { recommendation: deletedRecommendation }, error: null });
 });
 
 // const deleteOne = asyncHandler(async (req, res) => {
@@ -151,23 +149,7 @@ const deleteOne = asyncHandler(async (req, res, next) => {
  * @route       PUT /api/recommendations/:id.
  * @access      Private.
  */
-const updateOne = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { name, description } = req.body;
-
-  const re = await Recommendation.findById(id);
-
-  if (!re) {
-    next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  const uRe = await Recommendation.findByIdAndUpdate(id, { $set: { name, description } }, { new: true });
-
-  res.status(200).json({ success: true, data: uRe, error: null });
-});
-
-const updateOne2 = asyncHandler(async (req, res) => {
+const updateOne = asyncHandler(async (req, res, next) => {
   const userId = '625e6c53419131c236181826';
   const { id } = req.params;
   const {
@@ -184,7 +166,7 @@ const updateOne2 = asyncHandler(async (req, res) => {
   } = req.body;
 
   const recommendation = await Recommendation.findOne({ _id: id, isDeleted: false });
-  if (!product) {
+  if (!recommendation) {
     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
     return;
   }
@@ -223,7 +205,25 @@ const updateOne2 = asyncHandler(async (req, res) => {
     next(new ApiError('Failed to update recommendation!', httpCodes.INTERNAL_ERROR));
     return;
   }
+
+  res.status(httpCodes.OK).json({ success: true, data: { recommendation: editedRecommendation }, error: null });
 });
+
+// const updateOne = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
+//   const { name, description } = req.body;
+
+//   const re = await Recommendation.findById(id);
+
+//   if (!re) {
+//     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
+//     return;
+//   }
+
+//   const uRe = await Recommendation.findByIdAndUpdate(id, { $set: { name, description } }, { new: true });
+
+//   res.status(200).json({ success: true, data: uRe, error: null });
+// });
 
 // // Get all Recommendations
 // exports.getAll = async (req, res) => {
