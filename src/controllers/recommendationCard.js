@@ -5,7 +5,7 @@ const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { httpCodes } = require('../configs');
 
-exports.getAll = asyncHandler(async (req, res) => {
+const getAll = asyncHandler(async (req, res) => {
   let result = null;
   if (req.params.recommendationId) {
     result = await RecommendationCard.find({ recommendation: req.params.recommendationId });
@@ -35,7 +35,7 @@ exports.getAll = asyncHandler(async (req, res) => {
 //   }
 // };
 
-exports.getOne = asyncHandler(async (req, res) => {
+const getOne = asyncHandler(async (req, res) => {
   const result = await RecommendationCard.findById(req.params.id);
   res.status(200).json({ success: true, data: result, error: null });
 });
@@ -50,21 +50,29 @@ exports.getOne = asyncHandler(async (req, res) => {
 //   }
 // };
 
-exports.create = asyncHandler(async (req, res) => {
+const create = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
 
   if (req.params.recommendationId) {
-    const re = await Recommendation.findById(req.params.recommendationId);
+    const recommendation = await Recommendation.findById(req.params.recommendationId);
 
-    if (!re) {
-      next(new ApiError('RecommendationCard not found!', httpCodes.NOT_FOUND));
+    if (!recommendation) {
+      next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
       return;
     }
 
-    const rec = new RecommendationCard({ name, description, recommendation: req.params.recommendationId });
-    const savedRec = await rec.save();
-    const updatedRe = await re.updateOne({ $push: { recommendationCards: rec._id } });
-    return res.status(200).json({ success: true, data: { savedRec, updatedRe }, error: null });
+    const recommendationCard = new RecommendationCard({
+      name,
+      description,
+      recommendation: recommendation._id,
+    });
+    const savedRecommendationCard = await recommendationCard.save();
+    const updatedRecommendation = await recommendation.updateOne({
+      $push: { recommendationCards: recommendationCard._id },
+    });
+    return res
+      .status(200)
+      .json({ success: true, data: { savedRecommendationCard, updatedRecommendation }, error: null });
   } else {
     const result = await RecommendationCard.create({ name, description });
     return res.status(200).json({ success: true, data: result, error: null });
@@ -100,7 +108,7 @@ exports.create = asyncHandler(async (req, res) => {
 //   }
 // };
 
-exports.deleteOne = asyncHandler(async (req, res, next) => {
+const deleteOne = asyncHandler(async (req, res, next) => {
   const userId = '625e6c53419131c236181826';
   const { id } = req.params;
 
@@ -147,7 +155,7 @@ exports.deleteOne = asyncHandler(async (req, res, next) => {
 //   }
 // };
 
-exports.updateOne = asyncHandler(async (req, res, next) => {
+const updateOne = asyncHandler(async (req, res, next) => {
   const userId = '625e6c53419131c236181826';
   const { id } = req.params;
   const { name, description, recommendationObjId } = req.body;
@@ -203,3 +211,6 @@ exports.updateOne = asyncHandler(async (req, res, next) => {
 //     res.status(400).json({ success: false, data: {}, error: err });
 //   }
 // };
+
+// Exports of this file.
+module.exports = { getAll, getOne, create, deleteOne, updateOne };
