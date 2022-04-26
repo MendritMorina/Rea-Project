@@ -14,7 +14,7 @@ const getAll = asyncHandler(async (req, res) => {
     .select('name description recommendationCards')
     .populate('recommendationCards');
 
-  res.status(200).json({ success: true, count: result.length, data: recommendations, error: null });
+  res.status(200).json({ success: true, count: recommendations.length, data: recommendations, error: null });
 });
 
 /**

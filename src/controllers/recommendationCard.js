@@ -60,11 +60,11 @@ const getOne = asyncHandler(async (req, res) => {
 //   }
 // };
 
-const create = asyncHandler(async (req, res) => {
-  const { name, description } = req.body;
+const create = asyncHandler(async (req, res, next) => {
+  const { name, description, recommendationIdBody } = req.body;
 
   if (req.params.recommendationId) {
-    const recommendation = await Recommendation.findById(req.params.recommendationId);
+    const recommendation = await Recommendation.findOne({ _id: req.params.recommendationId, isDeleted: false });
 
     if (!recommendation) {
       next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
@@ -84,8 +84,23 @@ const create = asyncHandler(async (req, res) => {
       .status(200)
       .json({ success: true, data: { savedRecommendationCard, updatedRecommendation }, error: null });
   } else {
-    const result = await RecommendationCard.create({ name, description });
-    return res.status(200).json({ success: true, data: result, error: null });
+    const recommendation = await Recommendation.findOne({ _id: recommendationIdBody, isDeleted: false });
+
+    if (!recommendation) {
+      next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
+      return;
+    }
+
+    const recommendationCard = await RecommendationCard.create({
+      name,
+      description,
+      recommendation: recommendationIdBody,
+    });
+    const updatedRecommendation = await recommendation.updateOne({
+      $push: { recommendationCards: recommendationCard._id },
+    });
+
+    return res.status(200).json({ success: true, data: { recommendationCard, updatedRecommendation }, error: null });
   }
 });
 
@@ -123,8 +138,15 @@ const deleteOne = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: id, isDeleted: false });
+
   if (!recommendationCard) {
     next(new ApiError('RecommendationCard not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const recommendation = await Recommendation.findOne({ _id: recommendationCard.recommendation, isDeleted: false });
+  if (!recommendation) {
+    next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
     return;
   }
 
@@ -141,6 +163,15 @@ const deleteOne = asyncHandler(async (req, res, next) => {
   );
   if (!deletedRecommendationCard) {
     next(new ApiError('Failed to delete recommendation!', httpCodes.INTERNAL_ERROR));
+    return;
+  }
+
+  const updatedRecommendation = await recommendation.updateOne({
+    $pull: { recommendationCards: recommendationCard._id },
+  });
+
+  if (!updatedRecommendation) {
+    next(new ApiError('Failed to update recommendation!', httpCodes.INTERNAL_ERROR));
     return;
   }
 
@@ -168,9 +199,10 @@ const deleteOne = asyncHandler(async (req, res, next) => {
 const updateOne = asyncHandler(async (req, res, next) => {
   const userId = '625e6c53419131c236181826';
   const { id } = req.params;
-  const { name, description, recommendationObjId } = req.body;
+  const { name, description, recommendationIdBody } = req.body;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: id, isDeleted: false });
+
   if (!recommendationCard) {
     next(new ApiError('RecommendationCard not found!', httpCodes.NOT_FOUND));
     return;
@@ -188,10 +220,13 @@ const updateOne = asyncHandler(async (req, res, next) => {
   const payload = {
     name,
     description,
-    recommendationObjId,
+    recommendation: recommendationIdBody,
     lastEditBy: userId,
     lastEditAt: new Date(Date.now()),
   };
+
+  console.log(payload);
+
   const editedRecommendationCard = await RecommendationCard.findOneAndUpdate(
     { _id: recommendationCard._id },
     {
@@ -199,10 +234,26 @@ const updateOne = asyncHandler(async (req, res, next) => {
     },
     { new: true }
   );
+
   if (!editedRecommendationCard) {
     next(new ApiError('Failed to update RecommendationCard!', httpCodes.INTERNAL_ERROR));
     return;
   }
+
+  const recommendation = await Recommendation.findOne({ _id: recommendationCard.recommendation, isDeleted: false });
+
+  if (!recommendation) {
+    next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  await recommendation.updateOne({
+    $pull: { recommendationCards: recommendationCard._id },
+  });
+
+  await recommendation.updateOne({
+    $push: { recommendationCards: editedRecommendationCard._id },
+  });
 
   res.status(httpCodes.OK).json({ success: true, data: { recommendationCard: editedRecommendationCard }, error: null });
 });
