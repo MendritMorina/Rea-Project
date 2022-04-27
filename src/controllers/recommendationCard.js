@@ -300,8 +300,6 @@ const updateOne = asyncHandler(async (req, res, next) => {
     lastEditAt: new Date(Date.now()),
   };
 
-  console.log(payload);
-
   const editedRecommendationCard = await RecommendationCard.findOneAndUpdate(
     { _id: recommendationCard._id },
     {
@@ -322,13 +320,27 @@ const updateOne = asyncHandler(async (req, res, next) => {
     return;
   }
 
-  await recommendation.updateOne({
-    $pull: { recommendationCards: recommendationCard._id },
-  });
+  // await recommendation.updateOne({
+  //   $pull: { recommendationCards: recommendationCard._id },
+  // });
 
-  await recommendation.updateOne({
-    $push: { recommendationCards: editedRecommendationCard._id },
-  });
+  // await recommendation.updateOne({
+  //   $push: { recommendationCards: editedRecommendationCard._id },
+  // });
+
+  await Recommendation.findOneAndUpdate(
+    { _id: recommendationCard.recommendation },
+    {
+      $pull: { recommendationCards: recommendationCard._id },
+    }
+  );
+
+  await Recommendation.findOneAndUpdate(
+    { _id: editedRecommendationCard.recommendation },
+    {
+      $push: { recommendationCards: editedRecommendationCard._id },
+    }
+  );
 
   res.status(httpCodes.OK).json({ success: true, data: { recommendationCard: editedRecommendationCard }, error: null });
 });
