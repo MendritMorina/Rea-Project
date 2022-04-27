@@ -142,10 +142,11 @@ const deleteOne = asyncHandler(async (req, res, next) => {
   }
 
   const deletedRecommendationCards = await RecommendationCard.updateMany(
-    { reccomendation: id },
+    { recommendation: id },
     {
       $set: {
         isDeleted: true,
+        recommendation: null,
         lastEditBy: userId,
         lastEditAt: new Date(Date.now()),
       },
@@ -155,16 +156,16 @@ const deleteOne = asyncHandler(async (req, res, next) => {
   const recommendationCards = await RecommendationCard.find({ reccomendation: id });
 
   recommendationCards.forEach(async (recommendationCard) => {
-    await recommendation.updateOne({
-      $pull: { recommendationCards: recommendationCard._id },
-    });
+    // await recommendation.updateOne({
+    //   $pull: { recommendationCards: recommendationCard._id },
+    // });
+    await Recommendation.findOneAndUpdate(
+      { _id: recommendation._id },
+      {
+        $pull: { recommendationCards: recommendationCard._id },
+      }
+    );
   });
-
-  // recommendationCards.forEach(async (recommendationCard) => {
-  //   await recommendationCard.updateOne({
-  //     $set: { recommendation: null },
-  //   });
-  // });
 
   if (!deletedRecommendationCards) {
     next(new ApiError('Failed to delete the recommendation cards!', httpCodes.INTERNAL_ERROR));
