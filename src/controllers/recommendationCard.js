@@ -8,7 +8,7 @@ const { httpCodes } = require('../configs');
 /**
  * @description Get all RecommendationCards.
  * @route       GET /api/recommendationCards.
- * @route       POST /api/recommendations/:recommendationId/recommendationCards.
+ * @route       GET /api/recommendations/:recommendationId/recommendationCards.
  * @access      Public.
  */
 const getAll = asyncHandler(async (req, res) => {
