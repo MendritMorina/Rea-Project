@@ -1,4 +1,6 @@
 const Recommendation = require('../models/Recommendation');
+const RecommendationCard = require('../models/RecommendationCard');
+
 const { asyncHandler } = require('../middlewares');
 
 const { ApiError } = require('../utils/classes');
@@ -10,9 +12,21 @@ const { httpCodes } = require('../configs');
  * @access      Public.
  */
 const getAll = asyncHandler(async (req, res) => {
-  const recommendations = await Recommendation.find()
-    .select('name description recommendationCards')
-    .populate('recommendationCards');
+  const { page, limit, select, sort } = req.query;
+
+  const options = {
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
+    select: select ? req.query.select.split(',').join(' ') : 'name description',
+    sort: sort ? req.query.sort.split(',').join(' ') : 'name',
+    populate: 'recommendationCards',
+  };
+
+  // const recommendations = await Recommendation.find()
+  //   .select('name description recommendationCards')
+  //   .populate('recommendationCards');
+
+  const recommendations = await Recommendation.paginate({}, options);
 
   res.status(200).json({ success: true, count: recommendations.length, data: recommendations, error: null });
 });
@@ -42,13 +56,6 @@ const getOne = asyncHandler(async (req, res) => {
  * @route       POST /api/recommendations/create.
  * @access      Private.
  */
-// const create = asyncHandler(async (req, res) => {
-//   const re = new Recommendation(req.body);
-
-//   const savedRe = await re.save();
-
-//   res.status(200).json({ success: true, data: savedRe, error: null });
-// });
 
 const create = asyncHandler(async (req, res, next) => {
   const userId = '625e6c53419131c236181826';
@@ -82,8 +89,8 @@ const create = asyncHandler(async (req, res, next) => {
     hasChildrenDisease,
     recommendationCards,
     category,
-    lastEditBy: userId,
-    lastEditAt: new Date(Date.now()),
+    createdBy: userId,
+    createdAt: new Date(Date.now()),
   };
 
   const recommendation = await Recommendation.create(payload);
@@ -94,6 +101,14 @@ const create = asyncHandler(async (req, res, next) => {
 
   res.status(httpCodes.OK).json({ success: true, data: recommendation, error: null });
 });
+
+// const create = asyncHandler(async (req, res) => {
+//   const re = new Recommendation(req.body);
+
+//   const savedRe = await re.save();
+
+//   res.status(200).json({ success: true, data: savedRe, error: null });
+// });
 
 /**
  * @description Delete a recommendation.
@@ -123,6 +138,36 @@ const deleteOne = asyncHandler(async (req, res, next) => {
   );
   if (!deletedRecommendation) {
     next(new ApiError('Failed to delete recommendation!', httpCodes.INTERNAL_ERROR));
+    return;
+  }
+
+  const deletedRecommendationCards = await RecommendationCard.updateMany(
+    { reccomendation: id },
+    {
+      $set: {
+        isDeleted: true,
+        lastEditBy: userId,
+        lastEditAt: new Date(Date.now()),
+      },
+    }
+  );
+
+  const recommendationCards = await RecommendationCard.find({ reccomendation: id });
+
+  recommendationCards.forEach(async (recommendationCard) => {
+    await recommendation.updateOne({
+      $pull: { recommendationCards: recommendationCard._id },
+    });
+  });
+
+  // recommendationCards.forEach(async (recommendationCard) => {
+  //   await recommendationCard.updateOne({
+  //     $set: { recommendation: null },
+  //   });
+  // });
+
+  if (!deletedRecommendationCards) {
+    next(new ApiError('Failed to delete the recommendation cards!', httpCodes.INTERNAL_ERROR));
     return;
   }
 

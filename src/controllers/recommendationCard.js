@@ -5,13 +5,39 @@ const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { httpCodes } = require('../configs');
 
+/**
+ * @description Get all RecommendationCards.
+ * @route       GET /api/recommendationCards.
+ * @access      Public.
+ */
 const getAll = asyncHandler(async (req, res) => {
+  const { page, limit, select, sort } = req.query;
+
+  const options = {
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
+    select: select ? req.query.select.split(',').join(' ') : 'name description',
+    sort: sort ? req.query.sort.split(',').join(' ') : 'name',
+    populate: 'recommendation',
+    //query: { recommendation: req.params.recommendationId },
+    //query: { name: 'Reccomendation Card creatrdingassdqs' },
+  };
+
   let result = null;
   if (req.params.recommendationId) {
-    result = await RecommendationCard.find({ recommendation: req.params.recommendationId });
+    result = await RecommendationCard.paginate({ recommendation: req.params.recommendationId }, options);
+    //result = await RecommendationCard.paginate({ name: 'Reccomendation Card creatrdingassdqs ' }, options);
   } else {
-    result = await RecommendationCard.find();
+    result = await RecommendationCard.paginate({}, options);
   }
+
+  // let result = null;
+  // if (req.params.recommendationId) {
+  //   result = await RecommendationCard.find({ recommendation: req.params.recommendationId });
+  // } else {
+  //   result = await RecommendationCard.find();
+  // }
+
   return res.status(200).json({ success: true, count: result.length, data: result, error: null });
 });
 
@@ -35,6 +61,11 @@ const getAll = asyncHandler(async (req, res) => {
 //   }
 // };
 
+/**
+ * @description Get RecommandationCard by id.
+ * @route       GET /api/recommendationCards/:id.
+ * @access      Public.
+ */
 const getOne = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -60,7 +91,13 @@ const getOne = asyncHandler(async (req, res) => {
 //   }
 // };
 
+/**
+ * @description Create a recommendationCard.
+ * @route       POST /api/recommendationCards/create.
+ * @access      Private.
+ */
 const create = asyncHandler(async (req, res, next) => {
+  const userId = '625e6c53419131c236181826';
   const { name, description, recommendationIdBody } = req.body;
 
   if (req.params.recommendationId) {
@@ -71,18 +108,32 @@ const create = asyncHandler(async (req, res, next) => {
       return;
     }
 
-    const recommendationCard = new RecommendationCard({
+    const payload = {
       name,
       description,
       recommendation: recommendation._id,
-    });
-    const savedRecommendationCard = await recommendationCard.save();
-    const updatedRecommendation = await recommendation.updateOne({
-      $push: { recommendationCards: recommendationCard._id },
-    });
-    return res
-      .status(200)
-      .json({ success: true, data: { savedRecommendationCard, updatedRecommendation }, error: null });
+      createdBy: userId,
+      createdAt: new Date(Date.now()),
+    };
+
+    const recommendationCard = await RecommendationCard.create(payload);
+
+    if (!recommendationCard) {
+      next(new ApiError('RecommendationCard was not created', httpCodes.NOT_FOUND));
+      return;
+    }
+
+    // const updatedRecommendation = await recommendation.updateOne({
+    //   $push: { recommendationCards: recommendationCard._id },
+    // });
+    const updatedRecommendation = await Recommendation.findOneAndUpdate(
+      { _id: recommendation._id },
+      {
+        $push: { recommendationCards: recommendationCard._id },
+      }
+    );
+
+    return res.status(200).json({ success: true, data: { recommendationCard, updatedRecommendation }, error: null });
   } else {
     const recommendation = await Recommendation.findOne({ _id: recommendationIdBody, isDeleted: false });
 
@@ -96,9 +147,15 @@ const create = asyncHandler(async (req, res, next) => {
       description,
       recommendation: recommendationIdBody,
     });
-    const updatedRecommendation = await recommendation.updateOne({
-      $push: { recommendationCards: recommendationCard._id },
-    });
+    // const updatedRecommendation = await recommendation.updateOne({
+    //   $push: { recommendationCards: recommendationCard._id },
+    // });
+    const updatedRecommendation = await Recommendation.findOneAndUpdate(
+      { _id: recommendation._id },
+      {
+        $push: { recommendationCards: recommendationCard._id },
+      }
+    );
 
     return res.status(200).json({ success: true, data: { recommendationCard, updatedRecommendation }, error: null });
   }
@@ -133,6 +190,11 @@ const create = asyncHandler(async (req, res, next) => {
 //   }
 // };
 
+/**
+ * @description Delete a recommendationCard.
+ * @route       DELETE /api/recommendationCards/:id.
+ * @access      Private.
+ */
 const deleteOne = asyncHandler(async (req, res, next) => {
   const userId = '625e6c53419131c236181826';
   const { id } = req.params;
@@ -145,6 +207,7 @@ const deleteOne = asyncHandler(async (req, res, next) => {
   }
 
   const recommendation = await Recommendation.findOne({ _id: recommendationCard.recommendation, isDeleted: false });
+
   if (!recommendation) {
     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
     return;
@@ -166,9 +229,16 @@ const deleteOne = asyncHandler(async (req, res, next) => {
     return;
   }
 
-  const updatedRecommendation = await recommendation.updateOne({
-    $pull: { recommendationCards: recommendationCard._id },
-  });
+  // const updatedRecommendation = await recommendation.updateOne({
+  //   $pull: { recommendationCards: recommendationCard._id },
+  // });
+
+  const updatedRecommendation = await Recommendation.findOneAndUpdate(
+    { _id: recommendation._id },
+    {
+      $pull: { recommendationCards: recommendationCard._id },
+    }
+  );
 
   if (!updatedRecommendation) {
     next(new ApiError('Failed to update recommendation!', httpCodes.INTERNAL_ERROR));
@@ -196,6 +266,11 @@ const deleteOne = asyncHandler(async (req, res, next) => {
 //   }
 // };
 
+/**
+ * @description Update a recommendationCard.
+ * @route       PUT /api/recommendationCards/:id.
+ * @access      Private.
+ */
 const updateOne = asyncHandler(async (req, res, next) => {
   const userId = '625e6c53419131c236181826';
   const { id } = req.params;
