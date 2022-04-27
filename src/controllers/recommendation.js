@@ -102,14 +102,6 @@ const create = asyncHandler(async (req, res, next) => {
   res.status(httpCodes.OK).json({ success: true, data: recommendation, error: null });
 });
 
-// const create = asyncHandler(async (req, res) => {
-//   const re = new Recommendation(req.body);
-
-//   const savedRe = await re.save();
-
-//   res.status(200).json({ success: true, data: savedRe, error: null });
-// });
-
 /**
  * @description Delete a recommendation.
  * @route       DELETE /api/recommendations/:id.
@@ -175,21 +167,6 @@ const deleteOne = asyncHandler(async (req, res, next) => {
   res.status(httpCodes.OK).json({ success: true, data: { recommendation: deletedRecommendation }, error: null });
 });
 
-// const deleteOne = asyncHandler(async (req, res) => {
-//   const { id } = req.params;
-
-//   const recommendation = await Recommendation.findById(id);
-
-//   if (!recommendation) {
-//     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
-//     return;
-//   }
-
-//   const result = await Recommendation.findByIdAndDelete(req.params.id);
-
-//   res.status(200).json({ success: true, data: {}, error: null });
-// });
-
 /**
  * @description Update a recommendation.
  * @route       PUT /api/recommendations/:id.
@@ -254,84 +231,6 @@ const updateOne = asyncHandler(async (req, res, next) => {
 
   res.status(httpCodes.OK).json({ success: true, data: { recommendation: editedRecommendation }, error: null });
 });
-
-// const updateOne = asyncHandler(async (req, res) => {
-//   const { id } = req.params;
-//   const { name, description } = req.body;
-
-//   const re = await Recommendation.findById(id);
-
-//   if (!re) {
-//     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
-//     return;
-//   }
-
-//   const uRe = await Recommendation.findByIdAndUpdate(id, { $set: { name, description } }, { new: true });
-
-//   res.status(200).json({ success: true, data: uRe, error: null });
-// });
-
-// // Get all Recommendations
-// exports.getAll = async (req, res) => {
-//   try {
-//     const result = await Recommendation.find()
-//       .select('name description recommendationCards')
-//       .populate('recommendationCards');
-
-//     res.status(200).json({ success: true, data: result, error: null });
-//   } catch (err) {
-//     res.status(400).json({ success: false, data: {}, error: err });
-//   }
-// };
-
-// // Get Recommendation by Id
-// exports.getOne = (req, res) => {
-//   Recommendation.findById(req.params.id)
-//     .select('name description recommendationCards')
-//     .then((result) => {
-//       res.status(200).json({ success: true, data: result, error: null });
-//     })
-//     .catch((err) => {
-//       res.status(400).json({ success: false, data: {}, error: err });
-//     });
-// };
-
-// // Add Recommendation
-// const create = (req, res) => {
-//   const re = new Recommendation(req.body);
-
-//   re.save()
-//     .then((result) => {
-//       res.status(200).json({ success: true, data: result, error: null });
-//     })
-//     .catch((err) => {
-//       res.status(400).json({ success: false, data: {}, error: err });
-//     });
-// };
-
-// // Update Recommendation
-// const updateOne = (req, res) => {
-//   const re = new Recommendation(req.body);
-
-//   Recommendation.findByIdAndUpdate(req.params.id, req.body, { new: true })
-//     .then((result) => {
-//       res.status(200).json({ success: true, data: result, error: null });
-//     })
-//     .catch((err) => {
-//       res.status(200).json({ success: false, data: {}, error: err });
-//     });
-// };
-
-// // Delete Recommendation
-// const deleteOne = (req, res) => {
-//   Recommendation.findByIdAndDelete(req.params.id)
-//     .then((result) => {
-//       res.status(200).json({ success: true, data: result, error: null });
-//     })
-//     .catch((err) => {
-//       res.status(200).json({ success: false, data: {}, error: err });
-//     });
-// };
 
 // Exports of this file.
 module.exports = { getAll, getOne, create, deleteOne, updateOne };

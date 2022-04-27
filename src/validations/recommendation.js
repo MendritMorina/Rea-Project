@@ -45,7 +45,7 @@ const validator = {
   },
   updateRecommendation: {
     params: Joi.object({
-      productId: Joi.string()
+      id: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),

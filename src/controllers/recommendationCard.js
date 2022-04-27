@@ -8,6 +8,7 @@ const { httpCodes } = require('../configs');
 /**
  * @description Get all RecommendationCards.
  * @route       GET /api/recommendationCards.
+ * @route       POST /api/recommendations/:recommendationId/recommendationCards.
  * @access      Public.
  */
 const getAll = asyncHandler(async (req, res) => {
@@ -19,14 +20,11 @@ const getAll = asyncHandler(async (req, res) => {
     select: select ? req.query.select.split(',').join(' ') : 'name description',
     sort: sort ? req.query.sort.split(',').join(' ') : 'name',
     populate: 'recommendation',
-    //query: { recommendation: req.params.recommendationId },
-    //query: { name: 'Reccomendation Card creatrdingassdqs' },
   };
 
   let result = null;
   if (req.params.recommendationId) {
     result = await RecommendationCard.paginate({ recommendation: req.params.recommendationId }, options);
-    //result = await RecommendationCard.paginate({ name: 'Reccomendation Card creatrdingassdqs ' }, options);
   } else {
     result = await RecommendationCard.paginate({}, options);
   }
@@ -40,26 +38,6 @@ const getAll = asyncHandler(async (req, res) => {
 
   return res.status(200).json({ success: true, count: result.length, data: result, error: null });
 });
-
-// exports.getAll = async (req, res) => {
-//   if (req.params.recommendationId) {
-//     try {
-//       const result = await RecommendationCard.find({ recommendation: req.params.recommendationId });
-
-//       return res.status(200).json({ success: true, data: result, error: null });
-//     } catch (err) {
-//       res.status(400).json({ success: false, data: {}, error: err });
-//     }
-//   } else {
-//     try {
-//       const result = await RecommendationCard.find();
-
-//       return res.status(200).json({ success: true, data: result, error: null });
-//     } catch (err) {
-//       res.status(400).json({ success: false, data: {}, error: err });
-//     }
-//   }
-// };
 
 /**
  * @description Get RecommandationCard by id.
@@ -81,19 +59,10 @@ const getOne = asyncHandler(async (req, res) => {
   res.status(httpCodes.OK).json({ success: true, data: { recommendationCard }, error: null });
 });
 
-// exports.getOne = async (req, res) => {
-//   try {
-//     const result = await RecommendationCard.findById(req.params.id);
-
-//     res.status(200).json({ success: true, data: result, error: null });
-//   } catch (err) {
-//     res.status(400).json({ success: false, data: {}, error: err });
-//   }
-// };
-
 /**
  * @description Create a recommendationCard.
  * @route       POST /api/recommendationCards/create.
+ * @route       POST /api/recommendations/:recommendationId/recommendationCards/create
  * @access      Private.
  */
 const create = asyncHandler(async (req, res, next) => {
@@ -161,35 +130,6 @@ const create = asyncHandler(async (req, res, next) => {
   }
 });
 
-// exports.create = async (req, res) => {
-//   const { name, description } = req.body;
-
-//   if (req.params.recommendationId) {
-//     try {
-//       const re = await Recommendation.findById(req.params.recommendationId);
-//       if (!re) {
-//         res.status(400).json({ success: false, data: {}, error: err });
-//         throw new Error('Recommendation with id not found');
-//       }
-
-//       const rec = new RecommendationCard({ name, description, recommendation: req.params.recommendationId });
-//       const savedRec = await rec.save();
-//       const updatedRe = await re.updateOne({ $push: { recommendationCards: rec._id } });
-//       return res.status(200).json({ success: true, data: { savedRec, updatedRe }, error: null });
-//     } catch (err) {
-//       return res.status(400).json({ success: false, data: {}, error: err });
-//     }
-//   } else {
-//     try {
-//       const result = await RecommendationCard.create({ name, description });
-
-//       return res.status(200).json({ success: true, data: result, error: null });
-//     } catch (err) {
-//       return res.status(400).json({ success: false, data: {}, error: err });
-//     }
-//   }
-// };
-
 /**
  * @description Delete a recommendationCard.
  * @route       DELETE /api/recommendationCards/:id.
@@ -249,22 +189,6 @@ const deleteOne = asyncHandler(async (req, res, next) => {
     .status(httpCodes.OK)
     .json({ success: true, data: { recommendationCard: deletedRecommendationCard }, error: null });
 });
-
-// exports.deleteOne = asyncHandler(async (req, res) => {
-//   const result = await RecommendationCard.findByIdAndDelete(req.params.id);
-
-//   res.status(200).json({ success: true, data: result, error: null });
-// });
-
-// exports.deleteOne = async (req, res) => {
-//   try {
-//     const result = await RecommendationCard.findByIdAndDelete(req.params.id);
-
-//     res.status(200).json({ success: true, data: result, error: null });
-//   } catch (err) {
-//     res.status(400).json({ success: false, data: {}, error: err });
-//   }
-// };
 
 /**
  * @description Update a recommendationCard.
@@ -344,21 +268,6 @@ const updateOne = asyncHandler(async (req, res, next) => {
 
   res.status(httpCodes.OK).json({ success: true, data: { recommendationCard: editedRecommendationCard }, error: null });
 });
-
-// exports.updateOne = asyncHandler(async (req, res) => {
-//   const result = await RecommendationCard.findByIdAndUpdate(req.params.id, req.body, { new: true });
-//   res.status(200).json({ success: true, data: result, error: null });
-// });
-
-// exports.updateOne = async (req, res) => {
-//   try {
-//     const result = await RecommendationCard.findByIdAndUpdate(req.params.id, req.body ,{ new: true});
-
-//     res.status(200).json({ success: true, data: result, error: null });
-//   } catch (err) {
-//     res.status(400).json({ success: false, data: {}, error: err });
-//   }
-// };
 
 // Exports of this file.
 module.exports = { getAll, getOne, create, deleteOne, updateOne };
