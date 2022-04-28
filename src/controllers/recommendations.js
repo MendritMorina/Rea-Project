@@ -2,9 +2,10 @@ const Recommendation = require('../models/Recommendation');
 const RecommendationCard = require('../models/RecommendationCard');
 
 const { asyncHandler } = require('../middlewares');
-const { filterValues } = require('../middlewares');
 
 const { ApiError } = require('../utils/classes');
+const { filterValues } = require('../utils/functions');
+
 const { httpCodes } = require('../configs');
 
 /**
@@ -20,20 +21,18 @@ const getAll = asyncHandler(async (request, response) => {
     limit: parseInt(limit, 10),
     select: select
       ? filterValues(select, ['haveDiseaseDiagnosis', 'hasChildren', 'hasChildrenDisease', 'energySource'])
-          .split(',')
-          .join(' ')
       : 'name description',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
     populate: 'recommendationCards',
   };
 
-  // const recommendations = await Recommendation.find()
-  //   .select('name description recommendationCards')
-  //   .populate('recommendationCards');
+  const query = {
+    isDeleted: false,
+  };
 
-  const recommendations = await Recommendation.paginate({}, options);
+  const recommendations = await Recommendation.paginate(query, options);
 
-  response.status(200).json({ success: true, count: recommendations.length, data: recommendations, error: null });
+  response.status(httpCodes.OK).json({ success: true, data: { recommendations }, error: null });
 });
 
 /**
@@ -61,7 +60,6 @@ const getOne = asyncHandler(async (request, response) => {
  * @route       POST /api/recommendations.
  * @access      Private.
  */
-
 const create = asyncHandler(async (request, response, next) => {
   const userId = '625e6c53419131c236181826';
   const {
@@ -73,7 +71,6 @@ const create = asyncHandler(async (request, response, next) => {
     energySource,
     hasChildren,
     hasChildrenDisease,
-    recommendationCards,
     category,
   } = request.body;
 
@@ -92,7 +89,6 @@ const create = asyncHandler(async (request, response, next) => {
     energySource,
     hasChildren,
     hasChildrenDisease,
-    recommendationCards,
     category,
     createdBy: userId,
     createdAt: new Date(Date.now()),
@@ -104,7 +100,7 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  response.status(httpCodes.OK).json({ success: true, data: recommendation, error: null });
+  response.status(httpCodes.CREATED).json({ success: true, data: { recommendation }, error: null });
 });
 
 /**
@@ -124,7 +120,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     energySource,
     hasChildren,
     hasChildrenDisease,
-    recommendationCards,
     category,
   } = request.body;
 
@@ -152,7 +147,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     aqi,
     hasChildren,
     hasChildrenDisease,
-    recommendationCards,
     category,
     lastEditBy: userId,
     lastEditAt: new Date(Date.now()),
@@ -216,20 +210,6 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     }
   );
 
-  // const recommendationCards = await RecommendationCard.find({ reccomendation: id });
-
-  // recommendationCards.forEach(async (recommendationCard) => {
-  //   // await recommendation.updateOne({
-  //   //   $pull: { recommendationCards: recommendationCard._id },
-  //   // });
-  //   await Recommendation.findOneAndUpdate(
-  //     { _id: recommendation._id },
-  //     {
-  //       $pull: { recommendationCards: recommendationCard._id },
-  //     }
-  //   );
-  // });
-
   if (!deletedRecommendationCards) {
     next(new ApiError('Failed to delete the recommendation cards!', httpCodes.INTERNAL_ERROR));
     return;
@@ -237,34 +217,6 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 
   response.status(httpCodes.OK).json({ success: true, data: { recommendation: deletedRecommendation }, error: null });
 });
-
-// function filterValuesFromSelect(select, removeValues) {
-//   const arraySelect = select.split(',');
-//   const newArray = [];
-
-//   const newArraySelect = removeDuplicates(arraySelect);
-
-//   for (let i = 0; i < newArraySelect.length; i++) {
-//     if (notContainsValue(newArraySelect[i], removeValues)) {
-//       newArray.push(newArraySelect[i]);
-//     }
-//   }
-
-//   function removeDuplicates(arr) {
-//     return arr.filter((item, index) => arr.indexOf(item) === index);
-//   }
-
-//   function notContainsValue(selectValue, removeValues) {
-//     for (let i = 0; i < removeValues.length; i++) {
-//       if (selectValue === removeValues[i]) {
-//         return false;
-//       }
-//     }
-//     return true;
-//   }
-
-//   return newArray.join(',');
-// }
 
 // Exports of this file.
 module.exports = { getAll, getOne, create, deleteOne, updateOne };

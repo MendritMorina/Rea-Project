@@ -6,7 +6,7 @@ const router = express.Router();
 const { recommendationController } = require('../controllers');
 //const { recommendationValidator } = require('../validations');
 //const { validate } = require('../utils/functions');
-const recommendationCardRouter = require('./recommendationCard');
+const recommendationCardRouter = require('./recommendationCards');
 const { httpVerbs } = require('../configs');
 
 // Define routes here.
