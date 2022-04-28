@@ -45,7 +45,7 @@ const validator = {
   },
   updateRecommendation: {
     params: Joi.object({
-      id: Joi.string()
+      recommendationId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),
@@ -66,7 +66,7 @@ const validator = {
   },
   validateRecommendationId: {
     params: Joi.object({
-      id: Joi.string()
+      recommendationId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),
