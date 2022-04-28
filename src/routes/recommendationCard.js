@@ -13,28 +13,27 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.GET,
-    //middlewares: [validate(authValidator.signup), authController.signup],
     middlewares: [recommendationCardController.getAll],
   },
   {
-    path: '/:id',
+    path: '/:recommendationCardId',
     method: httpVerbs.GET,
     middlewares: [recommendationCardController.getOne],
   },
   {
-    path: '/create',
+    path: '/',
     method: httpVerbs.POST,
     middlewares: [recommendationCardController.create],
   },
   {
-    path: '/:id',
-    method: httpVerbs.DELETE,
-    middlewares: [recommendationCardController.deleteOne],
-  },
-  {
-    path: '/:id',
+    path: '/:recommendationCardId',
     method: httpVerbs.PUT,
     middlewares: [recommendationCardController.updateOne],
+  },
+  {
+    path: '/:recommendationCardId',
+    method: httpVerbs.DELETE,
+    middlewares: [recommendationCardController.deleteOne],
   },
 ];
 

@@ -15,7 +15,7 @@ app.use(cors());
 // Mount routers accordingly.
 app.use('/api/auth', authRouter);
 app.use('/api/recommendations', recommendationRouter);
-app.use('/api/recommendationCards', recommendationCardRouter);
+app.use('/api/recommendationcards', recommendationCardRouter);
 
 // Use error handling middleware.
 app.use(errorHandler);

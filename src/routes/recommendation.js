@@ -17,24 +17,24 @@ const routes = [
     middlewares: [recommendationController.getAll],
   },
   {
-    path: '/:id',
+    path: '/:recommendationId',
     method: httpVerbs.GET,
     middlewares: [recommendationController.getOne],
   },
   {
-    path: '/create',
+    path: '/',
     method: httpVerbs.POST,
     middlewares: [recommendationController.create],
   },
   {
-    path: '/:id',
-    method: httpVerbs.DELETE,
-    middlewares: [recommendationController.deleteOne],
-  },
-  {
-    path: '/:id',
+    path: '/:recommendationId',
     method: httpVerbs.PUT,
     middlewares: [recommendationController.updateOne],
+  },
+  {
+    path: '/:recommendationId',
+    method: httpVerbs.DELETE,
+    middlewares: [recommendationController.deleteOne],
   },
 ];
 
@@ -42,7 +42,7 @@ const routes = [
 for (const route of routes) router.route(route.path)[route.method](route.middlewares);
 
 //router.use('/:recommendationId', recommendationCardRouter);
-router.use('/:recommendationId/recommendationCards', recommendationCardRouter);
+router.use('/:recommendationId/recommendationcards', recommendationCardRouter);
 
 // Exports of this file.
 module.exports = router;
