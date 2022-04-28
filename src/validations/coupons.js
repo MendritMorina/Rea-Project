@@ -5,28 +5,24 @@ const { Joi } = require('express-validation');
 const validator = {
   getAllCoupons: {
     query: Joi.object({
-      page: Joi.number().optional().default(1),
-      limit: Joi.number().optional().default(10),
-      pagination: Joi.boolean().optional().default(true),
-      name: Joi.string().optional().default(null),
-      active: Joi.number().optional().default(null).allow(null, 0, 1),
-      deleted: Joi.number().optional().default(null).allow(null, 0, 1),
-      company: Joi.array()
-        .optional()
-        .items(
-          Joi.string()
-            .regex(/^[0-9a-fA-F]{24}$/)
-            .required()
-        )
-        .default(null),
+      // description: Joi.string().required(),
+      // discount: Joi.number().required(),
+      // expirationDate: Joi.date().raw().required(),
+      // company: Joi.array()
+      //   .optional()
+      //   .items(
+      //     Joi.string()
+      //       .regex(/^[0-9a-fA-F]{24}$/)
+      //       .required()
+      //   )
+      //   .default(null),
     }),
   },
   createCoupon: {
     body: Joi.object({
-      name: Joi.string().required(),
       description: Joi.string().required(),
       discount: Joi.number().required(),
-      // expirationDate:
+      expirationDate: Joi.date().raw().required(),
       company: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
@@ -39,10 +35,9 @@ const validator = {
         .required(),
     }),
     body: Joi.object({
-      name: Joi.string().required(),
       description: Joi.string().required(),
       discount: Joi.number().required(),
-      // expirationDate:
+      expirationDate: Joi.date().raw().required(),
       company: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),

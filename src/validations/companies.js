@@ -5,20 +5,18 @@ const { Joi } = require('express-validation');
 const validator = {
   getAllCompanies: {
     query: Joi.object({
-      page: Joi.number().optional().default(1),
-      limit: Joi.number().optional().default(10),
-      pagination: Joi.boolean().optional().default(true),
-      name: Joi.string().optional().default(null),
-      active: Joi.number().optional().default(null).allow(null, 0, 1),
-      deleted: Joi.number().optional().default(null).allow(null, 0, 1),
+      name: Joi.string().required(),
+      email: Joi.string().email().required(),
+      number: Joi.number().required(),
+      logo: Joi.any().optional(),
     }),
   },
   createCompany: {
     body: Joi.object({
       name: Joi.string().required(),
-      //email: Joi.string().required(),
-      //number: Joi.number().required(),
-      //logo:
+      email: Joi.string().email().required(),
+      number: Joi.number().required(),
+      logo: Joi.any().optional(),
     }),
   },
   updateCompany: {
@@ -29,9 +27,9 @@ const validator = {
     }),
     body: Joi.object({
       name: Joi.string().required(),
-      // email:Joi.string().required(),
-      // number:Joi.number().required(),
-      // logo:
+      email: Joi.string().email().required(),
+      number: Joi.number().required(),
+      logo: Joi.any().optional(),
     }),
   },
   validateCompanyId: {

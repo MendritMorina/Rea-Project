@@ -6,11 +6,7 @@ const router = express.Router();
 const { getAll, getOne, create, updateOne, deleteOne } = require('../controllers/coupons');
 const { getAllCoupons, createCoupon, updateCoupon, validateCouponId } = require('../validations/coupons');
 const { validate } = require('../utils/functions');
-const { authorize, protect } = require('../middlewares');
-const {
-  httpVerbs,
-  roles: { ADMIN },
-} = require('../config');
+const { httpVerbs } = require('../configs');
 
 // Define routes here.
 const routes = [
@@ -27,17 +23,17 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [authorize, protect(ADMIN), validate(createCoupon), create],
+    middlewares: [validate(createCoupon), create],
   },
   {
     path: '/:couponId',
     method: httpVerbs.PUT,
-    middlewares: [authorize, protect(ADMIN), validate(updateCoupon), updateOne],
+    middlewares: [validate(updateCoupon), updateOne],
   },
   {
     path: '/:couponId',
     method: httpVerbs.DELETE,
-    middlewares: [authorize, protect(ADMIN), validate(validateCouponId), deleteOne],
+    middlewares: [validate(validateCouponId), deleteOne],
   },
 ];
 

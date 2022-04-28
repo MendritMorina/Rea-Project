@@ -1,28 +1,13 @@
-// Imports: core node modules.
-const fs = require('fs');
-const path = require('path');
-
-// Imports: third-party packages.
-const { ObjectId } = require('mongodb');
-
 // Imports: local files.
 const { Company } = require('../models');
 const { ApiError } = require('../utils/classes');
-const { httpCodes } = require('../config');
+const { httpCodes } = require('../configs');
 const { asyncHandler } = require('../middlewares');
-const { isMode } = require('../utils/functions');
 
 /**
  * @description Get all companies.
  */
-const getAll = asyncHandler(async (request, response, next) => {
-  const { page, limit, pagination } = request.query;
-  const fields = getQueryableFields();
-  const query = getQueryFromFields(fields, request);
-
-  const companies = await Company.paginate(query, { page, limit, pagination });
-  response.status(httpCodes.OK).json({ success: true, data: { companies }, error: null });
-});
+const getAll = asyncHandler(async (request, response, next) => {});
 
 /**
  * @description Get one company.
@@ -30,7 +15,6 @@ const getAll = asyncHandler(async (request, response, next) => {
 const getOne = asyncHandler(async (request, response, next) => {
   const { companyId } = request.params;
   const company = await Company.findOne({ _id: companyId, isDeleted: false });
-  //.populate('')/////////////////////////////
   if (!company) {
     next(new ApiError('Company not found!', httpCodes.NOT_FOUND));
     return;
@@ -42,8 +26,7 @@ const getOne = asyncHandler(async (request, response, next) => {
  * @description Create new company.
  */
 const create = asyncHandler(async (request, response, next) => {
-  const { _id: userId } = request.user;
-  const { name, email, number, logo } = request.body;
+  const { name, email, number } = request.body;
 
   const companyExists = (await Company.countDocuments({ name, isDeleted: false })) > 0;
   if (companyExists) {
@@ -55,8 +38,6 @@ const create = asyncHandler(async (request, response, next) => {
     name,
     email,
     number,
-    logo,
-    createdBy: userId,
   };
   const company = await Company.create(payload);
   if (!company) {
@@ -64,38 +45,37 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  let logoResult = null;
+
+  if (request.files && Object.keys(request.files).length && request.files['logo']) {
+    logoResult = await uploadLogo(company._id, userId, request);
+    if (!logoResult.success) {
+      next(new ApiError(logoResult.error, httpCodes.INTERNAL_ERROR));
+      return;
+    }
+  }
+
+  const updatedCompany = logoResult && logoResult.success && logoResult.data ? logoResult.data.updatedCompnay : Company;
   response.status(httpCodes.CREATED).json({ success: true, data: { company: updatedCompany }, error: null });
 });
 
 /**
  * @description Update one company.
  */
+
 const updateOne = asyncHandler(async (request, response, next) => {
-  const { _id: userId } = request.user;
   const { companyId } = request.params;
-  const { name, email, number, logo, toBeDeleted } = request.body;
+  const { name, email, number } = request.body;
 
   const company = await Company.findOne({ _id: companyId, isDeleted: false });
   if (!company) {
     next(new ApiError('Company not found!', httpCodes.NOT_FOUND));
     return;
   }
-
-  if (name !== company.name) {
-    const companyExists = (await Company.countDocuments({ _id: { $ne: company._id }, name, isDeleted: false })) > 0;
-    if (companyExists) {
-      next(new ApiError('Company with given name already exists!', httpCodes.BAD_REQUEST));
-      return;
-    }
-  }
-
   const payload = {
     name,
     email,
     number,
-    logo,
-    lastEditBy: userId,
-    lastEditAt: new Date(Date.now()),
   };
   const editedCompany = await Company.findOneAndUpdate(
     { _id: company._id },
@@ -116,25 +96,12 @@ const updateOne = asyncHandler(async (request, response, next) => {
  * @description Delete one company.
  */
 const deleteOne = asyncHandler(async (request, response, next) => {
-  const { _id: userId } = request.user;
   const { companyId } = request.params;
   const company = await Company.findOne({ _id: companyId, isDeleted: false });
   if (!company) {
     next(new ApiError('Company not found!', httpCodes.NOT_FOUND));
     return;
   }
-
-  const deletedCompany = await Company.findOneAndUpdate(
-    { _id: company._id },
-    {
-      $set: {
-        isDeleted: true,
-        lastEditBy: userId,
-        lastEditAt: new Date(Date.now()),
-      },
-    },
-    { new: true }
-  );
   if (!deletedCompany) {
     next(new ApiError('Failed to delete company!', httpCodes.INTERNAL_ERROR));
     return;
@@ -145,5 +112,3 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 
 // Exports of this file.
 module.exports = { getAll, getOne, create, updateOne, deleteOne };
-
-//////////////////////////////////////////////
