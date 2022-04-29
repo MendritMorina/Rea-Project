@@ -12,7 +12,7 @@ const { asyncHandler } = require('../middlewares');
 const getAll = asyncHandler(async (request, response, next) => {});
 /**
  * @description Get company by id.
- * @route       GET /api/companies/:couponId.
+ * @route       GET /api/companies/:companyId.
  * @access      Public.
  */
 const getOne = asyncHandler(async (request, response, next) => {
@@ -69,7 +69,7 @@ const create = asyncHandler(async (request, response, next) => {
 
 /**
  * @description Update a company.
- * @route       PUT /api/companies/:couponId.
+ * @route       PUT /api/companies/:companyId.
  * @access      Private.
  */
 const updateOne = asyncHandler(async (request, response, next) => {
@@ -115,7 +115,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
 /**
  * @description Delete a coupon.
- * @route       DELETE /api/coupons/:couponId.
+ * @route       DELETE /api/companies/:companyId.
  * @access      Private.
  */
 const deleteOne = asyncHandler(async (request, response, next) => {
