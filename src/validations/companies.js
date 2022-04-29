@@ -21,7 +21,7 @@ const validator = {
   },
   updateCompany: {
     params: Joi.object({
-      CompanyId: Joi.string()
+      companyId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),

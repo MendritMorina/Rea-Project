@@ -6,11 +6,14 @@ const { asyncHandler } = require('../middlewares');
 
 /**
  * @description Get all companies.
+ * @route       GET /api/companies.
+ * @access      Public.
  */
 const getAll = asyncHandler(async (request, response, next) => {});
-
 /**
- * @description Get one company.
+ * @description Get company by id.
+ * @route       GET /api/companies/:couponId.
+ * @access      Public.
  */
 const getOne = asyncHandler(async (request, response, next) => {
   const { companyId } = request.params;
@@ -23,9 +26,12 @@ const getOne = asyncHandler(async (request, response, next) => {
 });
 
 /**
- * @description Create new company.
+ * @description Create a company.
+ * @route       POST /api/companies.
+ * @access      Private.
  */
 const create = asyncHandler(async (request, response, next) => {
+  const userId = '625e6c53419131c236181826';
   const { name, email, number } = request.body;
 
   const companyExists = (await Company.countDocuments({ name, isDeleted: false })) > 0;
@@ -38,6 +44,8 @@ const create = asyncHandler(async (request, response, next) => {
     name,
     email,
     number,
+    createdBy: userId,
+    createdAt: new Date(Date.now()),
   };
   const company = await Company.create(payload);
   if (!company) {
@@ -45,25 +53,27 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  let logoResult = null;
+  //let logoResult = null;
 
-  if (request.files && Object.keys(request.files).length && request.files['logo']) {
-    logoResult = await uploadLogo(company._id, userId, request);
-    if (!logoResult.success) {
-      next(new ApiError(logoResult.error, httpCodes.INTERNAL_ERROR));
-      return;
-    }
-  }
+  //if (request.files && Object.keys(request.files).length && request.files['logo']) {
+  //  logoResult = await uploadLogo(company._id, userId, request);
+  //  if (!logoResult.success) {
+  //    next(new ApiError(logoResult.error, httpCodes.INTERNAL_ERROR));
+  //    return;
+  //  }
+  //}
+  //const updatedcompany = logoResult && logoResult.success && logoResult.data ? logoResult.data.updatedcompnay : company;
 
-  const updatedCompany = logoResult && logoResult.success && logoResult.data ? logoResult.data.updatedCompnay : Company;
-  response.status(httpCodes.CREATED).json({ success: true, data: { company: updatedCompany }, error: null });
+  response.status(httpCodes.CREATED).json({ success: true, data: { company }, error: null });
 });
 
 /**
- * @description Update one company.
+ * @description Update a company.
+ * @route       PUT /api/companies/:couponId.
+ * @access      Private.
  */
-
 const updateOne = asyncHandler(async (request, response, next) => {
+  const userId = '625e6c53419131c236181826';
   const { companyId } = request.params;
   const { name, email, number } = request.body;
 
@@ -72,11 +82,22 @@ const updateOne = asyncHandler(async (request, response, next) => {
     next(new ApiError('Company not found!', httpCodes.NOT_FOUND));
     return;
   }
+
+  if (name !== company.name) {
+    const companyExists = (await Company.countDocuments({ _id: { $ne: id }, name, isDeleted: false })) > 0;
+    if (companyExists) {
+      next(new ApiError('Company with given name already exists!', httpCodes.BAD_REQUEST));
+      return;
+    }
+  }
   const payload = {
     name,
     email,
     number,
+    lastEditBy: userId,
+    lastEditAt: new Date(Date.now()),
   };
+
   const editedCompany = await Company.findOneAndUpdate(
     { _id: company._id },
     {
@@ -89,19 +110,34 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  response.status(httpCodes.CREATED).json({ success: true, data: { company: updatedCompany }, error: null });
+  response.status(httpCodes.CREATED).json({ success: true, data: { company: editedCompany }, error: null });
 });
 
 /**
- * @description Delete one company.
+ * @description Delete a coupon.
+ * @route       DELETE /api/coupons/:couponId.
+ * @access      Private.
  */
 const deleteOne = asyncHandler(async (request, response, next) => {
+  const userId = '625e6c53419131c236181826';
   const { companyId } = request.params;
   const company = await Company.findOne({ _id: companyId, isDeleted: false });
   if (!company) {
     next(new ApiError('Company not found!', httpCodes.NOT_FOUND));
     return;
   }
+
+  const deletedCompany = await Company.findOneAndUpdate(
+    { _id: company._id },
+    {
+      $set: {
+        isDeleted: true,
+        lastEditBy: userId,
+        lastEditAt: new Date(Date.now()),
+      },
+    },
+    { new: true }
+  );
   if (!deletedCompany) {
     next(new ApiError('Failed to delete company!', httpCodes.INTERNAL_ERROR));
     return;

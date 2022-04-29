@@ -8,10 +8,6 @@ const Base = require('./Base');
 
 // Coupon Schema that is used to represent single Coupon in our API.
 const CouponSchema = new mongoose.Schema({
-  description: {
-    type: String,
-    required: true,
-  },
   discount: {
     type: Number,
     required: true,

@@ -3,9 +3,9 @@ const express = require('express');
 const router = express.Router();
 
 // Imports: local files.
-const { getAll, getOne, create, updateOne, deleteOne } = require('../controllers/companies');
-const { getAllCompanies, createCompany, updateCompany, validateCompanyId } = require('../validations/companies');
-const { validate } = require('../utils/functions');
+const { companyController } = require('../controllers');
+//const { companyValidator } = require('../validations');
+//const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
 
 // Define routes here.
@@ -13,27 +13,27 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.GET,
-    middlewares: [validate(getAllCompanies), getAll],
+    middlewares: [companyController.getAll],
   },
   {
     path: '/:companyId',
     method: httpVerbs.GET,
-    middlewares: [validate(validateCompanyId), getOne],
+    middlewares: [companyController.getOne],
   },
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [validate(createCompany), create],
+    middlewares: [companyController.create],
   },
   {
     path: '/:companyId',
     method: httpVerbs.PUT,
-    middlewares: [validate(updateCompany), updateOne],
+    middlewares: [companyController.updateOne],
   },
   {
     path: '/:companyId',
     method: httpVerbs.DELETE,
-    middlewares: [validate(validateCompanyId), deleteOne],
+    middlewares: [companyController.deleteOne],
   },
 ];
 

@@ -3,9 +3,9 @@ const express = require('express');
 const router = express.Router();
 
 // Imports: local files.
-const { getAll, getOne, create, updateOne, deleteOne } = require('../controllers/coupons');
-const { getAllCoupons, createCoupon, updateCoupon, validateCouponId } = require('../validations/coupons');
-const { validate } = require('../utils/functions');
+const { couponController } = require('../controllers');
+//const { couponValidator } = require('../validations');
+//const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
 
 // Define routes here.
@@ -13,27 +13,27 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.GET,
-    middlewares: [validate(getAllCoupons), getAll],
+    middlewares: [couponController.getAll],
   },
   {
     path: '/:couponId',
     method: httpVerbs.GET,
-    middlewares: [validate(validateCouponId), getOne],
+    middlewares: [couponController.getOne],
   },
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [validate(createCoupon), create],
+    middlewares: [couponController.create],
   },
   {
     path: '/:couponId',
     method: httpVerbs.PUT,
-    middlewares: [validate(updateCoupon), updateOne],
+    middlewares: [couponController.updateOne],
   },
   {
     path: '/:couponId',
     method: httpVerbs.DELETE,
-    middlewares: [validate(validateCouponId), deleteOne],
+    middlewares: [couponController.deleteOne],
   },
 ];
 
