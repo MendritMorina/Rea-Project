@@ -202,7 +202,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const availableValues = ['small', 'medium', 'large', 'thumbnail'];
   const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
 
-  if (toBeDeleted.length > 0) {
+  if (toBeDeletedinfo.length > 0) {
     availableValues.forEach((value) => {
       if (toBeDeletedinfo.includes(value)) {
         editedRecommendationCard[value] = null;
