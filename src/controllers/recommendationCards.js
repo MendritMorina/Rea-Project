@@ -104,65 +104,25 @@ const create = asyncHandler(async (request, response, next) => {
     }
   );
 
-  let smallResult = null;
-  let mediumResult = null;
-  let largeResult = null;
-  let thumbnailResult = null;
+  console.log(Object.keys(request.files));
 
-  if (request.files && Object.keys(request.files).length && request.files['small']) {
-    smallResult = await uploadFile(recommendationCard._id, userId, request, 'small');
-    if (!smallResult.success) {
-      next(new ApiError(smallResult.error, httpCodes.INTERNAL_ERROR));
-      return;
-    }
+  await fileResult(
+    recommendationCard._id,
+    userId,
+    request,
+    ['small', 'medium', 'large', 'thumbnail']
+    //['medium', 'large', 'thumbnail']
+    // Object.keys(request.files)
+  );
+
+  const updatedRecommendationCard = await RecommendationCard.findOne({ _id: recommendationCard._id, isDeleted: false });
+
+  if (!updatedRecommendationCard) {
+    next(new ApiError('RecommendationCard not found!', httpCodes.NOT_FOUND));
+    return;
   }
 
-  if (request.files && Object.keys(request.files).length && request.files['medium']) {
-    mediumResult = await uploadFile(recommendationCard._id, userId, request, 'medium');
-    if (!mediumResult.success) {
-      next(new ApiError(mediumResult.error, httpCodes.INTERNAL_ERROR));
-      return;
-    }
-  }
-
-  if (request.files && Object.keys(request.files).length && request.files['large']) {
-    largeResult = await uploadFile(recommendationCard._id, userId, request, 'large');
-    if (!largeResult.success) {
-      next(new ApiError(largeResult.error, httpCodes.INTERNAL_ERROR));
-      return;
-    }
-  }
-
-  if (request.files && Object.keys(request.files).length && request.files['thumbnail']) {
-    thumbnailResult = await uploadFile(recommendationCard._id, userId, request, 'thumbnail');
-    if (!thumbnailResult.success) {
-      next(new ApiError(thumbnailResult.error, httpCodes.INTERNAL_ERROR));
-      return;
-    }
-  }
-
-  // let updatedRecommendationCard = attachFileResultToRecommendationCard(
-  //   smallResult,
-  //   mediumResult,
-  //   largeResult,
-  //   thumbnailResult,
-  //   recommendationCard
-  // );
-
-  const updatedRecommendationCard =
-    (smallResult && smallResult.success) ||
-    (mediumResult && mediumResult.success) ||
-    (largeResult && largeResult.success) ||
-    (thumbnailResult && thumbnailResult.success)
-      ? await RecommendationCard.findOne({ _id: recommendationCard._id })
-      : {};
-
-  return response.status(httpCodes.CREATED).json({
-    success: true,
-    //data: { updatedRecommendation, updatedRecommendationCard },
-    data: { updatedRecommendation, updatedRecommendationCard },
-    error: null,
-  });
+  return response.status(200).json({ success: true, data: { updatedRecommendationCard }, error: null });
 });
 
 /**
@@ -173,7 +133,7 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const userId = '625e6c53419131c236181826';
   const { recommendationCardId } = request.params;
-  const { name, description, recommendationId } = request.body;
+  const { name, description, recommendationId, toBeDeleted } = request.body;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false });
 
@@ -238,9 +198,41 @@ const updateOne = asyncHandler(async (request, response, next) => {
     );
   }
 
+  // toBeDeleted array of values
+  const availableValues = ['small', 'medium', 'large', 'thumbnail'];
+  const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
+
+  if (toBeDeleted.length > 0) {
+    availableValues.forEach((value) => {
+      if (toBeDeletedinfo.includes(value)) {
+        editedRecommendationCard[value] = null;
+      }
+    });
+    await editedRecommendationCard.save();
+  }
+
+  await fileResult(
+    editedRecommendationCard._id,
+    userId,
+    request,
+    ['small', 'medium', 'large', 'thumbnail']
+    // ['medium', 'large', 'thumbnail']
+    // Object.keys(request.files)
+  );
+
+  const editedFileRecommendationCard = await RecommendationCard.findOne({
+    _id: editedRecommendationCard._id,
+    isDeleted: false,
+  });
+
+  if (!editedFileRecommendationCard) {
+    next(new ApiError('Edited File RecommendationCard not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
   response
     .status(httpCodes.OK)
-    .json({ success: true, data: { recommendationCard: editedRecommendationCard }, error: null });
+    .json({ success: true, data: { recommendationCard: editedFileRecommendationCard }, error: null });
 });
 
 /**
@@ -299,41 +291,45 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     .json({ success: true, data: { recommendationCard: deletedRecommendationCard }, error: null });
 });
 
-const attachFileResultToRecommendationCard = (
-  smallResult,
-  mediumResult,
-  largeResult,
-  thumbnailResult,
-  recommendationCard
-) => {
-  let updatedRecommendationCard = null;
+async function fileResult(fileCard, userId, req, fileTypes) {
+  if (req.files && Object.keys(req.files).length) {
+    let resultObj = {
+      smallResult: null,
+      mediumResult: null,
+      largeResult: null,
+      thumbnailResult: null,
+    };
+    await Promise.all(
+      fileTypes.map(async (fileType) => {
+        if (req.files[fileType]) {
+          try {
+            const fileUploadResult = await uploadFile(fileCard, userId, req, fileType);
 
-  if (smallResult && smallResult.success) {
-    updatedRecommendationCard =
-      smallResult && smallResult.success && smallResult.data
-        ? smallResult.data.updatedRecommendationCard
-        : recommendationCard;
-  } else if (mediumResult && mediumResult.success) {
-    updatedRecommendationCard =
-      mediumResult && mediumResult.success && mediumResult.data
-        ? mediumResult.data.updatedRecommendationCard
-        : recommendationCard;
-  } else if (largeResult && largeResult.success) {
-    updatedRecommendationCard =
-      largeResult && largeResult.success && largeResult.data
-        ? largeResult.data.updatedRecommendationCard
-        : recommendationCard;
-  } else if (thumbnailResult && thumbnailResult.success) {
-    updatedRecommendationCard =
-      thumbnailResult && thumbnailResult.success && thumbnailResult.data
-        ? thumbnailResult.data.updatedRecommendationCard
-        : recommendationCard;
-  } else {
-    updatedRecommendationCard = recommendationCard;
+            if (fileType === 'small') {
+              resultObj['smallResult'] = fileUploadResult;
+            } else if (fileType === 'medium') {
+              resultObj['mediumResult'] = fileUploadResult;
+            } else if (fileType === 'large') {
+              resultObj['largeResult'] = fileUploadResult;
+            } else if (fileType === 'thumbnail') {
+              resultObj['thumbnailResult'] = fileUploadResult;
+            }
+
+            if (!fileUploadResult.success) {
+              next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+              return;
+            }
+          } catch (err) {
+            next(new ApiError(err.message, httpCodes.INTERNAL_ERROR));
+            return;
+          }
+        }
+      })
+    );
+
+    return resultObj;
   }
-
-  return updatedRecommendationCard;
-};
+}
 
 const uploadFile = async (recommendationCardId, userId, request, fileType) => {
   if (!request.files[fileType]) {
@@ -407,8 +403,6 @@ const uploadFile = async (recommendationCardId, userId, request, fileType) => {
   if (!updatedRecommendationCard) {
     return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
   }
-
-  console.log(updatedRecommendationCard);
 
   return { success: true, data: { updatedRecommendationCard }, error: null, code: null };
 };
