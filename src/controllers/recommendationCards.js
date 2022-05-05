@@ -110,9 +110,9 @@ const create = asyncHandler(async (request, response, next) => {
     recommendationCard._id,
     userId,
     request,
-    ['small', 'medium', 'large', 'thumbnail']
+    //['small', 'medium', 'large', 'thumbnail']
     //['medium', 'large', 'thumbnail']
-    // Object.keys(request.files)
+    Object.keys(request.files)
   );
 
   const updatedRecommendationCard = await RecommendationCard.findOne({ _id: recommendationCard._id, isDeleted: false });
@@ -215,9 +215,9 @@ const updateOne = asyncHandler(async (request, response, next) => {
     editedRecommendationCard._id,
     userId,
     request,
-    ['small', 'medium', 'large', 'thumbnail']
+    //['small', 'medium', 'large', 'thumbnail']
     // ['medium', 'large', 'thumbnail']
-    // Object.keys(request.files)
+    Object.keys(request.files)
   );
 
   const editedFileRecommendationCard = await RecommendationCard.findOne({
@@ -291,7 +291,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     .json({ success: true, data: { recommendationCard: deletedRecommendationCard }, error: null });
 });
 
-async function fileResult(fileCard, userId, req, fileTypes) {
+async function fileResult(recommendationCard, userId, req, fileTypes) {
   if (req.files && Object.keys(req.files).length) {
     let resultObj = {
       smallResult: null,
@@ -303,7 +303,7 @@ async function fileResult(fileCard, userId, req, fileTypes) {
       fileTypes.map(async (fileType) => {
         if (req.files[fileType]) {
           try {
-            const fileUploadResult = await uploadFile(fileCard, userId, req, fileType);
+            const fileUploadResult = await uploadFile(recommendationCard, userId, req, fileType);
 
             if (fileType === 'small') {
               resultObj['smallResult'] = fileUploadResult;
@@ -320,7 +320,7 @@ async function fileResult(fileCard, userId, req, fileTypes) {
               return;
             }
           } catch (err) {
-            next(new ApiError(err.message, httpCodes.INTERNAL_ERROR));
+            next(new ApiError(err.message + ' inside here', httpCodes.INTERNAL_ERROR));
             return;
           }
         }
