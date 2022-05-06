@@ -16,24 +16,71 @@ const { httpCodes } = require('../configs');
 const getAll = asyncHandler(async (request, response) => {
   const { page, limit, select, sort } = request.query;
 
+  // We get it from the user when the user log's in
+  const userInfo = {
+    age: '20-30',
+    gender: 'male',
+    haveDiseaseDiagnosis: ['N'],
+    energySource: ['B'],
+    hasChildren: true,
+    hasChildrenDisease: ['V'],
+  };
+
+  // if (userInfo.hasChildren) {
+  //   userInfo.hasChildrenDisease = ['V'];
+  // }
+
+  const query = {
+    isDeleted: false,
+    // At least one value in array matches in either field
+    $or: [
+      { haveDiseaseDiagnosis: { $in: userInfo.haveDiseaseDiagnosis } },
+      { energySource: { $in: userInfo.energySource } },
+      { hasChildrenDisease: { $in: userInfo.hasChildrenDisease } },
+    ],
+  };
+
   const options = {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
     select: select
-      ? filterValues(select, ['haveDiseaseDiagnosis', 'hasChildren', 'hasChildrenDisease', 'energySource'])
+      ? //? filterValues(select, ['haveDiseaseDiagnosis', 'hasChildren', 'hasChildrenDisease', 'energySource'])
+        filterValues(select, [])
       : 'name description',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
     populate: 'recommendationCards',
   };
-
-  const query = {
-    isDeleted: false,
-  };
-
   const recommendations = await Recommendation.paginate(query, options);
 
   response.status(httpCodes.OK).json({ success: true, data: { recommendations }, error: null });
 });
+
+// /**
+//  * @description Get all recommendations.
+//  * @route       GET /api/recommendations.
+//  * @access      Public.
+//  */
+//  const getAll = asyncHandler(async (request, response) => {
+//   const { page, limit, select, sort } = request.query;
+
+//   const options = {
+//     page: parseInt(page, 10),
+//     limit: parseInt(limit, 10),
+//     select: select
+//       ? filterValues(select, ['haveDiseaseDiagnosis', 'hasChildren', 'hasChildrenDisease', 'energySource'])
+//       : 'name description',
+//     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
+//     populate: 'recommendationCards',
+//   };
+
+//   const query = {
+//     isDeleted: false,
+//   };
+
+//   const recommendations = await Recommendation.paginate(query, options);
+
+//   response.status(httpCodes.OK).json({ success: true, data: { recommendations }, error: null });
+// });
 
 /**
  * @description Get recommandation by id.

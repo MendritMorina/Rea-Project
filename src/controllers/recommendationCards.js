@@ -55,7 +55,7 @@ const getOne = asyncHandler(async (request, response) => {
   const { recommendationCardId } = request.params;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false })
-    .select('name description')
+    //.select('name description')
     .populate('recommendation');
 
   if (!recommendationCard) {
@@ -103,8 +103,6 @@ const create = asyncHandler(async (request, response, next) => {
       $push: { recommendationCards: recommendationCard._id },
     }
   );
-
-  console.log(Object.keys(request.files));
 
   await fileResult(
     recommendationCard._id,
@@ -211,13 +209,29 @@ const updateOne = asyncHandler(async (request, response, next) => {
     await editedRecommendationCard.save();
   }
 
+  const fileTypes = request.files ? Object.keys(request.files) : [];
+
+  // Check if the file name is same in recommendation Card
+  if (fileTypes) {
+    fileTypes.forEach((fileType) => {
+      if (
+        editedRecommendationCard[fileType] &&
+        request.files[fileType].name === editedRecommendationCard[fileType].name
+      ) {
+        next(new ApiError('RecommendationCard file has same name!', httpCodes.BAD_REQUEST));
+        return;
+      }
+    });
+  }
+
   await fileResult(
     editedRecommendationCard._id,
     userId,
     request,
     //['small', 'medium', 'large', 'thumbnail']
     // ['medium', 'large', 'thumbnail']
-    Object.keys(request.files)
+    //Object.keys(request.files)
+    fileTypes
   );
 
   const editedFileRecommendationCard = await RecommendationCard.findOne({
@@ -320,7 +334,7 @@ async function fileResult(recommendationCard, userId, req, fileTypes) {
               return;
             }
           } catch (err) {
-            next(new ApiError(err.message + ' inside here', httpCodes.INTERNAL_ERROR));
+            next(new ApiError(err.message, httpCodes.INTERNAL_ERROR));
             return;
           }
         }

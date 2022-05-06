@@ -9,17 +9,25 @@ const validator = {
       limit: Joi.number().optional().default(10),
       pagination: Joi.boolean().optional().default(true),
       name: Joi.string().optional().default(null),
-      active: Joi.number().optional().default(null).allow(null, 0, 1),
-      deleted: Joi.number().optional().default(null).allow(null, 0, 1),
-      type: Joi.array()
-        .optional()
-        .items(
-          Joi.string()
-            .regex(/^[0-9a-fA-F]{24}$/)
-            .required()
-        )
-        .default(null),
-      recommendation: Joi.array()
+      //   active: Joi.number().optional().default(null).allow(null, 0, 1),
+      //   deleted: Joi.number().optional().default(null).allow(null, 0, 1),
+      //   type: Joi.array()
+      //     .optional()
+      //     .items(
+      //       Joi.string()
+      //         .regex(/^[0-9a-fA-F]{24}$/)
+      //         .required()
+      //     )
+      //     .default(null),
+      //   recommendation: Joi.array()
+      //     .optional()
+      //     .items(
+      //       Joi.string()
+      //         .regex(/^[0-9a-fA-F]{24}$/)
+      //         .required()
+      //     )
+      //     .default(null),
+      recommendationCards: Joi.array()
         .optional()
         .items(
           Joi.string()
@@ -39,7 +47,7 @@ const validator = {
       energySource: Joi.array().optional().items(Joi.string().optional()).default(null),
       hasChildren: Joi.boolean().optional().default(false),
       hasChildrenDisease: Joi.array().optional().items(Joi.string().required()).default(null),
-      recommendationCards: Joi.array().optional().items(Joi.string().required()).default(null),
+      //recommendationCards: Joi.array().optional().items(Joi.string().required()).default(null),
       category: Joi.string().required(),
     }),
   },
@@ -59,7 +67,7 @@ const validator = {
         energySource: Joi.array().optional().items(Joi.string().required()).default(null),
         hasChildren: Joi.boolean().optional().default(false),
         hasChildrenDisease: Joi.array().optional().items(Joi.string().required()).default(null),
-        recommendationCards: Joi.array().optional().items(Joi.string().required()).default(null),
+        //recommendationCards: Joi.array().optional().items(Joi.string().required()).default(null),
         category: Joi.string().required(),
       }),
     }),
