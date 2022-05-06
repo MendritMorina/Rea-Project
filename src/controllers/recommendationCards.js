@@ -104,13 +104,16 @@ const create = asyncHandler(async (request, response, next) => {
     }
   );
 
+  const fileTypes = request.files ? Object.keys(request.files) : [];
+
   await fileResult(
     recommendationCard._id,
     userId,
     request,
     //['small', 'medium', 'large', 'thumbnail']
     //['medium', 'large', 'thumbnail']
-    Object.keys(request.files)
+    //Object.keys(request.files) // doesn't work if you don't send file returns error
+    fileTypes
   );
 
   const updatedRecommendationCard = await RecommendationCard.findOne({ _id: recommendationCard._id, isDeleted: false });
