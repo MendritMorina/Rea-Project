@@ -227,15 +227,45 @@ const updateOne = asyncHandler(async (request, response, next) => {
     });
   }
 
-  await fileResult(
+  const fileResults = await fileResult(
     editedRecommendationCard._id,
     userId,
     request,
     //['small', 'medium', 'large', 'thumbnail']
     // ['medium', 'large', 'thumbnail']
-    //Object.keys(request.files)
     fileTypes
   );
+
+  //console.log(fileResults);
+
+  if (fileResults.errors) {
+    next(new ApiError(fileResults.errors, httpCodes.INTERNAL_ERROR));
+    return;
+  }
+
+  // if (fileResults.errors) {
+  //   next(new ApiError(fileResults.errors.message, httpCodes.INTERNAL_ERROR));
+  //   return;
+  // }
+
+  for (let key in fileResults) {
+    const fileUploadResult = fileResults[key];
+    if (fileUploadResult && !fileUploadResult.success) {
+      next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+      return;
+    }
+  }
+
+  // Object.entries(fileResults).forEach((fileResult) => {
+  //   console.log(fileResult);
+  // });
+
+  // fileResults.forEach((fileUploadResult) => {
+  //   if (!fileUploadResult.success) {
+  //     next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+  //     return;
+  //   }
+  // });
 
   const editedFileRecommendationCard = await RecommendationCard.findOne({
     _id: editedRecommendationCard._id,
@@ -315,6 +345,7 @@ async function fileResult(recommendationCard, userId, req, fileTypes) {
       mediumResult: null,
       largeResult: null,
       thumbnailResult: null,
+      //errors: null,
     };
     await Promise.all(
       fileTypes.map(async (fileType) => {
@@ -332,13 +363,13 @@ async function fileResult(recommendationCard, userId, req, fileTypes) {
               resultObj['thumbnailResult'] = fileUploadResult;
             }
 
-            if (!fileUploadResult.success) {
-              next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
-              return;
-            }
+            // if (!fileUploadResult.success) {
+            //   //next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+            //   return resultObj;
+            //   //return;
+            // }
           } catch (err) {
-            next(new ApiError(err.message, httpCodes.INTERNAL_ERROR));
-            return;
+            //resultObj.errors = err;
           }
         }
       })
@@ -347,6 +378,44 @@ async function fileResult(recommendationCard, userId, req, fileTypes) {
     return resultObj;
   }
 }
+
+// async function fileResult(recommendationCard, userId, req, fileTypes, next) {
+//   if (req.files && Object.keys(req.files).length) {
+//     let resultObj = {
+//       smallResult: null,
+//       mediumResult: null,
+//       largeResult: null,
+//       thumbnailResult: null,
+//     };
+//     await Promise.all(
+//       fileTypes.map(async (fileType) => {
+//         if (req.files[fileType]) {
+//           try {
+//             const fileUploadResult = await uploadFile(recommendationCard, userId, req, fileType);
+
+//             if (fileType === 'small') {
+//               resultObj['smallResult'] = fileUploadResult;
+//             } else if (fileType === 'medium') {
+//               resultObj['mediumResult'] = fileUploadResult;
+//             } else if (fileType === 'large') {
+//               resultObj['largeResult'] = fileUploadResult;
+//             } else if (fileType === 'thumbnail') {
+//               resultObj['thumbnailResult'] = fileUploadResult;
+//             }
+
+//             if (!fileUploadResult.success) {
+//               next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+//             }
+//           } catch (err) {
+//             next(new ApiError(err.message, httpCodes.INTERNAL_ERROR));
+//           }
+//         }
+//       })
+//     );
+
+//     return resultObj;
+//   }
+// }
 
 const uploadFile = async (recommendationCardId, userId, request, fileType) => {
   if (!request.files[fileType]) {
