@@ -5,10 +5,8 @@ const { Joi } = require('express-validation');
 const validator = {
   getAllCompanies: {
     query: Joi.object({
-      name: Joi.string().required(),
-      email: Joi.string().email().required(),
-      number: Joi.number().required(),
-      logo: Joi.any().optional(),
+      page: Joi.number().optional().default(1),
+      limit: Joi.number().optional().default(10),
     }),
   },
   createCompany: {

@@ -7,14 +7,30 @@ const { asyncHandler } = require('../middlewares');
 /**
  * @description Get all coupons.
  * @route       GET /api/coupons.
- * @access      Public.
+ * @access      Public
  */
-const getAll = asyncHandler(async (request, response, next) => {});
+const getAll = asyncHandler(async (request, response) => {
+  const { page, limit } = request.query;
+
+  const options = {
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
+  };
+
+  const query = {
+    isDeleted: false,
+  };
+
+  const coupons = await Coupon.paginate(query, options);
+
+  response.status(httpCodes.OK).json({ success: true, data: { coupons }, error: null });
+});
 
 /**
  * @description Get coupon by id.
  * @route       GET /api/coupons/:couponId.
  * @access      Public.
+ *
  */
 const getOne = asyncHandler(async (request, response, next) => {
   const { couponId } = request.params;
@@ -35,9 +51,10 @@ const getOne = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const userId = '625e6c53419131c236181826';
   const { discount, expirationDate } = request.body;
-  //const recommendationExists = (await Recommendation.countDocuments({ name, isDeleted: false })) > 0;
-  //if (recommendationExists) {
-  //  next(new ApiError('Recommendation with given name already exists!', httpCodes.BAD_REQUEST));
+
+  //const couponExists = (await Coupon.countDocuments({ name, isDeleted: false })) > 0;
+  //if (couponExists) {
+  //  next(new ApiError('Coupon with given name already exists!', httpCodes.BAD_REQUEST));
   //  return;
   //}
 
@@ -69,18 +86,9 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
-    next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
+    next(new ApiError('Coupon not found!', httpCodes.NOT_FOUND));
     return;
   }
-
-  //if (name !== recommendation.name) {
-  //  const recommendationExists =
-  //    (await Recommendation.countDocuments({ _id: { $ne: id }, name, isDeleted: false })) > 0;
-  //  if (recommendationExists) {
-  //    next(new ApiError('Recommendation with given name already exists!', httpCodes.BAD_REQUEST));
-  //    return;
-  //  }
-  //}
 
   const payload = {
     discount,
@@ -96,7 +104,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     { new: true }
   );
   if (!editedCoupon) {
-    next(new ApiError('Failed to update recommendation!', httpCodes.INTERNAL_ERROR));
+    next(new ApiError('Failed to update coupon!', httpCodes.INTERNAL_ERROR));
     return;
   }
 

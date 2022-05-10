@@ -5,17 +5,8 @@ const { Joi } = require('express-validation');
 const validator = {
   getAllCoupons: {
     query: Joi.object({
-      // description: Joi.string().required(),
-      // discount: Joi.number().required(),
-      // expirationDate: Joi.date().raw().required(),
-      // company: Joi.array()
-      //   .optional()
-      //   .items(
-      //     Joi.string()
-      //       .regex(/^[0-9a-fA-F]{24}$/)
-      //       .required()
-      //   )
-      //   .default(null),
+      page: Joi.number().optional().default(1),
+      limit: Joi.number().optional().default(10),
     }),
   },
   createCoupon: {

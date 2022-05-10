@@ -9,7 +9,22 @@ const { asyncHandler } = require('../middlewares');
  * @route       GET /api/companies.
  * @access      Public.
  */
-const getAll = asyncHandler(async (request, response, next) => {});
+const getAll = asyncHandler(async (request, response) => {
+  const { page, limit } = request.query;
+
+  const options = {
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
+  };
+
+  const query = {
+    isDeleted: false,
+  };
+
+  const companies = await Company.paginate(query, options);
+
+  response.status(httpCodes.OK).json({ success: true, data: { companies }, error: null });
+});
 /**
  * @description Get company by id.
  * @route       GET /api/companies/:companyId.
@@ -84,7 +99,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   if (name !== company.name) {
-    const companyExists = (await Company.countDocuments({ _id: { $ne: id }, name, isDeleted: false })) > 0;
+    const companyExists = (await Company.countDocuments({ _id: { $ne: company._id }, name, isDeleted: false })) > 0;
     if (companyExists) {
       next(new ApiError('Company with given name already exists!', httpCodes.BAD_REQUEST));
       return;
@@ -114,7 +129,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
 });
 
 /**
- * @description Delete a coupon.
+ * @description Delete a company.
  * @route       DELETE /api/companies/:companyId.
  * @access      Private.
  */
