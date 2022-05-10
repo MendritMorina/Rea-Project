@@ -9,32 +9,8 @@ const validator = {
       limit: Joi.number().optional().default(10),
       pagination: Joi.boolean().optional().default(true),
       name: Joi.string().optional().default(null),
-      //   active: Joi.number().optional().default(null).allow(null, 0, 1),
-      //   deleted: Joi.number().optional().default(null).allow(null, 0, 1),
-      //   type: Joi.array()
-      //     .optional()
-      //     .items(
-      //       Joi.string()
-      //         .regex(/^[0-9a-fA-F]{24}$/)
-      //         .required()
-      //     )
-      //     .default(null),
-      //   recommendation: Joi.array()
-      //     .optional()
-      //     .items(
-      //       Joi.string()
-      //         .regex(/^[0-9a-fA-F]{24}$/)
-      //         .required()
-      //     )
-      //     .default(null),
-      recommendationCards: Joi.array()
-        .optional()
-        .items(
-          Joi.string()
-            .regex(/^[0-9a-fA-F]{24}$/)
-            .required()
-        )
-        .default(null),
+      active: Joi.number().optional().default(null).allow(null, 0, 1),
+      deleted: Joi.number().optional().default(null).allow(null, 0, 1),
     }),
   },
   createRecommendation: {

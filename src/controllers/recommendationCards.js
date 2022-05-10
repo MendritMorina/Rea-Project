@@ -113,8 +113,6 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  let errorInfo = '';
-
   for (const fileType of fileTypes) {
     if (!requiredTypes.includes(fileType)) {
       next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
