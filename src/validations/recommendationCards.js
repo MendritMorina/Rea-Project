@@ -5,7 +5,7 @@ const { Joi } = require('express-validation');
 const validator = {
   getAllRecommendationCards: {
     params: Joi.object({
-      recommendation: Joi.string()
+      recommendationId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),
@@ -14,9 +14,6 @@ const validator = {
       limit: Joi.number().optional().default(10),
       pagination: Joi.boolean().optional().default(true),
       name: Joi.string().optional().default(null),
-      // recommendation: Joi.string()
-      //   .regex(/^[0-9a-fA-F]{24}$/)
-      //   .required(),
       active: Joi.number().optional().default(null).allow(null, 0, 1),
       deleted: Joi.number().optional().default(null).allow(null, 0, 1),
       recommendation: Joi.array()
