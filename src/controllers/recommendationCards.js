@@ -106,6 +106,22 @@ const create = asyncHandler(async (request, response, next) => {
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
 
+  const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
+
+  if (fileTypes.length !== 4) {
+    next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  let errorInfo = '';
+
+  for (const fileType of fileTypes) {
+    if (!requiredTypes.includes(fileType)) {
+      next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+      return;
+    }
+  }
+
   const fileResults = await fileResult(
     recommendationCard._id,
     userId,
@@ -222,9 +238,23 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
 
+  const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
+
+  if (fileTypes.length !== 4) {
+    next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  fileTypes.forEach((fileType) => {
+    if (!requiredTypes.includes(fileType)) {
+      next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+      return;
+    }
+  });
+
   // Check if the file name is same in recommendation Card
   if (fileTypes) {
-    fileTypes.forEach((fileType) => {
+    for (const fileType of fileTypes) {
       if (
         editedRecommendationCard[fileType] &&
         request.files[fileType].name === editedRecommendationCard[fileType].name
@@ -232,8 +262,20 @@ const updateOne = asyncHandler(async (request, response, next) => {
         next(new ApiError('RecommendationCard file has same name!', httpCodes.BAD_REQUEST));
         return;
       }
-    });
+    }
   }
+
+  // if (fileTypes) {
+  //   fileTypes.forEach((fileType) => {
+  //     if (
+  //       editedRecommendationCard[fileType] &&
+  //       request.files[fileType].name === editedRecommendationCard[fileType].name
+  //     ) {
+  //       next(new ApiError('RecommendationCard file has same name!', httpCodes.BAD_REQUEST));
+  //       return;
+  //     }
+  //   });
+  // }
 
   const fileResults = await fileResult(
     editedRecommendationCard._id,
@@ -244,11 +286,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     fileTypes
   );
 
-  // if (fileResults.errors) {
-  //   next(new ApiError(fileResults.errors, httpCodes.INTERNAL_ERROR));
-  //   return;
-  // }
-
   for (let key in fileResults) {
     const fileUploadResult = fileResults[key];
     if (fileUploadResult && !fileUploadResult.success) {
@@ -256,17 +293,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
       return;
     }
   }
-
-  // Object.entries(fileResults).forEach((fileResult) => {
-  //   console.log(fileResult);
-  // });
-
-  // fileResults.forEach((fileUploadResult) => {
-  //   if (!fileUploadResult.success) {
-  //     next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
-  //     return;
-  //   }
-  // });
 
   const editedFileRecommendationCard = await RecommendationCard.findOne({
     _id: editedRecommendationCard._id,
@@ -343,11 +369,11 @@ async function fileResult(recommendationCard, userId, req, fileTypes) {
   if (req.files && Object.keys(req.files).length) {
     const resultObj = {};
 
-    for (fileType of fileTypes) {
+    for (const fileType of fileTypes) {
       resultObj[`${fileType}Result`] = null;
     }
 
-    for (fileType of fileTypes) {
+    for (const fileType of fileTypes) {
       if (req.files[fileType]) {
         const fileUploadResult = await uploadFile(recommendationCard, userId, req, fileType);
         resultObj[`${fileType}Result`] = fileUploadResult;
@@ -357,85 +383,6 @@ async function fileResult(recommendationCard, userId, req, fileTypes) {
     return resultObj;
   }
 }
-
-// async function fileResult(recommendationCard, userId, req, fileTypes) {
-//   if (req.files && Object.keys(req.files).length) {
-//     let resultObj = {
-//       smallResult: null,
-//       mediumResult: null,
-//       largeResult: null,
-//       thumbnailResult: null,
-//       //errors: null,
-//     };
-//     await Promise.all(
-//       fileTypes.map(async (fileType) => {
-//         if (req.files[fileType]) {
-//           try {
-//             const fileUploadResult = await uploadFile(recommendationCard, userId, req, fileType);
-
-//             if (fileType === 'small') {
-//               resultObj['smallResult'] = fileUploadResult;
-//             } else if (fileType === 'medium') {
-//               resultObj['mediumResult'] = fileUploadResult;
-//             } else if (fileType === 'large') {
-//               resultObj['largeResult'] = fileUploadResult;
-//             } else if (fileType === 'thumbnail') {
-//               resultObj['thumbnailResult'] = fileUploadResult;
-//             }
-
-//             // if (!fileUploadResult.success) {
-//             //   //next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
-//             //   return resultObj;
-//             //   //return;
-//             // }
-//           } catch (err) {
-//             //resultObj.errors = err;
-//           }
-//         }
-//       })
-//     );
-
-//     return resultObj;
-//   }
-// }
-
-// async function fileResult(recommendationCard, userId, req, fileTypes, next) {
-//   if (req.files && Object.keys(req.files).length) {
-//     let resultObj = {
-//       smallResult: null,
-//       mediumResult: null,
-//       largeResult: null,
-//       thumbnailResult: null,
-//     };
-//     await Promise.all(
-//       fileTypes.map(async (fileType) => {
-//         if (req.files[fileType]) {
-//           try {
-//             const fileUploadResult = await uploadFile(recommendationCard, userId, req, fileType);
-
-//             if (fileType === 'small') {
-//               resultObj['smallResult'] = fileUploadResult;
-//             } else if (fileType === 'medium') {
-//               resultObj['mediumResult'] = fileUploadResult;
-//             } else if (fileType === 'large') {
-//               resultObj['largeResult'] = fileUploadResult;
-//             } else if (fileType === 'thumbnail') {
-//               resultObj['thumbnailResult'] = fileUploadResult;
-//             }
-
-//             if (!fileUploadResult.success) {
-//               next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
-//             }
-//           } catch (err) {
-//             next(new ApiError(err.message, httpCodes.INTERNAL_ERROR));
-//           }
-//         }
-//       })
-//     );
-
-//     return resultObj;
-//   }
-// }
 
 const uploadFile = async (recommendationCardId, userId, request, fileType) => {
   if (!request.files[fileType]) {
@@ -448,7 +395,7 @@ const uploadFile = async (recommendationCardId, userId, request, fileType) => {
     return {
       success: false,
       data: null,
-      error: `File Type must be of ${allowedFileTypes}`,
+      error: `File Type ${fileType} must be of ${allowedFileTypes}`,
       code: httpCodes.BAD_REQUEST,
     };
   }
