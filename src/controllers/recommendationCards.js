@@ -51,7 +51,7 @@ const getAll = asyncHandler(async (request, response) => {
  * @route       GET /api/recommendationcards/:recommendationCardId.
  * @access      Public.
  */
-const getOne = asyncHandler(async (request, response) => {
+const getOne = asyncHandler(async (request, response, next) => {
   const { recommendationCardId } = request.params;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false })
@@ -104,37 +104,39 @@ const create = asyncHandler(async (request, response, next) => {
     }
   );
 
-  const fileTypes = request.files ? Object.keys(request.files) : [];
+  if (request.files) {
+    const fileTypes = request.files ? Object.keys(request.files) : [];
 
-  const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
+    const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
 
-  if (fileTypes.length !== 4) {
-    next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  for (const fileType of fileTypes) {
-    if (!requiredTypes.includes(fileType)) {
-      next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+    if (fileTypes.length !== 4) {
+      next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
       return;
     }
-  }
 
-  const fileResults = await fileResult(
-    recommendationCard._id,
-    userId,
-    request,
-    //['small', 'medium', 'large', 'thumbnail']
-    //['medium', 'large', 'thumbnail']
-    //Object.keys(request.files) // doesn't work if you don't send file returns error
-    fileTypes
-  );
+    for (const fileType of fileTypes) {
+      if (!requiredTypes.includes(fileType)) {
+        next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+        return;
+      }
+    }
 
-  for (let key in fileResults) {
-    const fileUploadResult = fileResults[key];
-    if (fileUploadResult && !fileUploadResult.success) {
-      next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
-      return;
+    const fileResults = await fileResult(
+      recommendationCard._id,
+      userId,
+      request,
+      //['small', 'medium', 'large', 'thumbnail']
+      //['medium', 'large', 'thumbnail']
+      //Object.keys(request.files) // doesn't work if you don't send file returns error
+      fileTypes
+    );
+
+    for (let key in fileResults) {
+      const fileUploadResult = fileResults[key];
+      if (fileUploadResult && !fileUploadResult.success) {
+        next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+        return;
+      }
     }
   }
 
@@ -234,61 +236,51 @@ const updateOne = asyncHandler(async (request, response, next) => {
     await editedRecommendationCard.save();
   }
 
-  const fileTypes = request.files ? Object.keys(request.files) : [];
+  if (request.files) {
+    const fileTypes = request.files ? Object.keys(request.files) : [];
 
-  const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
+    const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
 
-  if (fileTypes.length !== 4) {
-    next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  fileTypes.forEach((fileType) => {
-    if (!requiredTypes.includes(fileType)) {
-      next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+    if (fileTypes.length !== 4) {
+      next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
       return;
     }
-  });
 
-  // Check if the file name is same in recommendation Card
-  if (fileTypes) {
     for (const fileType of fileTypes) {
-      if (
-        editedRecommendationCard[fileType] &&
-        request.files[fileType].name === editedRecommendationCard[fileType].name
-      ) {
-        next(new ApiError('RecommendationCard file has same name!', httpCodes.BAD_REQUEST));
+      if (!requiredTypes.includes(fileType)) {
+        next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
         return;
       }
     }
-  }
 
-  // if (fileTypes) {
-  //   fileTypes.forEach((fileType) => {
-  //     if (
-  //       editedRecommendationCard[fileType] &&
-  //       request.files[fileType].name === editedRecommendationCard[fileType].name
-  //     ) {
-  //       next(new ApiError('RecommendationCard file has same name!', httpCodes.BAD_REQUEST));
-  //       return;
-  //     }
-  //   });
-  // }
+    // Check if the file name is same in recommendation Card
+    if (fileTypes) {
+      for (const fileType of fileTypes) {
+        if (
+          editedRecommendationCard[fileType] &&
+          request.files[fileType].name === editedRecommendationCard[fileType].name
+        ) {
+          next(new ApiError('RecommendationCard file has same name!', httpCodes.BAD_REQUEST));
+          return;
+        }
+      }
+    }
 
-  const fileResults = await fileResult(
-    editedRecommendationCard._id,
-    userId,
-    request,
-    //['small', 'medium', 'large', 'thumbnail']
-    // ['medium', 'large', 'thumbnail']
-    fileTypes
-  );
+    const fileResults = await fileResult(
+      editedRecommendationCard._id,
+      userId,
+      request,
+      //['small', 'medium', 'large', 'thumbnail']
+      // ['medium', 'large', 'thumbnail']
+      fileTypes
+    );
 
-  for (let key in fileResults) {
-    const fileUploadResult = fileResults[key];
-    if (fileUploadResult && !fileUploadResult.success) {
-      next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
-      return;
+    for (let key in fileResults) {
+      const fileUploadResult = fileResults[key];
+      if (fileUploadResult && !fileUploadResult.success) {
+        next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+        return;
+      }
     }
   }
 

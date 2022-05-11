@@ -7,7 +7,7 @@ const validator = {
     params: Joi.object({
       recommendationId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
-        .required(),
+        .optional(),
     }),
     query: Joi.object({
       page: Joi.number().optional().default(1),
