@@ -4,8 +4,8 @@ const router = express.Router();
 
 // Imports: local files.
 const { recommendationController } = require('../controllers');
-//const { recommendationValidator } = require('../validations');
-//const { validate } = require('../utils/functions');
+const { recommendationValidator } = require('../validations');
+const { validate } = require('../utils/functions');
 const recommendationCardRouter = require('./recommendationCards');
 const { httpVerbs } = require('../configs');
 
@@ -14,27 +14,27 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.GET,
-    middlewares: [recommendationController.getAll],
+    middlewares: [validate(recommendationValidator.getAllRecommendations), recommendationController.getAll],
   },
   {
     path: '/:recommendationId',
     method: httpVerbs.GET,
-    middlewares: [recommendationController.getOne],
+    middlewares: [validate(recommendationValidator.validateRecommendationId), recommendationController.getOne],
   },
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [recommendationController.create],
+    middlewares: [validate(recommendationValidator.createRecommendation), recommendationController.create],
   },
   {
     path: '/:recommendationId',
     method: httpVerbs.PUT,
-    middlewares: [recommendationController.updateOne],
+    middlewares: [validate(recommendationValidator.updateRecommendation), recommendationController.updateOne],
   },
   {
     path: '/:recommendationId',
     method: httpVerbs.DELETE,
-    middlewares: [recommendationController.deleteOne],
+    middlewares: [validate(recommendationValidator.validateRecommendationId), recommendationController.deleteOne],
   },
 ];
 

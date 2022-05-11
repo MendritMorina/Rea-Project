@@ -11,6 +11,8 @@ const validator = {
       name: Joi.string().optional().default(null),
       active: Joi.number().optional().default(null).allow(null, 0, 1),
       deleted: Joi.number().optional().default(null).allow(null, 0, 1),
+      select: Joi.string().optional().default('name,description'),
+      sort: Joi.string().optional().default('name'),
     }),
   },
   createRecommendation: {
