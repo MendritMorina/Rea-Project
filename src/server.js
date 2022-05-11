@@ -27,7 +27,7 @@ console.log('===================================================================
     console.log('===================================================================');
 
     const { nodeEnv, nodePort } = env.getByKeys(['nodeEnv', 'nodePort']);
-    app.listen(() => {
+    app.listen(nodePort, () => {
       console.log(`Server started on port ${nodePort} on ${nodeEnv} mode!`);
       console.log('===================================================================');
     });
