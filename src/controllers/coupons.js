@@ -30,7 +30,6 @@ const getAll = asyncHandler(async (request, response) => {
  * @description Get coupon by id.
  * @route       GET /api/coupons/:couponId.
  * @access      Public.
- *
  */
 const getOne = asyncHandler(async (request, response, next) => {
   const { couponId } = request.params;
@@ -51,12 +50,6 @@ const getOne = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const userId = '625e6c53419131c236181826';
   const { discount, expirationDate } = request.body;
-
-  //const couponExists = (await Coupon.countDocuments({ name, isDeleted: false })) > 0;
-  //if (couponExists) {
-  //  next(new ApiError('Coupon with given name already exists!', httpCodes.BAD_REQUEST));
-  //  return;
-  //}
 
   const payload = {
     discount,
