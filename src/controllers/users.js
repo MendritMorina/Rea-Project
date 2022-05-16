@@ -7,6 +7,9 @@ const { filterValues } = require('../utils/functions');
 
 const { httpCodes } = require('../configs');
 
+const admin = require('firebase-admin');
+const { getAuth } = require('firebase-admin/auth');
+
 /**
  * @description Get all users.
  * @route       GET /api/users.
@@ -40,14 +43,21 @@ const getAll = asyncHandler(async (request, response) => {
 const getOne = asyncHandler(async (request, response, next) => {
   const { userId } = request.params;
 
-  const user = await Recommendation.findOne({ _id: userId, isDeleted: false }).select('name surname');
+  const user = await User.findOne({ _id: userId, isDeleted: false });
 
   if (!user) {
     next(new ApiError('User not found!', httpCodes.NOT_FOUND));
     return;
   }
 
-  response.status(httpCodes.OK).json({ success: true, data: { user }, error: null });
+  const firebaseUser = await getAuth().getUser(user.firebaseUid);
+
+  if (!firebaseUser) {
+    next(new ApiError('User is not registred in firebase!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  response.status(httpCodes.OK).json({ success: true, data: { user, firebaseUser }, error: null });
 });
 
 /**
@@ -60,6 +70,8 @@ const create = asyncHandler(async (request, response, next) => {
   const {
     name,
     surname,
+    email,
+    password,
     age,
     gender,
     weather,
@@ -76,9 +88,24 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  const firebaseUser = await getAuth().createUser({
+    email,
+    password,
+    displayName: 'John Doe',
+    //disabled: false,
+  });
+
+  if (!firebaseUser) {
+    next(new ApiError('Failed to create the firebase User!', httpCodes.INTERNAL_ERROR));
+    return;
+  }
+
   const payload = {
     name,
     surname,
+    email,
+    password,
+    firebaseUid: firebaseUser.uid,
     age,
     gender,
     weather,
@@ -87,6 +114,8 @@ const create = asyncHandler(async (request, response, next) => {
     energySource,
     hasChildren,
     hasChildrenDisease,
+    currentSubscription: null,
+    pastSubscriptions: [],
     createdBy: userId,
     createdAt: new Date(Date.now()),
   };
@@ -97,7 +126,7 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  response.status(httpCodes.CREATED).json({ success: true, data: { user }, error: null });
+  response.status(httpCodes.CREATED).json({ success: true, data: { firebaseUser, user }, error: null });
 });
 
 /**
@@ -111,6 +140,8 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const {
     name,
     surname,
+    email,
+    password,
     age,
     gender,
     weather,
@@ -127,6 +158,13 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  const firebaseUser = await getAuth().getUser(user.firebaseUid);
+
+  if (!firebaseUser) {
+    next(new ApiError('User is not registred in firebase!', httpCodes.NOT_FOUND));
+    return;
+  }
+
   if (name !== user.name) {
     const userExists = (await User.countDocuments({ _id: { $ne: user._id }, name, isDeleted: false })) > 0;
     if (userExists) {
@@ -138,6 +176,8 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const payload = {
     name,
     surname,
+    email,
+    password,
     age,
     gender,
     weather,
@@ -161,25 +201,13 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // getAuth()
-  //   .updateUser(uid, {
-  //     email: 'modifiedUser@example.com',
-  //     phoneNumber: '+11234567890',
-  //     emailVerified: true,
-  //     password: 'newPassword',
-  //     displayName: 'Jane Doe',
-  //     photoURL: 'http://www.example.com/12345678/photo.png',
-  //     disabled: true,
-  //   })
-  //   .then((userRecord) => {
-  //     // See the UserRecord reference doc for the contents of userRecord.
-  //     console.log('Successfully updated user', userRecord.toJSON());
-  //   })
-  //   .catch((error) => {
-  //     console.log('Error updating user:', error);
-  //   });
+  const updatedFireBaseUser = await getAuth().updateUser(firebaseUser.uid, {
+    email,
+    password,
+    displayName: `${name} ${surname}`,
+  });
 
-  response.status(httpCodes.OK).json({ success: true, data: { user: editedUser }, error: null });
+  response.status(httpCodes.OK).json({ success: true, data: { editedUser, updatedFireBaseUser }, error: null });
 });
 
 /**
@@ -213,7 +241,17 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  response.status(httpCodes.OK).json({ success: true, data: { user: deletedUser }, error: null });
+  getAuth()
+    .deleteUser(user.firebaseUid)
+    .then(() => {
+      console.log('Deletion was successful');
+    })
+    .catch((err) => {
+      next(new ApiError('Failed to delete user!' + err.name, httpCodes.INTERNAL_ERROR));
+      return;
+    });
+
+  response.status(httpCodes.OK).json({ success: true, data: { deletedUser }, error: null });
 });
 
 // Exports of this file.

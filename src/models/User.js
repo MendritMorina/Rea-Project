@@ -52,18 +52,23 @@ const UserSchema = new mongoose.Schema({
     required: false,
     default: [],
   },
-  fireBaseToken: {
+  firebaseUid: {
+    type: String,
+    unique: true,
+    required: true,
+  },
+  firebaseToken: {
     type: String,
     required: false,
   },
   currentSubscription: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Subscription',
-    required: true,
+    required: false,
   },
   pastSubscriptions: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subscription' }],
-    required: true,
+    required: false,
     default: [],
   },
   ...Base,
