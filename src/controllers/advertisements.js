@@ -79,24 +79,21 @@ const getRandomOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  randomAdvertisement.viewCounter += 1;
-  const savedrandomAdvertisement = await randomAdvertisement.save();
+  // randomAdvertisement.viewCounter += 1;
+  // const savedrandomAdvertisement = await randomAdvertisement.save();
 
-  // Below code doesn't work error : (converting circular structure JSON error)
-  // const updatedRandomAdvertisement = Advertisement.findOneAndUpdate(
-  //   { _id: randomAdvertisement._id },
-  //   { $inc: { viewCounter: 1 } },
-  //   { new: true }
-  // );
+  const updatedRandomAdvertisement = await Advertisement.findOneAndUpdate(
+    { _id: randomAdvertisement._id },
+    { $inc: { viewCounter: 1 } },
+    { new: true }
+  );
 
-  //const updatedRandomAdvertisement = randomAdvertisement.updateOne({ $inc: { viewCounter: 1 } }, { new: true });
+  if (!updatedRandomAdvertisement) {
+    next(new ApiError('Random Advertisement view count failed to increment!', httpCodes.NOT_FOUND));
+    return;
+  }
 
-  // if (!updatedRandomAdvertisement) {
-  //   next(new ApiError('Random Advertisement view count failed to increment!', httpCodes.NOT_FOUND));
-  //   return;
-  // }
-
-  response.status(httpCodes.OK).json({ success: true, data: { savedrandomAdvertisement }, error: null });
+  response.status(httpCodes.OK).json({ success: true, data: { updatedRandomAdvertisement }, error: null });
 });
 
 // const getRandomOne = asyncHandler(async (request, response, next) => {
@@ -193,6 +190,7 @@ const create = asyncHandler(async (request, response, next) => {
     const requiredTypes = ['photo', 'thumbnail'];
 
     if (fileTypes.length !== 2) {
+      //advertisement.remove();  // remove advertisement if the file upload failed, bacause it creates the advertisement without file
       next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
       return;
     }
@@ -367,7 +365,6 @@ const deleteOne = asyncHandler(async (request, response, next) => {
  * @access      Public.
  */
 const clickAdverisement = asyncHandler(async (request, response, next) => {
-  //const userId = '625e6c53419131c236181826';
   const { advertisementId, type } = request.body;
 
   const advertisement = await Advertisement.findOne({ _id: advertisementId, isDeleted: false });
@@ -383,21 +380,18 @@ const clickAdverisement = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  advertisement[type] += 1;
-  const clickedAdvertisement = await advertisement.save();
+  // advertisement[type] += 1;
+  // const clickedAdvertisement = await advertisement.save();
 
-  // const clickedAdvertisement = await Advertisement.findOneAndUpdate(
-  //   { _id: advertisement._id },
-  //   {
-  //     $set: {
-  //       //[type]: { $inc: { 1 } },
-  //       $inc: { [type]: 1 },
-  //       lastEditBy: userId,
-  //       lastEditAt: new Date(Date.now()),
-  //     },
-  //   },
-  //   { new: true }
-  // );
+  const clickedAdvertisement = await Advertisement.findOneAndUpdate(
+    { _id: advertisement._id },
+    {
+      $inc: { [type]: 1 },
+    },
+    { new: true }
+  );
+
+  console.log(clickedAdvertisement);
 
   response.status(httpCodes.OK).json({ success: true, data: { advertisement: clickedAdvertisement }, error: null });
 });
