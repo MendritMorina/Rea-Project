@@ -10,7 +10,7 @@ const app = express();
 // Imports: local files.
 const { authRouter } = require('./routes');
 const { errorHandler } = require('./middlewares');
-const { recommendationRouter, recommendationCardRouter } = require('./routes');
+const { recommendationRouter, recommendationCardRouter, advertisementsRouter } = require('./routes');
 
 // Use general middleware.
 app.use(express.json());
@@ -22,6 +22,7 @@ app.use(fileUpload());
 app.use('/api/auth', authRouter);
 app.use('/api/recommendations', recommendationRouter);
 app.use('/api/recommendationcards', recommendationCardRouter);
+app.use('/api/advertisements', advertisementsRouter);
 
 // Use error handling middleware.
 app.use(errorHandler);
