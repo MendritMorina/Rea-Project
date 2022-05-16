@@ -1,3 +1,7 @@
+// Imports: core node modules.
+const fs = require('fs');
+const path = require('path');
+
 //const Advertisement = require('../models');
 const Advertisement = require('../models/Advertisement');
 
@@ -183,7 +187,42 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  response.status(httpCodes.CREATED).json({ success: true, data: { advertisement }, error: null });
+  if (request.files) {
+    const fileTypes = request.files ? Object.keys(request.files) : [];
+
+    const requiredTypes = ['photo', 'thumbnail'];
+
+    if (fileTypes.length !== 2) {
+      next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
+      return;
+    }
+
+    for (const fileType of fileTypes) {
+      if (!requiredTypes.includes(fileType)) {
+        next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+        return;
+      }
+    }
+
+    const fileResults = await fileResult(advertisement._id, userId, request, fileTypes);
+
+    for (let key in fileResults) {
+      const fileUploadResult = fileResults[key];
+      if (fileUploadResult && !fileUploadResult.success) {
+        next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+        return;
+      }
+    }
+  }
+
+  const latestUpdateAdvertisement = await Advertisement.findOne({ _id: advertisement._id });
+
+  if (!latestUpdateAdvertisement) {
+    next(new ApiError('Failed to get the latest advertisement!', httpCodes.INTERNAL_ERROR));
+    return;
+  }
+
+  response.status(httpCodes.CREATED).json({ success: true, data: { latestUpdateAdvertisement }, error: null });
 });
 
 /**
@@ -194,7 +233,7 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const userId = '625e6c53419131c236181826';
   const { advertisementId } = request.params;
-  const { name, description, priority, webLink, iosLink, androidLink } = request.body;
+  const { name, description, priority, webLink, iosLink, androidLink, toBeDeleted } = request.body;
 
   const advertisement = await Advertisement.findOne({ _id: advertisementId, isDeleted: false });
   if (!advertisement) {
@@ -232,6 +271,57 @@ const updateOne = asyncHandler(async (request, response, next) => {
   if (!editedAdvertisement) {
     next(new ApiError('Failed to update advertisement!', httpCodes.INTERNAL_ERROR));
     return;
+  }
+
+  // toBeDeleted array of values
+  const availableValues = ['photo', 'thumbnail'];
+  const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
+
+  if (toBeDeletedinfo.length > 0) {
+    availableValues.forEach((value) => {
+      if (toBeDeletedinfo.includes(value)) {
+        editedAdvertisement[value] = null;
+      }
+    });
+    await editedAdvertisement.save();
+  }
+
+  if (request.files) {
+    const fileTypes = request.files ? Object.keys(request.files) : [];
+
+    const requiredTypes = ['photo', 'thumbnail'];
+
+    if (fileTypes.length !== 2) {
+      next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
+      return;
+    }
+
+    for (const fileType of fileTypes) {
+      if (!requiredTypes.includes(fileType)) {
+        next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+        return;
+      }
+    }
+
+    // Check if the file name is same in Advertisement
+    if (fileTypes) {
+      for (const fileType of fileTypes) {
+        if (editedAdvertisement[fileType] && request.files[fileType].name === editedAdvertisement[fileType].name) {
+          next(new ApiError('Advertisement file has same name!', httpCodes.BAD_REQUEST));
+          return;
+        }
+      }
+    }
+
+    const fileResults = await fileResult(editedAdvertisement._id, userId, request, fileTypes);
+
+    for (let key in fileResults) {
+      const fileUploadResult = fileResults[key];
+      if (fileUploadResult && !fileUploadResult.success) {
+        next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+        return;
+      }
+    }
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { advertisement: editedAdvertisement }, error: null });
@@ -277,7 +367,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
  * @access      Public.
  */
 const clickAdverisement = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  //const userId = '625e6c53419131c236181826';
   const { advertisementId, type } = request.body;
 
   const advertisement = await Advertisement.findOne({ _id: advertisementId, isDeleted: false });
@@ -342,6 +432,101 @@ function randomValueBasedPriority(probability) {
     return priorityIndex;
   }
 }
+
+async function fileResult(advertisement, userId, req, fileTypes) {
+  if (req.files && Object.keys(req.files).length) {
+    const resultObj = {};
+
+    for (const fileType of fileTypes) {
+      resultObj[`${fileType}Result`] = null;
+    }
+
+    for (const fileType of fileTypes) {
+      if (req.files[fileType]) {
+        const fileUploadResult = await uploadFile(advertisement, userId, req, fileType);
+        resultObj[`${fileType}Result`] = fileUploadResult;
+      }
+    }
+
+    return resultObj;
+  }
+}
+
+const uploadFile = async (advertisementId, userId, request, fileType) => {
+  if (!request.files[fileType]) {
+    return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
+  }
+
+  const allowedFileTypes = ['photo', 'thumbnail'];
+
+  if (!allowedFileTypes.includes(fileType)) {
+    return {
+      success: false,
+      data: null,
+      error: `File Type ${fileType} must be of ${allowedFileTypes}`,
+      code: httpCodes.BAD_REQUEST,
+    };
+  }
+
+  const { data, mimetype, name, size } = request.files[fileType];
+
+  const type = mimetype.split('/').pop();
+
+  let allowedTypes = ['jpeg', 'jpg', 'png'];
+
+  if (!allowedTypes.includes(type)) {
+    return { success: false, data: null, error: `Wrong ${fileType} type!`, code: httpCodes.BAD_REQUEST };
+  }
+
+  const advertisement = await Advertisement.findOne({ _id: advertisementId });
+  if (!advertisement) {
+    return {
+      success: false,
+      data: null,
+      error: 'Advertisement not found!',
+      code: httpCodes.INTERNAL_ERROR,
+    };
+  }
+
+  if (advertisement[fileType] && advertisement[fileType].name === name) {
+    return { success: true, data: { updatedAdvertisement: advertisement }, error: null, code: null };
+  }
+
+  const fileName = `${advertisement._id}_${fileType}_${Date.now()}.${type}`;
+  const filePath = path.join(__dirname, `../../public/advertisements/${fileName}`);
+
+  try {
+    fs.writeFileSync(filePath, data, { encoding: 'utf-8' });
+  } catch (error) {
+    return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
+  }
+
+  // const publicURL = isMode('production') ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
+  const publicURL = 'http://localhost:5000';
+  const fileURL = `${publicURL}/advertisements/${fileName}`;
+
+  const updatedAdvertisement = await Advertisement.findOneAndUpdate(
+    { _id: advertisement._id },
+    {
+      $set: {
+        [fileType]: {
+          url: fileURL,
+          name: name,
+          mimetype: mimetype,
+          size: size,
+        },
+        lastEditBy: userId,
+        lastEditAt: new Date(Date.now()),
+      },
+    },
+    { new: true }
+  );
+  if (!updatedAdvertisement) {
+    return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
+  }
+
+  return { success: true, data: { updatedAdvertisement }, error: null, code: null };
+};
 
 // Exports of this file.
 module.exports = {
