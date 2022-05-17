@@ -4,7 +4,7 @@ const router = express.Router();
 
 // Imports: local files.
 const { advertisementController } = require('../controllers');
-//const { advertisementValidator } = require('../validations');
+const { advertisementsValidator } = require('../validations');
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
 
@@ -13,33 +13,37 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.GET,
-    middlewares: [advertisementController.getAll],
+    middlewares: [validate(advertisementsValidator.getAllAdvertisements), advertisementController.getAll],
   },
   {
     path: '/:advertisementId',
     method: httpVerbs.GET,
-    middlewares: [advertisementController.getOne],
+    middlewares: [validate(advertisementsValidator.validateAdvertisement), advertisementController.getOne],
   },
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [advertisementController.create],
+    middlewares: [validate(advertisementsValidator.createAdvertisement), advertisementController.create],
   },
   {
     path: '/:advertisementId',
     method: httpVerbs.PUT,
-    middlewares: [advertisementController.updateOne],
+    middlewares: [validate(advertisementsValidator.updateAdvertisement), advertisementController.updateOne],
   },
   {
     path: '/:advertisementId',
     method: httpVerbs.DELETE,
-    middlewares: [advertisementController.deleteOne],
+    middlewares: [validate(advertisementsValidator.validateAdvertisement), advertisementController.deleteOne],
   },
 ];
 
 router.get('/randomAdvertisement', advertisementController.getRandomOne);
 router.post('/randomAdvertisements/:numberOfAdvertisements', advertisementController.createRandomAdvertisements);
-router.post('/clickAdverisement', advertisementController.clickAdverisement);
+router.post(
+  '/clickAdverisement',
+  validate(advertisementsValidator.clickAdvertisement),
+  advertisementController.clickAdvertisement
+);
 
 // Mount routes accordingly.
 for (const route of routes) router.route(route.path)[route.method](route.middlewares);

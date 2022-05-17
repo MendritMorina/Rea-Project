@@ -361,10 +361,10 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 
 /**
  * @description Click a advertisement.
- * @route       POST /api/advertisements/clickAdverisement.
+ * @route       POST /api/advertisements/clickAdvertisement.
  * @access      Public.
  */
-const clickAdverisement = asyncHandler(async (request, response, next) => {
+const clickAdvertisement = asyncHandler(async (request, response, next) => {
   const { advertisementId, type } = request.body;
 
   const advertisement = await Advertisement.findOne({ _id: advertisementId, isDeleted: false });
@@ -390,8 +390,6 @@ const clickAdverisement = asyncHandler(async (request, response, next) => {
     },
     { new: true }
   );
-
-  console.log(clickedAdvertisement);
 
   response.status(httpCodes.OK).json({ success: true, data: { advertisement: clickedAdvertisement }, error: null });
 });
@@ -531,5 +529,5 @@ module.exports = {
   updateOne,
   getRandomOne,
   createRandomAdvertisements,
-  clickAdverisement,
+  clickAdvertisement,
 };
