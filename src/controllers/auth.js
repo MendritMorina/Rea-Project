@@ -6,6 +6,7 @@ const { httpCodes } = require('../configs');
 
 const admin = require('firebase-admin');
 const { getAuth } = require('firebase-admin/auth');
+const { response } = require('express');
 
 /**
  * @description Sign up.
@@ -13,7 +14,35 @@ const { getAuth } = require('firebase-admin/auth');
  * @access      Public.
  */
 const signup = asyncHandler(async (request, response, next) => {
-  response.status(httpCodes.CREATED).json({ message: 'Signup success!' });
+  const { providerId, uid } = request.body;
+
+  const firebaseUser = await getAuth().getUser(uid);
+
+  if (!firebaseUser) {
+    next(new ApiError('User is not registred in firebase!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  const user = await User.findOne({ firebaseUid: uid, isDeleted: false });
+
+  if (user) {
+    next(new ApiError('User already exists in database!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  const payload = {
+    email: firebaseUser.email,
+    firebaseUid: firebaseUser.uid, // uid
+  };
+
+  const createdUser = await User.create(payload);
+
+  if (!createdUser) {
+    next(new ApiError('User failed to create!', httpCodes.INTERNAL_ERROR));
+    return;
+  }
+
+  response.status(httpCodes.CREATED).json({ success: true, data: { firebaseUser, createdUser }, error: null });
 });
 
 /**
@@ -22,7 +51,32 @@ const signup = asyncHandler(async (request, response, next) => {
  * @access      Public.
  */
 const login = asyncHandler(async (request, response, next) => {
-  response.status(httpCodes.OK).json({ message: 'Login success!' });
+  const { providerId, token } = request.body;
+
+  const decodedToken = await getAuth().verifyIdToken(token);
+
+  if (!decodedToken) {
+    next(new ApiError('Unauthorized to access', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  const uid = decodedToken.uid;
+
+  const firebaseUser = await getAuth().getUser(uid);
+
+  if (!firebaseUser) {
+    next(new ApiError('There is no user in firebase!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const user = await User.findOne({ firebaseUid: uid, isDeleted: false });
+
+  if (!user) {
+    next(new ApiError('User not found in database!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  response.status(httpCodes.OK).json({ success: true, data: { token }, error: null });
 });
 
 /**
@@ -32,7 +86,8 @@ const login = asyncHandler(async (request, response, next) => {
  */
 const update = asyncHandler(async (request, response, next) => {
   const theUserId = '625e6c53419131c236181826';
-  const { userId } = request.params;
+  const { userId } = request.body;
+  // const userId = request.user._id;
   const {
     name,
     surname,
@@ -102,6 +157,11 @@ const update = asyncHandler(async (request, response, next) => {
     password,
     displayName: `${name} ${surname}`,
   });
+
+  if (!updatedFireBaseUser) {
+    next(new ApiError('Failed to update FireBase User!', httpCodes.BAD_REQUEST));
+    return;
+  }
 
   response.status(httpCodes.OK).json({ success: true, data: { editedUser, updatedFireBaseUser }, error: null });
 });

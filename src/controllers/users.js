@@ -91,7 +91,7 @@ const create = asyncHandler(async (request, response, next) => {
   const firebaseUser = await getAuth().createUser({
     email,
     password,
-    displayName: 'John Doe',
+    displayName: `${name} ${surname}`,
     //disabled: false,
   });
 
