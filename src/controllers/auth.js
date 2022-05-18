@@ -86,8 +86,8 @@ const login = asyncHandler(async (request, response, next) => {
  */
 const update = asyncHandler(async (request, response, next) => {
   const theUserId = '625e6c53419131c236181826';
-  const { userId } = request.body;
-  // const userId = request.user._id;
+  //const { userId } = '625e6c53419131c236181826';
+  const userId = request.user._id;
   const {
     name,
     surname,

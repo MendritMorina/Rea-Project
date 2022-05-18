@@ -32,15 +32,13 @@ const validator = {
         .required(),
     }),
     body: Joi.object({
-      body: Joi.object({
-        name: Joi.string().required(),
-        description: Joi.string().required(),
-        priority: Joi.number().optional().default(1).greater(0).less(21),
-        webLink: Joi.string().optional(),
-        iosLink: Joi.string().optional(),
-        androidLink: Joi.string().optional(),
-        toBeDeleted: Joi.array().optional().items(Joi.string().optional()),
-      }),
+      name: Joi.string().optional(),
+      description: Joi.string().optional(),
+      priority: Joi.number().optional().default(1).greater(0).less(21),
+      webLink: Joi.string().optional(),
+      iosLink: Joi.string().optional(),
+      androidLink: Joi.string().optional(),
+      toBeDeleted: Joi.array().optional().items(Joi.string().optional()),
     }),
   },
   clickAdvertisement: {

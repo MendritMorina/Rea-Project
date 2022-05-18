@@ -45,7 +45,7 @@ const getOne = asyncHandler(async (request, response, next) => {
   const { advertisementId } = request.params;
 
   const advertisement = await Advertisement.findOne({ _id: advertisementId, isDeleted: false }).select(
-    'name description'
+    'name description photo thumbnail'
   );
 
   if (!advertisement) {
@@ -184,32 +184,32 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (request.files) {
-    const fileTypes = request.files ? Object.keys(request.files) : [];
+  const fileTypes = request.files ? Object.keys(request.files) : [];
 
-    const requiredTypes = ['photo', 'thumbnail'];
+  const requiredTypes = ['photo', 'thumbnail'];
 
-    if (fileTypes.length !== 2) {
-      //advertisement.remove();  // remove advertisement if the file upload failed, bacause it creates the advertisement without file
-      next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
+  if (fileTypes.length !== 2) {
+    await advertisement.remove(); // remove advertisement if the file upload failed, bacause it creates the advertisement without file
+    next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  for (const fileType of fileTypes) {
+    if (!requiredTypes.includes(fileType)) {
+      await advertisement.remove();
+      next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
       return;
     }
+  }
 
-    for (const fileType of fileTypes) {
-      if (!requiredTypes.includes(fileType)) {
-        next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
-        return;
-      }
-    }
+  const fileResults = await fileResult(advertisement._id, userId, request, fileTypes);
 
-    const fileResults = await fileResult(advertisement._id, userId, request, fileTypes);
-
-    for (let key in fileResults) {
-      const fileUploadResult = fileResults[key];
-      if (fileUploadResult && !fileUploadResult.success) {
-        next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
-        return;
-      }
+  for (let key in fileResults) {
+    const fileUploadResult = fileResults[key];
+    if (fileUploadResult && !fileUploadResult.success) {
+      await advertisement.remove();
+      next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+      return;
     }
   }
 
@@ -289,10 +289,10 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
     const requiredTypes = ['photo', 'thumbnail'];
 
-    if (fileTypes.length !== 2) {
-      next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
-      return;
-    }
+    // if (fileTypes.length !== 2) {
+    //   next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
+    //   return;
+    // }
 
     for (const fileType of fileTypes) {
       if (!requiredTypes.includes(fileType)) {
@@ -322,7 +322,16 @@ const updateOne = asyncHandler(async (request, response, next) => {
     }
   }
 
-  response.status(httpCodes.OK).json({ success: true, data: { advertisement: editedAdvertisement }, error: null });
+  const latestUpdateAdvertisement = await Advertisement.findOne({ _id: editedAdvertisement._id });
+
+  if (!latestUpdateAdvertisement) {
+    next(new ApiError('Failed to get the latest advertisement!', httpCodes.INTERNAL_ERROR));
+    return;
+  }
+
+  response
+    .status(httpCodes.OK)
+    .json({ success: true, data: { advertisement: latestUpdateAdvertisement }, error: null });
 });
 
 /**
