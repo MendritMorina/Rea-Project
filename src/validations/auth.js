@@ -5,22 +5,24 @@ const { Joi } = require('express-validation');
 const validator = {
   signup: {
     body: Joi.object({
-      email: Joi.string().email().required(),
+      providerId: Joi.string().required(),
+      uid: Joi.string().required(),
     }),
   },
   login: {
     body: Joi.object({
-      email: Joi.string().email().required(),
+      providerId: Joi.string().required(),
+      token: Joi.string().required(),
     }),
   },
   forgot: {
     body: Joi.object({
-      email: Joi.string().email().required(),
+      email: Joi.string().email().optional(),
     }),
   },
   reset: {
     body: Joi.object({
-      email: Joi.string().email().required(),
+      email: Joi.string().email().optional(),
     }),
   },
 };

@@ -42,6 +42,11 @@ const UserSchema = new mongoose.Schema({
     required: true,
     default: [],
   },
+  isPregnant: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
   hasChildren: {
     type: Boolean,
     required: true,

@@ -16,9 +16,15 @@ admin.initializeApp({
 });
 
 // Imports: local files.
-const { authRouter } = require('./routes');
+//const { authRouter } = require('./routes');
 const { errorHandler } = require('./middlewares');
-const { recommendationRouter, recommendationCardRouter, advertisementsRouter, usersRouter } = require('./routes');
+const {
+  authRouter,
+  recommendationRouter,
+  recommendationCardRouter,
+  advertisementsRouter,
+  usersRouter,
+} = require('./routes');
 
 // Use general middleware.
 app.use(express.json());
@@ -26,7 +32,8 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(fileUpload());
 
-// Mount routers accordingly.
+console.log('api run');
+
 app.use('/api/auth', authRouter);
 app.use('/api/recommendations', recommendationRouter);
 app.use('/api/recommendationcards', recommendationCardRouter);

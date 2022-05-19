@@ -16,6 +16,8 @@ const { response } = require('express');
 const signup = asyncHandler(async (request, response, next) => {
   const { providerId, uid } = request.body;
 
+  console.log(providerId, uid);
+
   const firebaseUser = await getAuth().getUser(uid);
 
   if (!firebaseUser) {
@@ -52,6 +54,8 @@ const signup = asyncHandler(async (request, response, next) => {
  */
 const login = asyncHandler(async (request, response, next) => {
   const { providerId, token } = request.body;
+
+  console.log(providerId, token);
 
   const decodedToken = await getAuth().verifyIdToken(token);
 
@@ -185,4 +189,4 @@ const reset = asyncHandler(async (request, response, next) => {
 });
 
 // Exports of this file.
-module.exports = { signup, login, forgot, reset };
+module.exports = { signup, login, update, forgot, reset };

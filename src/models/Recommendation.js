@@ -23,6 +23,14 @@ const RecommendationSchema = new mongoose.Schema({
     type: Number,
     required: false,
   },
+  gender: {
+    type: Array,
+    required: true,
+  },
+  age: {
+    type: Array,
+    required: true,
+  },
   haveDiseaseDiagnosis: {
     type: Array,
     required: true,
@@ -32,6 +40,11 @@ const RecommendationSchema = new mongoose.Schema({
     type: Array,
     required: true,
     default: [],
+  },
+  isPregnant: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
   hasChildren: {
     type: Boolean,
