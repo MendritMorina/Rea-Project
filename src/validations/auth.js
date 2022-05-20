@@ -7,6 +7,8 @@ const validator = {
     body: Joi.object({
       providerId: Joi.string().required(),
       uid: Joi.string().required(),
+      name: Joi.string().required(),
+      surname: Joi.string().required(),
     }),
   },
   login: {

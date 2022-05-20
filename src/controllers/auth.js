@@ -16,7 +16,7 @@ const { response } = require('express');
  * @access      Public.
  */
 const signup = asyncHandler(async (request, response, next) => {
-  const { providerId, uid } = request.body;
+  const { providerId, uid, name, surname } = request.body;
 
   const firebaseUser = await getAuth().getUser(uid);
 
@@ -35,6 +35,8 @@ const signup = asyncHandler(async (request, response, next) => {
   const payload = {
     email: firebaseUser.email,
     firebaseUid: firebaseUser.uid, // uid
+    name,
+    surname,
   };
 
   const createdUser = await User.create(payload);
