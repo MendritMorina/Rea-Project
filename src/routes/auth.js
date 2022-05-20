@@ -4,12 +4,10 @@ const router = express.Router();
 
 // Imports: local files.
 const { authController } = require('../controllers');
-
 const { authValidator } = require('../validations');
+
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
-
-console.log('auth router run');
 
 // Define routes here.
 const routes = [

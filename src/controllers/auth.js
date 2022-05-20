@@ -8,6 +8,8 @@ const admin = require('firebase-admin');
 const { getAuth } = require('firebase-admin/auth');
 const { response } = require('express');
 
+// providerId = [ facebook.com, google.com, password ];
+
 /**
  * @description Sign up.
  * @route       POST /api/auth/signup.
@@ -15,8 +17,6 @@ const { response } = require('express');
  */
 const signup = asyncHandler(async (request, response, next) => {
   const { providerId, uid } = request.body;
-
-  console.log(providerId, uid);
 
   const firebaseUser = await getAuth().getUser(uid);
 
@@ -54,8 +54,6 @@ const signup = asyncHandler(async (request, response, next) => {
  */
 const login = asyncHandler(async (request, response, next) => {
   const { providerId, token } = request.body;
-
-  console.log(providerId, token);
 
   const decodedToken = await getAuth().verifyIdToken(token);
 

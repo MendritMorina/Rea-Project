@@ -10,11 +10,11 @@ const Base = require('./Base');
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: false,
   },
   surname: {
     type: String,
-    required: true,
+    required: false,
   },
   email: {
     type: String,
@@ -22,40 +22,44 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: false,
   },
   age: {
     type: String,
-    required: true,
+    required: false,
   },
   gender: {
     type: String,
-    required: true,
+    required: false,
   },
   haveDiseaseDiagnosis: {
     type: Array,
-    required: true,
+    required: false,
     default: [],
   },
   energySource: {
     type: Array,
-    required: true,
+    required: false,
     default: [],
   },
   isPregnant: {
     type: Boolean,
-    required: true,
+    required: false,
     default: false,
   },
   hasChildren: {
     type: Boolean,
-    required: true,
+    required: false,
     default: false,
   },
   hasChildrenDisease: {
     type: Array,
     required: false,
     default: [],
+  },
+  providerId: {
+    type: String,
+    required: false,
   },
   firebaseUid: {
     type: String,

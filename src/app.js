@@ -32,8 +32,6 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(fileUpload());
 
-console.log('api run');
-
 app.use('/api/auth', authRouter);
 app.use('/api/recommendations', recommendationRouter);
 app.use('/api/recommendationcards', recommendationCardRouter);
