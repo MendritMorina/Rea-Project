@@ -12,6 +12,11 @@ const { httpVerbs } = require('../configs');
 // Define routes here.
 const routes = [
   {
+    path: '/userAuthenticatation',
+    method: httpVerbs.POST,
+    middlewares: [authController.userAuthenticatation],
+  },
+  {
     path: '/signup',
     method: httpVerbs.POST,
     middlewares: [validate(authValidator.signup), authController.signup],

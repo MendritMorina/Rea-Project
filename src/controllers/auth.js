@@ -8,7 +8,65 @@ const admin = require('firebase-admin');
 const { getAuth } = require('firebase-admin/auth');
 const { response } = require('express');
 
-// providerId = [ facebook.com, google.com, password ];
+/**
+ * @description Authenticate an user .
+ * @route       POST /api/auth/userAuthenticatation.
+ * @access      Public.
+ */
+const userAuthenticatation = asyncHandler(async (request, response, next) => {
+  const { token } = request.body;
+
+  const decodedToken = await getAuth().verifyIdToken(token);
+
+  if (!decodedToken) {
+    next(new ApiError('Unauthorized to access', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  const uid = decodedToken.user_id;
+  const providerId = decodedToken.firebase.sign_in_provider;
+  const emailVerfied = decodedToken.email_verified;
+
+  const firebaseUser = await getAuth().getUser(uid);
+
+  if (!firebaseUser) {
+    next(new ApiError('User is not registred in firebase!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  if (!emailVerfied) {
+    next(new ApiError('The email is not verified', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  const allowedProviders = ['password', 'google.com', 'facebook.com'];
+
+  if (!allowedProviders.includes(providerId)) {
+    next(new ApiError('Not allowed provider', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  const user = await User.findOne({ firebaseUid: uid, isDeleted: false });
+
+  if (user) {
+    response.status(httpCodes.OK).json({ success: true, data: { token }, error: null });
+  } else {
+    const payload = {
+      email: firebaseUser.email,
+      firebaseUid: firebaseUser.uid, // uid
+      providerId,
+    };
+
+    const createdUser = await User.create(payload);
+
+    if (!createdUser) {
+      next(new ApiError('User failed to create!', httpCodes.INTERNAL_ERROR));
+      return;
+    }
+
+    response.status(httpCodes.CREATED).json({ success: true, data: { firebaseUser, createdUser }, error: null });
+  }
+});
 
 /**
  * @description Sign up.
@@ -55,7 +113,7 @@ const signup = asyncHandler(async (request, response, next) => {
  * @access      Public.
  */
 const login = asyncHandler(async (request, response, next) => {
-  const { providerId, token } = request.body;
+  const { token } = request.body;
 
   const decodedToken = await getAuth().verifyIdToken(token);
 
@@ -64,7 +122,8 @@ const login = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const uid = decodedToken.uid;
+  const uid = decodedToken.user_id;
+  const providerId = decodedToken.firebase.sign_in_provider;
 
   const firebaseUser = await getAuth().getUser(uid);
 
@@ -189,4 +248,4 @@ const reset = asyncHandler(async (request, response, next) => {
 });
 
 // Exports of this file.
-module.exports = { signup, login, update, forgot, reset };
+module.exports = { userAuthenticatation, signup, login, update, forgot, reset };
