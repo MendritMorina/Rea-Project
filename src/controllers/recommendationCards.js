@@ -67,6 +67,54 @@ const getOne = asyncHandler(async (request, response, next) => {
 });
 
 /**
+ * @description Get recommandationCards of recommendation by query.
+ * @route       GET /api/recommendationcardsByqueriedRecommendation.
+ * @access      Public.
+ */
+const getRecommandationCardsByQueriedRecommendation = asyncHandler(async (request, response, next) => {
+  const { select, sort } = request.query;
+  //const userInfo = req.user;
+
+  const aqi = 50;
+  // const aqiMessage = 'E pranueshme';
+
+  const userInfo = {
+    age: '20-30',
+    gender: 'male',
+    haveDiseaseDiagnosis: ['N'],
+    energySource: ['B'],
+    hasChildren: true,
+    hasChildrenDisease: ['V'],
+  };
+
+  const query = {
+    isDeleted: false,
+    $and: [
+      //  { aqiMessage },
+      { haveDiseaseDiagnosis: userInfo.haveDiseaseDiagnosis },
+      { energySource: userInfo.energySource },
+      { hasChildrenDisease: userInfo.hasChildrenDisease },
+    ],
+  };
+
+  const recommendation = await Recommendation.findOne(query);
+
+  if (!recommendation) {
+    next(new ApiError('Recommendation with specified query not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const recommendationCards = await RecommendationCard.find({ recommendation: recommendation._id });
+
+  if (!recommendationCards) {
+    next(new ApiError('No RecommendationCards by the given recommendation has been found !', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  response.status(httpCodes.OK).json({ success: true, data: { recommendationCards }, error: null });
+});
+
+/**
  * @description Create a recommendationCard.
  * @route       POST /api/recommendationcards.
  * @access      Private.

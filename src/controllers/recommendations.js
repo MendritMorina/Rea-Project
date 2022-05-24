@@ -103,6 +103,193 @@ const getOne = asyncHandler(async (request, response, next) => {
 });
 
 /**
+ * @description Get a random recommendationCard from quried recommendation.
+ * @route       GET /api/recommendations/randomRecCardFromRec.
+ * @access      Public.
+ */
+const getRandomOne = asyncHandler(async (request, response, next) => {
+  const userInfo = {
+    age: '20-30',
+    gender: 'male',
+    haveDiseaseDiagnosis: ['AB'],
+    energySource: ['UV'],
+    hasChildren: true,
+    hasChildrenDisease: ['YZ'],
+  };
+
+  // All values of array matches for either field
+  const query1 = {
+    $or: [
+      { haveDiseaseDiagnosis: userInfo.haveDiseaseDiagnosis },
+      { energySource: userInfo.energySource },
+      { hasChildrenDisease: userInfo.hasChildrenDisease },
+    ],
+  };
+
+  // All values of array matches for all field
+  const query2 = {
+    $and: [
+      { haveDiseaseDiagnosis: userInfo.haveDiseaseDiagnosis },
+      { energySource: userInfo.energySource },
+      { hasChildrenDisease: userInfo.hasChildrenDisease },
+    ],
+  };
+
+  // At least one value in array matches in either field
+  const query3 = {
+    $or: [
+      { haveDiseaseDiagnosis: { $in: userInfo.haveDiseaseDiagnosis } },
+      { energySource: { $in: userInfo.energySource } },
+      { hasChildrenDisease: { $in: userInfo.hasChildrenDisease } },
+    ],
+  };
+
+  // At least one value in array matches in all field
+  const query4 = {
+    $and: [
+      { haveDiseaseDiagnosis: { $in: userInfo.haveDiseaseDiagnosis } },
+      { energySource: { $in: userInfo.energySource } },
+      { hasChildrenDisease: { $in: userInfo.hasChildrenDisease } },
+    ],
+  };
+
+  const query = {
+    isDeleted: false,
+    ...query1,
+  };
+
+  const recommendations = await Recommendation.find(query);
+
+  const allRecommendationCards = [];
+
+  for (const recommendation of recommendations) {
+    const recommendationCards = recommendation.recommendationCards;
+
+    for (const recommendationCard of recommendationCards) {
+      allRecommendationCards.push(recommendationCard);
+    }
+  }
+
+  const randomRecommendationCard = allRecommendationCards[parseInt(Math.random() * allRecommendationCards.length, 10)];
+
+  response.status(httpCodes.OK).json({
+    success: true,
+    data: {
+      recommendationCount: recommendations.length,
+      recommendations,
+      recommendationCardsCount: allRecommendationCards.length,
+      allRecommendationCards,
+      randomRecommendationCard,
+    },
+    error: null,
+  });
+});
+
+/**
+ * @description Create random recommendations (This is used just for testing)
+ * @route       POST /api/recommendations/randomRecommendations/:numberOfRecommendations.
+ * @access      Public.
+ */
+const createRandomRecommendations = asyncHandler(async (request, response, next) => {
+  const nrOfRec = request.params.numberOfRecommendations;
+
+  const recommendations = [];
+
+  for (let i = 0; i < nrOfRec; i++) {
+    const haveDiseaseDiagnosis = [];
+    const energySource = [];
+    const hasChildrenDisease = [];
+    const gender = [];
+    const age = [];
+    const recommendationCards = [];
+
+    for (let i = 0; i < 1 + parseInt(Math.random() * 4, 10); i++) {
+      haveDiseaseDiagnosis.push(randomString(1 + parseInt(Math.random() * 3, 10)));
+    }
+
+    for (let i = 0; i < 1 + parseInt(Math.random() * 4, 10); i++) {
+      energySource.push(randomString(1 + parseInt(Math.random() * 3, 10)));
+    }
+
+    const randomNumForGender = parseInt(1 + Math.random() * 3, 10);
+
+    if (randomNumForGender === 1) {
+      gender.push('Male');
+    } else if (randomNumForGender === 2) {
+      gender.push('Female');
+    } else {
+      gender.push('Male');
+      gender.push('Female');
+    }
+
+    const agesAvailable = ['0-19', '20-29', '30-39', '40-49', '50-59', '>65'];
+
+    for (let i = 0; i < 1 + parseInt(Math.random() * agesAvailable.length, 10); i++) {
+      const ageValue = agesAvailable[parseInt(Math.random() * agesAvailable.length, 10)];
+
+      if (!age.includes(ageValue)) {
+        age.push(ageValue);
+      }
+    }
+
+    for (let i = 0; i < 1 + parseInt(Math.random() * 4, 10); i++) {
+      hasChildrenDisease.push(randomString(1 + parseInt(Math.random() * 3, 10)));
+    }
+
+    const payload = {
+      name: randomString(40),
+      description: randomString(50),
+      weather: randomString(15),
+      gender,
+      age,
+      aqi: 1 + parseInt(Math.random() * 499, 10),
+      haveDiseaseDiagnosis,
+      energySource,
+      hasChildren: true,
+      hasChildrenDisease,
+      category: 'RandomTestCat',
+    };
+
+    const createdRecommendation = await Recommendation.create(payload);
+
+    for (let i = 0; i < 1 + parseInt(Math.random() * 8, 10); i++) {
+      const recommendationCard = new RecommendationCard({
+        name: randomString(40),
+        description: randomString(50),
+        recommendation: createdRecommendation._id,
+        createdAt: new Date(Date.now()),
+      });
+
+      await recommendationCard.save();
+
+      recommendationCards.push(recommendationCard);
+    }
+
+    createdRecommendation.recommendationCards = recommendationCards;
+    await createdRecommendation.save();
+
+    recommendations.push(createdRecommendation);
+  }
+
+  response.status(httpCodes.OK).json({ success: true, data: { recommendations }, error: null });
+});
+
+function randomString(length) {
+  let result = '';
+  //let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  //let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  //let characters = 'ABCIJLMNUVXYZ';
+  let characters = 'ABCUVXYZ';
+  let charactersLength = characters.length;
+
+  for (let i = 0; i < length; i++) {
+    result = result + characters.charAt(parseInt(Math.random() * charactersLength, 10));
+  }
+
+  return result;
+}
+
+/**
  * @description Create a recommendation.
  * @route       POST /api/recommendations.
  * @access      Private.
@@ -266,4 +453,4 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 });
 
 // Exports of this file.
-module.exports = { getAll, getOne, create, deleteOne, updateOne };
+module.exports = { getAll, getOne, create, deleteOne, updateOne, getRandomOne, createRandomRecommendations };
