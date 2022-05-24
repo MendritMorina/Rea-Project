@@ -67,54 +67,6 @@ const getOne = asyncHandler(async (request, response, next) => {
 });
 
 /**
- * @description Get recommandationCards of recommendation by query.
- * @route       GET /api/recommendationcardsByqueriedRecommendation.
- * @access      Public.
- */
-const getRecommandationCardsByQueriedRecommendation = asyncHandler(async (request, response, next) => {
-  const { select, sort } = request.query;
-  //const userInfo = req.user;
-
-  const aqi = 50;
-  // const aqiMessage = 'E pranueshme';
-
-  const userInfo = {
-    age: '20-30',
-    gender: 'male',
-    haveDiseaseDiagnosis: ['N'],
-    energySource: ['B'],
-    hasChildren: true,
-    hasChildrenDisease: ['V'],
-  };
-
-  const query = {
-    isDeleted: false,
-    $and: [
-      //  { aqiMessage },
-      { haveDiseaseDiagnosis: userInfo.haveDiseaseDiagnosis },
-      { energySource: userInfo.energySource },
-      { hasChildrenDisease: userInfo.hasChildrenDisease },
-    ],
-  };
-
-  const recommendation = await Recommendation.findOne(query);
-
-  if (!recommendation) {
-    next(new ApiError('Recommendation with specified query not found!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  const recommendationCards = await RecommendationCard.find({ recommendation: recommendation._id });
-
-  if (!recommendationCards) {
-    next(new ApiError('No RecommendationCards by the given recommendation has been found !', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  response.status(httpCodes.OK).json({ success: true, data: { recommendationCards }, error: null });
-});
-
-/**
  * @description Create a recommendationCard.
  * @route       POST /api/recommendationcards.
  * @access      Private.
@@ -169,15 +121,7 @@ const create = asyncHandler(async (request, response, next) => {
       }
     }
 
-    const fileResults = await fileResult(
-      recommendationCard._id,
-      userId,
-      request,
-      //['small', 'medium', 'large', 'thumbnail']
-      //['medium', 'large', 'thumbnail']
-      //Object.keys(request.files) // doesn't work if you don't send file returns error
-      fileTypes
-    );
+    const fileResults = await fileResult(recommendationCard._id, userId, request, fileTypes);
 
     for (let key in fileResults) {
       const fileUploadResult = fileResults[key];
@@ -314,14 +258,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
       }
     }
 
-    const fileResults = await fileResult(
-      editedRecommendationCard._id,
-      userId,
-      request,
-      //['small', 'medium', 'large', 'thumbnail']
-      // ['medium', 'large', 'thumbnail']
-      fileTypes
-    );
+    const fileResults = await fileResult(editedRecommendationCard._id, userId, request, fileTypes);
 
     for (let key in fileResults) {
       const fileUploadResult = fileResults[key];

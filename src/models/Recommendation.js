@@ -65,6 +65,12 @@ const RecommendationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  type: {
+    type: String,
+    required: false,
+    //enum: ['REKOMANDIMI BAZE', 'FAKTE/REKOMANDIME INFORMATIVE'],
+    enum: ['BaseRecommendation', 'InformationalRecommendation'],
+  },
   ...Base,
 });
 
