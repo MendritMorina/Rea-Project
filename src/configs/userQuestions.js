@@ -1,6 +1,6 @@
-// Questions object that is used to store questions used for user in our API.
+// static values object that is used to store questions used for user in our API.
 
-const questions = {
+const staticValues = {
   age: ['0-19', '20-29', '30-39', '40-49', '50-59', '>65'],
   haveDiseaseDiagnosis: [
     'Semundjet te frymarrjes/mushkerive',
@@ -15,11 +15,7 @@ const questions = {
     'Diabetin',
     'Semundje neurologjike',
   ],
-  //   gender: ['Mashkull', 'Femer'],
-  //   hasChildren: ['Po', 'Jo'],
-  //   isPregnant: ['Po', 'Jo'],
-  //   hasChildren: [true, false],
-  //   isPregnant: [true, false],
+  airQuality: ['E mire', 'E pranueshme', 'Mesatare', 'E dobet', 'Shume e dobet'],
 };
 
-module.exports = questions;
+module.exports = staticValues;

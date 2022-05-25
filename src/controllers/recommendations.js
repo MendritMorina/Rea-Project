@@ -109,14 +109,178 @@ const getOne = asyncHandler(async (request, response, next) => {
  * @route       GET /api/recommendations/randomRecCardFromRec.
  * @access      Public.
  */
+// const getRandomOne = asyncHandler(async (request, response, next) => {
+//   const userInfo = {
+//     age: '20-30',
+//     gender: 'male',
+//     haveDiseaseDiagnosis: ['Semundjet te frymarrjes/mushkerive', 'Semundje te zemres (kardiovaskulare)'],
+//     energySource: ['Qymyr', 'Gas', 'Zjarr/dru'],
+//     hasChildren: true,
+//     hasChildrenDisease: ['Diabetin', 'Semundje neurologjike'],
+//   };
+
+//   // All values of array matches for either field (order matters here)
+//   const query1 = {
+//     $or: [
+//       { haveDiseaseDiagnosis: userInfo.haveDiseaseDiagnosis },
+//       { energySource: userInfo.energySource },
+//       { hasChildrenDisease: userInfo.hasChildrenDisease },
+//     ],
+//   };
+
+//   // All values of array matches for all field (order matters here)
+//   const query2 = {
+//     $and: [
+//       { haveDiseaseDiagnosis: userInfo.haveDiseaseDiagnosis },
+//       { energySource: userInfo.energySource },
+//       { hasChildrenDisease: userInfo.hasChildrenDisease },
+//     ],
+//   };
+
+//   // At least one value in array matches in either field
+//   const query3 = {
+//     $or: [
+//       { haveDiseaseDiagnosis: { $in: userInfo.haveDiseaseDiagnosis } },
+//       { energySource: { $in: userInfo.energySource } },
+//       { hasChildrenDisease: { $in: userInfo.hasChildrenDisease } },
+//     ],
+//   };
+
+//   // At least one value in array matches in all field
+//   const query4 = {
+//     $and: [
+//       { haveDiseaseDiagnosis: { $in: userInfo.haveDiseaseDiagnosis } },
+//       { energySource: { $in: userInfo.energySource } },
+//       { hasChildrenDisease: { $in: userInfo.hasChildrenDisease } },
+//     ],
+//   };
+
+//   // All values where haveDisease is equal with at least specified values and haveDiseaseDiagnosis array is not at size {....}
+//   const query5 = {
+//     $and: [
+//       {
+//         $nor: [
+//           { haveDiseaseDiagnosis: { $exists: false } },
+//           { haveDiseaseDiagnosis: { $size: 1 } },
+//           { haveDiseaseDiagnosis: { $size: 2 } },
+//           { haveDiseaseDiagnosis: { $size: 3 } },
+//         ],
+//       },
+//       {
+//         haveDiseaseDiagnosis: {
+//           $in: [
+//             'Semundjet te frymarrjes/mushkerive',
+//             'Semundje te zemres (kardiovaskulare)',
+//             'Diabetin',
+//             'Semundje neurologjike',
+//           ],
+//         },
+//       },
+//     ],
+//   };
+
+//   // All values where age length is at least equal to specified value (in our case to test if it includes all ages )
+//   const query6 = {
+//     $nor: [
+//       { age: { $exists: false } },
+//       { age: { $size: 0 } },
+//       { age: { $size: 1 } },
+//       { age: { $size: 2 } },
+//       { age: { $size: 3 } },
+//       { age: { $size: 4 } },
+//       { age: { $size: 5 } },
+//     ],
+//   };
+
+//   const query = {
+//     isDeleted: false,
+//     ...query4,
+//   };
+
+//   const recommendations = await Recommendation.find(query);
+
+//   const allRecommendationCards = [];
+
+//   for (const recommendation of recommendations) {
+//     const recommendationCards = recommendation.recommendationCards;
+
+//     for (const recommendationCard of recommendationCards) {
+//       allRecommendationCards.push(recommendationCard);
+//     }
+//   }
+
+//   const randomRecommendationCard = allRecommendationCards[parseInt(Math.random() * allRecommendationCards.length, 10)];
+
+//   response.status(httpCodes.OK).json({
+//     success: true,
+//     data: {
+//       recommendationCount: recommendations.length,
+//       recommendations,
+//       recommendationCardsCount: allRecommendationCards.length,
+//       allRecommendationCards,
+//       randomRecommendationCard,
+//     },
+//     error: null,
+//   });
+// });
+
 const getRandomOne = asyncHandler(async (request, response, next) => {
+  const { type } = request.body;
+
   const userInfo = {
     age: '20-30',
     gender: 'male',
-    haveDiseaseDiagnosis: ['AB'],
-    energySource: ['UV'],
+    haveDiseaseDiagnosis: ['Semundjet te frymarrjes/mushkerive', 'Semundje te zemres (kardiovaskulare)'],
+    energySource: ['Qymyr', 'Gas', 'Zjarr/dru'],
     hasChildren: true,
-    hasChildrenDisease: ['YZ'],
+    hasChildrenDisease: ['Diabetin', 'Semundje neurologjike'],
+    aqi: 250,
+    city: 'prishtina',
+  };
+
+  // const l1 = `https://api.waqi.info/feed/${userInfo.city}/?token=6d89115c91ee8318a4b745ea2424e2e09c41fc43`;
+
+  // const waqiResult = await axios.get(l1);
+
+  // if (!waqiResult) {
+  //   next(new ApiError(' Failed to get waqi result !', httpCodes.NOT_FOUND));
+  //   return;
+  // }
+
+  // const fetchedAqi = waqiResult.data.data.aqi;
+
+  let airQuery = '';
+
+  // if (fetchedAqi >= 1 && fetchedAqi <= 50) {
+  //   airQuery = 'E mire';
+  // } else if (fetchedAqi > 50 && fetchedAqi <= 100) {
+  //   airQuery = 'E pranueshme';
+  // } else if (fetchedAqi > 100 && fetchedAqi <= 150) {
+  //   airQuery = 'Mesatare';
+  // } else if (fetchedAqi > 150 && fetchedAqi <= 200) {
+  //   airQuery = 'E dobet';
+  // } else {
+  //   airQuery = 'Shume e dobet';
+  // }
+
+  if (userInfo.aqi >= 1 && userInfo.aqi <= 50) {
+    airQuery = 'E mire';
+  } else if (userInfo.aqi > 50 && userInfo.aqi <= 100) {
+    airQuery = 'E pranueshme';
+  } else if (userInfo.aqi > 100 && userInfo.aqi <= 150) {
+    airQuery = 'Mesatare';
+  } else if (userInfo.aqi > 150 && userInfo.aqi <= 200) {
+    airQuery = 'E dobet';
+  } else {
+    airQuery = 'Shume e dobet';
+  }
+
+  const query1A = {
+    $or: [
+      { haveDiseaseDiagnosis: { $size: 2, $all: userInfo.haveDiseaseDiagnosis } },
+      { energySource: { $size: 2, $all: userInfo.energySource } },
+      { hasChildrenDisease: { $size: 2, $all: userInfo.hasChildrenDisease } },
+    ],
   };
 
   // All values of array matches for either field (order matters here)
@@ -179,7 +343,7 @@ const getRandomOne = asyncHandler(async (request, response, next) => {
     ],
   };
 
-  // All values where age length is at least equal to specified value (in our case to test if it includes all ages )
+  // All values where age length is at least equal to specified value (in our case to test if it includes all ages)
   const query6 = {
     $nor: [
       { age: { $exists: false } },
@@ -194,7 +358,9 @@ const getRandomOne = asyncHandler(async (request, response, next) => {
 
   const query = {
     isDeleted: false,
-    ...query6,
+    ...query1,
+    type,
+    airQuality: airQuery,
   };
 
   const recommendations = await Recommendation.find(query);
@@ -241,6 +407,8 @@ const createRandomRecommendations = asyncHandler(async (request, response, next)
     const gender = [];
     const age = [];
     const recommendationCards = [];
+    let type = '';
+    let cilesiaAjrit = '';
 
     const haveDiseaseDiagnosisAvailableValues = [
       'Semundjet te frymarrjes/mushkerive',
@@ -306,6 +474,20 @@ const createRandomRecommendations = asyncHandler(async (request, response, next)
       }
     }
 
+    const randomNumForType = parseInt(1 + Math.random() * 2, 10);
+
+    if (randomNumForType === 1) {
+      type = 'base';
+    } else {
+      type = 'informative';
+    }
+
+    const cilesiaAjritAvailableValues = ['E mire', 'E pranueshme', 'Mesatare', 'E dobet', 'Shume e dobet'];
+
+    const randomNumForCilesiaAjrit = parseInt(Math.random() * cilesiaAjritAvailableValues.length, 10);
+
+    cilesiaAjrit = cilesiaAjritAvailableValues[randomNumForCilesiaAjrit];
+
     const payload = {
       name: randomString(40),
       description: randomString(50),
@@ -313,11 +495,13 @@ const createRandomRecommendations = asyncHandler(async (request, response, next)
       gender,
       age,
       aqi: 1 + parseInt(Math.random() * 499, 10),
+      airQuality: cilesiaAjrit,
       haveDiseaseDiagnosis,
       energySource,
       hasChildren: true,
       hasChildrenDisease,
       category: 'RandomTestCat',
+      type,
     };
 
     const createdRecommendation = await Recommendation.create(payload);
@@ -435,10 +619,10 @@ const createRandomRecommendations = asyncHandler(async (request, response, next)
 
 function randomString(length) {
   let result = '';
-  //let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   //let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   //let characters = 'ABCIJLMNUVXYZ';
-  let characters = 'ABCUVXYZ';
+  //let characters = 'ABCUVXYZ';
   let charactersLength = characters.length;
 
   for (let i = 0; i < length; i++) {

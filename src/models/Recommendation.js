@@ -23,6 +23,11 @@ const RecommendationSchema = new mongoose.Schema({
     type: Number,
     required: false,
   },
+  airQuality: {
+    type: String,
+    required: false,
+    enum: ['E mire', 'E pranueshme', 'Mesatare', 'E dobet', 'Shume e dobet'],
+  },
   gender: {
     type: Array,
     required: true,
@@ -68,8 +73,7 @@ const RecommendationSchema = new mongoose.Schema({
   type: {
     type: String,
     required: false,
-    //enum: ['REKOMANDIMI BAZE', 'FAKTE/REKOMANDIME INFORMATIVE'],
-    enum: ['BaseRecommendation', 'InformationalRecommendation'],
+    enum: ['base', 'informative'],
   },
   ...Base,
 });
