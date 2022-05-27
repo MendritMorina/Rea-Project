@@ -1,6 +1,6 @@
 // Imports: local files.
 const app = require('./app');
-const { env, db } = require('./utils/functions');
+const { env, db, startup } = require('./utils/functions');
 
 // Check if .env is correctly setup.
 const isEnvSetup = env.validateEnv();
@@ -25,6 +25,9 @@ console.log('===================================================================
     }
     console.log(`Successfully connected to the database!`);
     console.log('===================================================================');
+
+    // Run startup code. (ORDER MATTERS)
+    await startup.initAdmins();
 
     const { nodeEnv, nodePort } = env.getByKeys(['nodeEnv', 'nodePort']);
     app.listen(nodePort, () => {

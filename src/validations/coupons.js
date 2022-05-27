@@ -11,27 +11,19 @@ const validator = {
   },
   createCoupon: {
     body: Joi.object({
-      description: Joi.string().required(),
       discount: Joi.number().required(),
-      expirationDate: Joi.date().raw().required(),
-      company: Joi.string()
-        .regex(/^[0-9a-fA-F]{24}$/)
-        .required(),
+      expirationDate: Joi.date().raw(),
+      company: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     }),
   },
   updateCoupon: {
     params: Joi.object({
-      couponId: Joi.string()
-        .regex(/^[0-9a-fA-F]{24}$/)
-        .required(),
+      couponId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     }),
     body: Joi.object({
-      description: Joi.string().required(),
       discount: Joi.number().required(),
-      expirationDate: Joi.date().raw().required(),
-      company: Joi.string()
-        .regex(/^[0-9a-fA-F]{24}$/)
-        .required(),
+      expirationDate: Joi.date().raw(),
+      company: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     }),
   },
   validateCouponId: {

@@ -10,26 +10,26 @@ const { httpVerbs } = require('../configs');
 
 // Define routes here.
 const routes = [
+  // {
+  //   path: '/signup',
+  //   method: httpVerbs.POST,
+  //   middlewares: [validate(authValidator.signup), authController.signup],
+  // },
   {
-    path: '/signup',
-    method: httpVerbs.POST,
-    middlewares: [validate(authValidator.signup), authController.signup],
-  },
-  {
-    path: '/login',
+    path: '/admin/login',
     method: httpVerbs.POST,
     middlewares: [validate(authValidator.login), authController.login],
   },
-  {
-    path: '/forgot',
-    method: httpVerbs.POST,
-    middlewares: [validate(authValidator.forgot), authController.forgot],
-  },
-  {
-    path: '/reset',
-    method: httpVerbs.POST,
-    middlewares: [validate(authValidator.reset), authController.reset],
-  },
+  // {
+  //   path: '/forgot',
+  //   method: httpVerbs.POST,
+  //   middlewares: [validate(authValidator.forgot), authController.forgot],
+  // },
+  // {
+  //   path: '/reset',
+  //   method: httpVerbs.POST,
+  //   middlewares: [validate(authValidator.reset), authController.reset],
+  // },
 ];
 
 // Mount routes accordingly.

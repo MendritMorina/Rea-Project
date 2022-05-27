@@ -2,7 +2,9 @@
 const authValidator = require('./auth');
 const couponValidator = require('./coupons');
 const companyValidator = require('./companies');
+const storyValidator = require('./stories');
+
 // Bundler object that is used to export all validations inside ./src/validations.
-const bundler = { authValidator, couponValidator, companyValidator };
+const bundler = { authValidator, couponValidator, companyValidator, storyValidator };
 // Exports of this file.
 module.exports = bundler;

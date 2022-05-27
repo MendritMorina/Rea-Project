@@ -1,8 +1,9 @@
 // Imports: local files.
-const { User } = require('../models');
+const { Admin } = require('../models');
 const { ApiError } = require('../utils/classes');
 const { asyncHandler } = require('../middlewares');
 const { httpCodes } = require('../configs');
+const { jwt } = require('../utils/functions');
 
 /**
  * @description Sign up.
@@ -15,11 +16,36 @@ const signup = asyncHandler(async (request, response, next) => {
 
 /**
  * @description Login.
- * @route       POST /api/auth/login.
+ * @route       POST /api/auth/admin/login.
  * @access      Public.
  */
 const login = asyncHandler(async (request, response, next) => {
-  response.status(httpCodes.OK).json({ message: 'Login success!' });
+  const { email, password, remember } = request.body;
+
+  const admin = await Admin.findOne({ email, isDeleted: false }).select('_id email password');
+  if (!admin) {
+    next(new ApiError('Invalid Credentials!', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  const samePassword = await Admin.comparePasswords(password, admin.password);
+  if (!samePassword) {
+    next(new ApiError('Invalid Credentials!', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  const jwtResult = await jwt.sign({
+    id: admin._id,
+    email: admin.email,
+    remember: remember,
+  });
+  if (!jwtResult.success) {
+    next(new ApiError(jwtResult.error, httpCodes.INTERNAL_ERROR));
+    return;
+  }
+
+  const { encoded } = jwtResult.data;
+  response.status(httpCodes.CREATED).json({ success: true, data: { token: encoded }, error: null });
 });
 
 /**
@@ -41,4 +67,4 @@ const reset = asyncHandler(async (request, response, next) => {
 });
 
 // Exports of this file.
-module.exports = { signup, login, forgot, reset };
+module.exports = { login };
