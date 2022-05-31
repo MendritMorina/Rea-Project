@@ -14,7 +14,7 @@ const { response } = require('express');
  * @access      Public.
  */
 const userAuthenticatation = asyncHandler(async (request, response, next) => {
-  const { token } = request.body;
+  const { name, surname, token } = request.body;
 
   const decodedToken = await getAuth().verifyIdToken(token);
 
@@ -46,6 +46,8 @@ const userAuthenticatation = asyncHandler(async (request, response, next) => {
     response.status(httpCodes.OK).json({ success: true, data: { token }, error: null });
   } else {
     const payload = {
+      name,
+      surname,
       email: firebaseUser.email,
       firebaseUid: firebaseUser.uid, // uid
       providerId,
