@@ -14,11 +14,12 @@ const { asyncHandler } = require('../middlewares');
  * @access      Public
  */
 const getAll = asyncHandler(async (request, response) => {
-  const { page, limit } = request.query;
+  const { page, limit, pagination } = request.query;
 
   const options = {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
+    pagination: pagination,
   };
 
   const query = {
@@ -52,7 +53,7 @@ const getOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const create = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const { _id: adminId } = request.admin;
   const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category, length } =
     request.body;
 
@@ -66,7 +67,7 @@ const create = asyncHandler(async (request, response, next) => {
     narratorSurname,
     category,
     length,
-    createdBy: userId,
+    createdBy: adminId,
     createdAt: new Date(Date.now()),
   };
   const story = await Story.create(payload);
@@ -92,7 +93,7 @@ const create = asyncHandler(async (request, response, next) => {
     }
   }
 
-  const fileResults = await fileResult(story._id, userId, request, fileTypes);
+  const fileResults = await fileResult(story._id, adminId, request, fileTypes);
 
   for (let key in fileResults) {
     const fileUploadResult = fileResults[key];
@@ -119,7 +120,7 @@ const create = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const updateOne = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const { _id: adminId } = request.admin;
   const { storyId } = request.params;
   const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category, length } =
     request.body;
@@ -140,7 +141,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     narratorSurname,
     category,
     length,
-    lastEditBy: userId,
+    lastEditBy: adminId,
     lastEditAt: new Date(Date.now()),
   };
   const editedStory = await Story.findOneAndUpdate(
@@ -190,7 +191,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
       }
     }
 
-    const fileResults = await fileResult(editedStory._id, userId, request, fileTypes);
+    const fileResults = await fileResult(editedStory._id, adminId, request, fileTypes);
 
     for (let key in fileResults) {
       const fileUploadResult = fileResults[key];
@@ -216,8 +217,9 @@ const updateOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const deleteOne = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const { _id: adminId } = request.admin;
   const { storyId } = request.params;
+
   const story = await Story.findOne({ _id: storyId, isDeleted: false });
   if (!story) {
     next(new ApiError('Story not found!', httpCodes.NOT_FOUND));
@@ -229,7 +231,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     {
       $set: {
         isDeleted: true,
-        lastEditBy: userId,
+        lastEditBy: adminId,
         lastEditAt: new Date(Date.now()),
       },
     },
@@ -247,7 +249,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 module.exports = { getAll, getOne, create, updateOne, deleteOne };
 
 //Create fileResult
-async function fileResult(story, userId, req, fileTypes) {
+async function fileResult(story, adminId, req, fileTypes) {
   if (req.files && Object.keys(req.files).length) {
     const resultObj = {};
 
@@ -257,7 +259,7 @@ async function fileResult(story, userId, req, fileTypes) {
 
     for (const fileType of fileTypes) {
       if (req.files[fileType]) {
-        const fileUploadResult = await uploadFile(story, userId, req, fileType);
+        const fileUploadResult = await uploadFile(story, adminId, req, fileType);
         resultObj[`${fileType}Result`] = fileUploadResult;
       }
     }
@@ -266,7 +268,7 @@ async function fileResult(story, userId, req, fileTypes) {
   }
 }
 
-const uploadFile = async (storyId, userId, request, fileType) => {
+const uploadFile = async (storyId, adminId, request, fileType) => {
   if (!request.files[fileType]) {
     return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
   }
@@ -329,7 +331,7 @@ const uploadFile = async (storyId, userId, request, fileType) => {
           mimetype: mimetype,
           size: size,
         },
-        lastEditBy: userId,
+        lastEditBy: adminId,
         lastEditAt: new Date(Date.now()),
       },
     },

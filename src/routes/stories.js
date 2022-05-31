@@ -7,6 +7,7 @@ const { storyController } = require('../controllers');
 const { storyValidator } = require('../validations');
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
+const { authorizeAdmin } = require('../middlewares');
 
 // Define routes here.
 const routes = [
@@ -23,17 +24,17 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [validate(storyValidator.createStory), storyController.create],
+    middlewares: [authorizeAdmin, validate(storyValidator.createStory), storyController.create],
   },
   {
     path: '/:storyId',
     method: httpVerbs.PUT,
-    middlewares: [validate(storyValidator.updateStory), storyController.updateOne],
+    middlewares: [authorizeAdmin, validate(storyValidator.updateStory), storyController.updateOne],
   },
   {
     path: '/:storyId',
     method: httpVerbs.DELETE,
-    middlewares: [validate(storyValidator.validateStoryId), storyController.deleteOne],
+    middlewares: [authorizeAdmin, validate(storyValidator.validateStoryId), storyController.deleteOne],
   },
 ];
 

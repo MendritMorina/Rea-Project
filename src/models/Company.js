@@ -16,12 +16,10 @@ const CompanySchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
   },
   number: {
     type: Number,
     required: true,
-    unique: true,
   },
   logo: {
     ...File,

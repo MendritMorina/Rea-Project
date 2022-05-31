@@ -15,13 +15,12 @@ const { getMode } = require('../utils/functions');
  * @access      Public.
  */
 const getAll = asyncHandler(async (request, response) => {
-  const { page, limit, pagination, sort } = request.query;
+  const { page, limit, pagination } = request.query;
 
   const options = {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
     pagination: pagination,
-    sort: sort,
   };
 
   const query = {
@@ -53,7 +52,7 @@ const getOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const create = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const { _id: adminId } = request.admin;
   const { name, email, number } = request.body;
 
   const companyExists = (await Company.countDocuments({ name, isDeleted: false })) > 0;
@@ -66,7 +65,7 @@ const create = asyncHandler(async (request, response, next) => {
     name,
     email,
     number,
-    createdBy: userId,
+    createdBy: adminId,
     createdAt: new Date(Date.now()),
   };
   const company = await Company.create(payload);
@@ -78,7 +77,7 @@ const create = asyncHandler(async (request, response, next) => {
   let logoResult = null;
 
   if (request.files && Object.keys(request.files).length && request.files['logo']) {
-    logoResult = await uploadLogo(company._id, userId, request);
+    logoResult = await uploadLogo(company._id, adminId, request);
     if (!logoResult.success) {
       next(new ApiError(logoResult.error, httpCodes.INTERNAL_ERROR));
       return;
@@ -95,7 +94,7 @@ const create = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const updateOne = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const { _id: adminId } = request.admin;
   const { companyId } = request.params;
   const { name, email, number } = request.body;
 
@@ -116,7 +115,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     name,
     email,
     number,
-    lastEditBy: userId,
+    lastEditBy: adminId,
     lastEditAt: new Date(Date.now()),
   };
 
@@ -134,7 +133,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   let logoResult = null;
 
   if (request.files && Object.keys(request.files).length && request.files['logo']) {
-    logoResult = await uploadLogo(company._id, userId, request);
+    logoResult = await uploadLogo(company._id, adminId, request);
     if (!logoResult.success) {
       next(new ApiError(logoResult.error, httpCodes.INTERNAL_ERROR));
       return;
@@ -151,7 +150,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const deleteOne = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const { _id: adminId } = request.admin;
   const { companyId } = request.params;
   const company = await Company.findOne({ _id: companyId, isDeleted: false });
   if (!company) {
@@ -164,7 +163,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     {
       $set: {
         isDeleted: true,
-        lastEditBy: userId,
+        lastEditBy: adminId,
         lastEditAt: new Date(Date.now()),
       },
     },
@@ -181,7 +180,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 // Exports of this file.
 module.exports = { getAll, getOne, create, updateOne, deleteOne };
 
-const uploadLogo = async (companyId, userId, request) => {
+const uploadLogo = async (companyId, adminId, request) => {
   const targetName = 'logo';
   if (!request.files[targetName]) {
     return { success: false, data: null, error: `File name must be ${targetName}`, code: httpCodes.BAD_REQUEST };
@@ -228,7 +227,7 @@ const uploadLogo = async (companyId, userId, request) => {
           mimetype: mimetype,
           size: size,
         },
-        lastEditBy: userId,
+        lastEditBy: adminId,
         lastEditAt: new Date(Date.now()),
       },
     },

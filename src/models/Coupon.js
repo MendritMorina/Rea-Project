@@ -14,11 +14,11 @@ const CouponSchema = new mongoose.Schema({
   },
   startDate: {
     type: Date,
-    required: false,
+    required: true,
   },
   expirationDate: {
     type: Date,
-    required: false,
+    required: true,
   },
   company: {
     type: mongoose.Schema.Types.ObjectId,
@@ -27,7 +27,7 @@ const CouponSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['Singular', 'Plural'],
+    enum: ['singular', 'plural'],
     required: true,
   },
   ...Base,

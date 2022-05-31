@@ -13,9 +13,9 @@ const validator = {
   createCoupon: {
     body: Joi.object({
       discount: Joi.number().required(),
-      startDate: Joi.date().raw(),
-      expirationDate: Joi.date().raw(),
-      type: Joi.string(),
+      startDate: Joi.date().required(),
+      expirationDate: Joi.date().required(),
+      type: Joi.string().required(),
       company: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     }),
   },
@@ -25,9 +25,9 @@ const validator = {
     }),
     body: Joi.object({
       discount: Joi.number().required(),
-      startDate: Joi.date().raw(),
-      expirationDate: Joi.date().raw(),
-      type: Joi.string(),
+      startDate: Joi.date().required(),
+      expirationDate: Joi.date().required(),
+      type: Joi.string().required(),
       company: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     }),
   },

@@ -7,6 +7,7 @@ const { companyController } = require('../controllers');
 const { companyValidator } = require('../validations');
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
+const { authorizeAdmin } = require('../middlewares');
 
 // Define routes here.
 const routes = [
@@ -23,17 +24,17 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [validate(companyValidator.createCompany), companyController.create],
+    middlewares: [authorizeAdmin, validate(companyValidator.createCompany), companyController.create],
   },
   {
     path: '/:companyId',
     method: httpVerbs.PUT,
-    middlewares: [validate(companyValidator.updateCompany), companyController.updateOne],
+    middlewares: [authorizeAdmin, validate(companyValidator.updateCompany), companyController.updateOne],
   },
   {
     path: '/:companyId',
     method: httpVerbs.DELETE,
-    middlewares: [validate(companyValidator.validateCompanyId), companyController.deleteOne],
+    middlewares: [authorizeAdmin, validate(companyValidator.validateCompanyId), companyController.deleteOne],
   },
 ];
 
