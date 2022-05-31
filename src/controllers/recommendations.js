@@ -227,13 +227,24 @@ const getOne = asyncHandler(async (request, response, next) => {
 const getRandomOne = asyncHandler(async (request, response, next) => {
   const { type } = request.body;
 
+  // const userInfo = {
+  //   age: '20-30',
+  //   gender: 'male',
+  //   haveDiseaseDiagnosis: ['Semundjet te frymarrjes/mushkerive', 'Semundje te zemres (kardiovaskulare)'],
+  //   energySource: ['Qymyr', 'Gas', 'Zjarr/dru'],
+  //   hasChildren: true,
+  //   hasChildrenDisease: ['Diabetin', 'Semundje neurologjike'],
+  //   aqi: 250,
+  //   city: 'prishtina',
+  // };
+
   const userInfo = {
     age: '20-30',
     gender: 'male',
-    haveDiseaseDiagnosis: ['Semundjet te frymarrjes/mushkerive', 'Semundje te zemres (kardiovaskulare)'],
-    energySource: ['Qymyr', 'Gas', 'Zjarr/dru'],
+    haveDiseaseDiagnosis: ['Semundje neurologjike'],
+    energySource: ['Gas', 'Zjarr/dru'],
     hasChildren: true,
-    hasChildrenDisease: ['Diabetin', 'Semundje neurologjike'],
+    hasChildrenDisease: ['Semundjet te frymarrjes/mushkerive'],
     aqi: 250,
     city: 'prishtina',
   };
@@ -276,10 +287,10 @@ const getRandomOne = asyncHandler(async (request, response, next) => {
   }
 
   const query1A = {
-    $or: [
-      { haveDiseaseDiagnosis: { $size: 2, $all: userInfo.haveDiseaseDiagnosis } },
+    $and: [
+      { haveDiseaseDiagnosis: { $size: 1, $all: userInfo.haveDiseaseDiagnosis } },
       { energySource: { $size: 2, $all: userInfo.energySource } },
-      { hasChildrenDisease: { $size: 2, $all: userInfo.hasChildrenDisease } },
+      { hasChildrenDisease: { $size: 1, $all: userInfo.hasChildrenDisease } },
     ],
   };
 
@@ -358,7 +369,7 @@ const getRandomOne = asyncHandler(async (request, response, next) => {
 
   const query = {
     isDeleted: false,
-    ...query1,
+    ...query1A,
     type,
     airQuality: airQuery,
   };
@@ -506,7 +517,7 @@ const createRandomRecommendations = asyncHandler(async (request, response, next)
 
     const createdRecommendation = await Recommendation.create(payload);
 
-    for (let i = 0; i < 1 + parseInt(Math.random() * 8, 10); i++) {
+    for (let i = 0; i < 1 + parseInt(Math.random() * 2, 10); i++) {
       const recommendationCard = new RecommendationCard({
         name: randomString(40),
         description: randomString(50),

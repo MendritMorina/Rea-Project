@@ -25,17 +25,11 @@ const userAuthenticatation = asyncHandler(async (request, response, next) => {
 
   const uid = decodedToken.user_id;
   const providerId = decodedToken.firebase.sign_in_provider;
-  const emailVerfied = decodedToken.email_verified;
 
   const firebaseUser = await getAuth().getUser(uid);
 
   if (!firebaseUser) {
     next(new ApiError('User is not registred in firebase!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  if (!emailVerfied) {
-    next(new ApiError('The email is not verified', httpCodes.UNAUTHORIZED));
     return;
   }
 
