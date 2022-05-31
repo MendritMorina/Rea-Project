@@ -10,11 +10,13 @@ const { asyncHandler } = require('../middlewares');
  * @access      Public
  */
 const getAll = asyncHandler(async (request, response) => {
-  const { page, limit } = request.query;
+  const { page, limit, pagination, sort } = request.query;
 
   const options = {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
+    pagination: pagination,
+    sort: sort,
   };
 
   const query = {
@@ -48,13 +50,15 @@ const getOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const create = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
-  const { discount, expirationDate } = request.body;
+  const { _id: adminId } = request.admin;
+  const { discount, startDate, expirationDate, type } = request.body;
 
   const payload = {
     discount,
+    startDate,
     expirationDate,
-    createdBy: userId,
+    type,
+    createdBy: adminId,
     createdAt: new Date(Date.now()),
   };
 
@@ -73,9 +77,9 @@ const create = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const updateOne = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const { _id: adminId } = request.admin;
   const { couponId } = request.params;
-  const { discount, expirationDate } = request.body;
+  const { discount, startDate, expirationDate, type } = request.body;
 
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
@@ -85,8 +89,10 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   const payload = {
     discount,
+    startDate,
     expirationDate,
-    lastEditBy: userId,
+    type,
+    lastEditBy: adminId,
     lastEditAt: new Date(Date.now()),
   };
   const editedCoupon = await Coupon.findOneAndUpdate(
@@ -110,7 +116,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const deleteOne = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const { _id: adminId } = request.admin;
   const { couponId } = request.params;
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
@@ -123,7 +129,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     {
       $set: {
         isDeleted: true,
-        lastEditBy: userId,
+        lastEditBy: adminId,
         lastEditAt: new Date(Date.now()),
       },
     },

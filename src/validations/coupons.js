@@ -7,12 +7,15 @@ const validator = {
     query: Joi.object({
       page: Joi.number().optional().default(1),
       limit: Joi.number().optional().default(10),
+      pagination: Joi.boolean().optional().default(true),
     }),
   },
   createCoupon: {
     body: Joi.object({
       discount: Joi.number().required(),
+      startDate: Joi.date().raw(),
       expirationDate: Joi.date().raw(),
+      type: Joi.string(),
       company: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     }),
   },
@@ -22,7 +25,9 @@ const validator = {
     }),
     body: Joi.object({
       discount: Joi.number().required(),
+      startDate: Joi.date().raw(),
       expirationDate: Joi.date().raw(),
+      type: Joi.string(),
       company: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     }),
   },

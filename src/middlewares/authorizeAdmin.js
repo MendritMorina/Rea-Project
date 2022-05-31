@@ -33,15 +33,10 @@ const authorize = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (!admin.accountConfirmed) {
-    next(new ApiError('Account not confirmed!', httpCodes.UNAUTHORIZED));
-    return;
-  }
-
   const iat = new Date(0);
   iat.setUTCMilliseconds(decoded.iat * 1000);
 
-  const passwordChanged = Admin.passwordChangedAfter(user.passwordChangedAt, iat);
+  const passwordChanged = Admin.passwordChangedAfter(admin.passwordChangedAt, iat);
   if (passwordChanged) {
     next(new ApiError('Unauthorized', httpCodes.UNAUTHORIZED));
     return;

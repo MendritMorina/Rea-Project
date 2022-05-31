@@ -15,11 +15,13 @@ const { getMode } = require('../utils/functions');
  * @access      Public.
  */
 const getAll = asyncHandler(async (request, response) => {
-  const { page, limit } = request.query;
+  const { page, limit, pagination, sort } = request.query;
 
   const options = {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
+    pagination: pagination,
+    sort: sort,
   };
 
   const query = {

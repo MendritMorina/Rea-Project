@@ -7,6 +7,7 @@ const { couponController } = require('../controllers');
 const { couponValidator } = require('../validations');
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
+const { authorizeAdmin } = require('../middlewares');
 
 // Define routes here.
 const routes = [
@@ -23,17 +24,17 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [validate(couponValidator.createCoupon), couponController.create],
+    middlewares: [authorizeAdmin, validate(couponValidator.createCoupon), couponController.create],
   },
   {
     path: '/:couponId',
     method: httpVerbs.PUT,
-    middlewares: [validate(couponValidator.updateCoupon), couponController.updateOne],
+    middlewares: [authorizeAdmin, validate(couponValidator.updateCoupon), couponController.updateOne],
   },
   {
     path: '/:couponId',
     method: httpVerbs.DELETE,
-    middlewares: [validate(couponValidator.validateCouponId), couponController.deleteOne],
+    middlewares: [authorizeAdmin, validate(couponValidator.validateCouponId), couponController.deleteOne],
   },
 ];
 
