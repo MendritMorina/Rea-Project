@@ -16,6 +16,9 @@ const validator = {
       email: Joi.string().email().required(),
       number: Joi.number().required(),
       logo: Joi.any().optional(),
+      company: Joi.string()
+        .regex(/^[0-9a-fA-F]{24}$/)
+        .required(),
     }),
   },
   updateCompany: {
@@ -29,6 +32,9 @@ const validator = {
       email: Joi.string().email().required(),
       number: Joi.number().required(),
       logo: Joi.any().optional(),
+      company: Joi.string()
+        .regex(/^[0-9a-fA-F]{24}$/)
+        .required(),
     }),
   },
   validateCompanyId: {

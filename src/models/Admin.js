@@ -1,5 +1,5 @@
 // Imports: third-party packages.
-const { mongoose } = require('mongoose');
+const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
 const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
 const bcrypt = require('bcryptjs');

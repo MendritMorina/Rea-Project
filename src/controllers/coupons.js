@@ -16,6 +16,7 @@ const getAll = asyncHandler(async (request, response) => {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
     pagination: pagination,
+    populate: 'company',
   };
 
   const query = {
@@ -34,7 +35,7 @@ const getAll = asyncHandler(async (request, response) => {
  */
 const getOne = asyncHandler(async (request, response, next) => {
   const { couponId } = request.params;
-  const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
+  const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false }).populate('company');
   if (!coupon) {
     next(new ApiError('Coupon not found!', httpCodes.NOT_FOUND));
     return;
@@ -50,13 +51,14 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const { _id: adminId } = request.admin;
-  const { discount, startDate, expirationDate, type } = request.body;
+  const { discount, startDate, expirationDate, type, company } = request.body;
 
   const payload = {
     discount,
     startDate,
     expirationDate,
     type,
+    company,
     createdBy: adminId,
     createdAt: new Date(Date.now()),
   };
@@ -78,7 +80,7 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const { _id: adminId } = request.admin;
   const { couponId } = request.params;
-  const { discount, startDate, expirationDate, type } = request.body;
+  const { discount, startDate, expirationDate, type, company } = request.body;
 
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
@@ -91,6 +93,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     startDate,
     expirationDate,
     type,
+    company,
     lastEditBy: adminId,
     lastEditAt: new Date(Date.now()),
   };

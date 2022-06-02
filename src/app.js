@@ -10,7 +10,7 @@ const app = express();
 // Imports: local files.
 const { authRouter } = require('./routes');
 const { errorHandler } = require('./middlewares');
-const { couponRouter, companyRouter, storyRouter } = require('./routes');
+const { couponRouter, companyRouter, storyRouter, usedCouponRouter } = require('./routes');
 
 // Use general middleware.
 app.use(express.json());
@@ -23,6 +23,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/coupons', couponRouter);
 app.use('/api/companies', companyRouter);
 app.use('/api/stories', storyRouter);
+app.use('/api/usedCoupons', usedCouponRouter);
 
 // Use error handling middleware.
 app.use(errorHandler);

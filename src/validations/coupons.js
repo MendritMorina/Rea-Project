@@ -13,6 +13,7 @@ const validator = {
   createCoupon: {
     body: Joi.object({
       discount: Joi.number().required(),
+      description: Joi.string().required(),
       startDate: Joi.date().required(),
       expirationDate: Joi.date().required(),
       type: Joi.string().required(),
@@ -25,6 +26,7 @@ const validator = {
     }),
     body: Joi.object({
       discount: Joi.number().required(),
+      description: Joi.string().required(),
       startDate: Joi.date().required(),
       expirationDate: Joi.date().required(),
       type: Joi.string().required(),

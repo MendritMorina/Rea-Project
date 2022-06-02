@@ -12,6 +12,10 @@ const CouponSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  description: {
+    type: String,
+    required: true,
+  },
   startDate: {
     type: Date,
     required: true,
@@ -23,7 +27,7 @@ const CouponSchema = new mongoose.Schema({
   company: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
-    required: false,
+    required: true,
   },
   type: {
     type: String,
