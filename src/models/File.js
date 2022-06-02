@@ -1,6 +1,3 @@
-// Imports: third-party packages.
-const mongoose = require('mongoose');
-
 // File Schema that is inherited to some fields in our models in our API.
 const File = {
   uuid: {

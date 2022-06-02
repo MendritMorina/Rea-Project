@@ -16,6 +16,16 @@ const routes = [
     middlewares: [validate(advertisementsValidator.getAllAdvertisements), advertisementController.getAll],
   },
   {
+    path: '/randomAdvertisement',
+    method: httpVerbs.GET,
+    middlewares: [advertisementController.getRandomOne],
+  },
+  {
+    path: '/clickAdvertisement',
+    method: httpVerbs.POST,
+    middlewares: [validate(advertisementsValidator.clickAdvertisement), advertisementController.clickAdvertisement],
+  },
+  {
     path: '/:advertisementId',
     method: httpVerbs.GET,
     middlewares: [validate(advertisementsValidator.validateAdvertisement), advertisementController.getOne],
@@ -36,14 +46,6 @@ const routes = [
     middlewares: [validate(advertisementsValidator.validateAdvertisement), advertisementController.deleteOne],
   },
 ];
-
-router.get('/randomAdvertisement', advertisementController.getRandomOne);
-router.post('/randomAdvertisements/:numberOfAdvertisements', advertisementController.createRandomAdvertisements);
-router.post(
-  '/clickAdverisement',
-  validate(advertisementsValidator.clickAdvertisement),
-  advertisementController.clickAdvertisement
-);
 
 // Mount routes accordingly.
 for (const route of routes) router.route(route.path)[route.method](route.middlewares);

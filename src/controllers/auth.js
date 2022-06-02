@@ -60,7 +60,7 @@ const userAuthenticatation = asyncHandler(async (request, response, next) => {
       return;
     }
 
-    response.status(httpCodes.CREATED).json({ success: true, data: { firebaseUser, createdUser }, error: null });
+    response.status(httpCodes.CREATED).json({ success: true, data: { token }, error: null });
   }
 });
 

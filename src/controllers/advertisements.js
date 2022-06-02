@@ -96,62 +96,6 @@ const getRandomOne = asyncHandler(async (request, response, next) => {
   response.status(httpCodes.OK).json({ success: true, data: { updatedRandomAdvertisement }, error: null });
 });
 
-// const getRandomOne = asyncHandler(async (request, response, next) => {
-//   const probability = 0.9;
-
-//   const randPriorityVal = randomValueBasedPriority(probability);
-
-//   const advertisements = await Advertisement.find({ isDeleted: false, priority: randPriorityVal });
-
-//   while (!advertisements) {
-//     randPriorityVal = randomValueBasedPriority(probability);
-//     advertisements = await Advertisement.find({ isDeleted: false, priority: randPriorityVal });
-//   }
-
-//   const randomIndex = parseInt(Math.random() * advertisements.length);
-
-//   const randomAdvertisement = advertisements[randomIndex];
-
-//   response.status(httpCodes.OK).json({ success: true, data: { randomAdvertisement }, error: null });
-// });
-
-/**
- * @description Create random advertisements (This is used just for testing)
- * @route       POST /api/advertisements/randomAdvertisements/:numberOfAdvertisements.
- * @access      Public.
- */
-const createRandomAdvertisements = asyncHandler(async (request, response, next) => {
-  const nrOfAdv = request.params.numberOfAdvertisements;
-  const { nameLength, descriptionLength } = request.body;
-
-  const advertisements = [];
-
-  for (let i = 0; i < nrOfAdv; i++) {
-    const payload = {
-      name: randomString(nameLength),
-      description: randomString(descriptionLength),
-      priority: parseInt(1 + Math.random() * 20, 10),
-    };
-
-    const createdAdvertisement = await Advertisement.create(payload);
-    advertisements.push(createdAdvertisement);
-  }
-
-  response.status(httpCodes.OK).json({ success: true, data: { advertisements }, error: null });
-});
-
-function randomString(length) {
-  let result = '';
-  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let charactersLength = characters.length;
-
-  for (let i = 0; i < length; i++) {
-    result = result + characters.charAt(parseInt(Math.random() * charactersLength, 10));
-  }
-
-  return result;
-}
-
 /**
  * @description Create a advertisement.
  * @route       POST /api/advertisements.
@@ -403,37 +347,6 @@ const clickAdvertisement = asyncHandler(async (request, response, next) => {
   response.status(httpCodes.OK).json({ success: true, data: { advertisement: clickedAdvertisement }, error: null });
 });
 
-// Returns a random number from 1 to 20 with high probability of being larger
-function randomValueBasedPriority(probability) {
-  const randomvalue = Math.random();
-  let priorityIndex = parseInt(1 + Math.random() * 20, 10);
-  if (randomvalue < probability) {
-    priorityIndex = priorityIndex + parseInt(10 + Math.random() * 10, 10);
-    if (10 <= priorityIndex && priorityIndex <= 15) {
-      const randInt = parseInt(Math.random() * 5, 10);
-      priorityIndex += randInt;
-      while (priorityIndex > 20) {
-        priorityIndex -= 1;
-      }
-      return priorityIndex;
-    } else if (15 <= priorityIndex && priorityIndex <= 20) {
-      return priorityIndex;
-    } else {
-      while (priorityIndex > 20) {
-        priorityIndex -= 1;
-      }
-
-      return priorityIndex;
-    }
-  } else {
-    //priorityIndex = priorityIndex + parseInt(Math.random() * 10, 10);
-    while (priorityIndex > 20) {
-      priorityIndex -= 1;
-    }
-    return priorityIndex;
-  }
-}
-
 async function fileResult(advertisement, userId, req, fileTypes) {
   if (req.files && Object.keys(req.files).length) {
     const resultObj = {};
@@ -537,6 +450,5 @@ module.exports = {
   deleteOne,
   updateOne,
   getRandomOne,
-  createRandomAdvertisements,
   clickAdvertisement,
 };

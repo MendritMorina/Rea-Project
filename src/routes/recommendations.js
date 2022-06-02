@@ -9,14 +9,17 @@ const { validate } = require('../utils/functions');
 const recommendationCardRouter = require('./recommendationCards');
 const { httpVerbs } = require('../configs');
 
-router.get('/randomRecCardFromRec', recommendationController.getRandomOne);
-
 // Define routes here.
 const routes = [
   {
     path: '/',
     method: httpVerbs.GET,
     middlewares: [validate(recommendationValidator.getAllRecommendations), recommendationController.getAll],
+  },
+  {
+    path: '/randomRecCardFromRec',
+    method: httpVerbs.GET,
+    middlewares: [recommendationController.getRandomOne],
   },
   {
     path: '/:recommendationId',
@@ -42,8 +45,6 @@ const routes = [
 
 // Mount routes accordingly.
 for (const route of routes) router.route(route.path)[route.method](route.middlewares);
-
-router.post('/randomRecommendations/:numberOfRecommendations', recommendationController.createRandomRecommendations);
 
 //router.use('/:recommendationId', recommendationCardRouter);
 router.use('/:recommendationId/recommendationcards', recommendationCardRouter);
