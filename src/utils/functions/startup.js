@@ -22,5 +22,21 @@ const initAdmins = async () => {
   }
 };
 
+// Function that is used to init the public folder.
+const initPublicFolder = async () => {
+  const pathToPublicFolder = path.join(__dirname, '../../../public');
+
+  const publicFolderExists = fs.existsSync(pathToPublicFolder);
+  if (!publicFolderExists) fs.mkdirSync(pathToPublicFolder);
+
+  const childFolders = ['recommendationcards', 'advertisements', 'companies', 'stories'];
+  for (const childFolder of childFolders) {
+    const pathToChildFolder = path.join(__dirname, `../../../public/${childFolder}`);
+
+    const childFolderExists = fs.existsSync(pathToChildFolder);
+    if (!childFolderExists) fs.mkdirSync(pathToChildFolder);
+  }
+};
+
 // Exports of this file.
-module.exports = { initAdmins };
+module.exports = { initAdmins, initPublicFolder };

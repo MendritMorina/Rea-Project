@@ -28,6 +28,7 @@ console.log('===================================================================
 
     // Run startup code. (ORDER MATTERS)
     await startup.initAdmins();
+    await startup.initPublicFolder();
 
     const { nodeEnv, nodePort } = env.getByKeys(['nodeEnv', 'nodePort']);
     app.listen(nodePort, () => {

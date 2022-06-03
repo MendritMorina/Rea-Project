@@ -3,7 +3,7 @@ const { Joi } = require('express-validation');
 
 // Validator object that holds validation related to the controller in ./src/controllers/usedCoupons.
 const validator = {
-  createusedCoupon: {
+  createUsedCoupon: {
     body: Joi.object({
       coupon: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
@@ -13,7 +13,7 @@ const validator = {
         .required(),
     }),
   },
-  validateusedCouponId: {
+  validateUsedCouponId: {
     params: Joi.object({
       usedCouponId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)

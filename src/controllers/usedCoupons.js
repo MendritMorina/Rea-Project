@@ -7,28 +7,31 @@ const { ApiError } = require('../utils/classes');
 const { httpCodes } = require('../configs');
 const { asyncHandler } = require('../middlewares');
 
+/**
+ * @description Use a specific coupon.
+ * @route       POST /api/usedCoupons.
+ * @access      Private, only users.
+ */
 const create = asyncHandler(async (request, response, next) => {
   const { user, coupon } = request.body;
 
-  const couponDB = await Coupon.findOne({ _id: coupon, isDeleted: false });
-  if (!couponDB) {
+  const dbCoupon = await Coupon.findOne({ _id: coupon, isDeleted: false });
+  if (!dbCoupon) {
     next(new ApiError('Coupon with given id not found', httpCodes.UNAUTHORIZED));
     return;
   }
 
-  console.log(couponDB);
-
   const today = new Date(Date.now());
-  const startDate = new Date(couponDB.startDate);
-  const expirationDate = new Date(couponDB.expirationDate);
+  const startDate = new Date(dbCoupon.startDate);
+  const expirationDate = new Date(dbCoupon.expirationDate);
 
   if (!(today >= startDate && today <= expirationDate)) {
     next(new ApiError('Coupon already expired', httpCodes.UNAUTHORIZED));
     return;
   }
 
-  const usedNumber = await UsedCoupon.countDocuments({ user: user, coupon: couponDB._id });
-  if (couponDB.type === 'singular' && usedNumber === 1) {
+  const usedNumber = await UsedCoupon.countDocuments({ user: user, coupon: dbCoupon._id });
+  if (dbCoupon.type === 'singular' && usedNumber === 1) {
     next(new ApiError('Coupon already used', httpCodes.BAD_REQUEST));
     return;
   }
