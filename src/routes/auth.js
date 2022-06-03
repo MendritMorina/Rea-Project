@@ -16,19 +16,9 @@ const routes = [
     middlewares: [authController.authenticate],
   },
   {
-    path: '/signup',
-    method: httpVerbs.POST,
-    middlewares: [validate(authValidator.signup), authController.signup],
-  },
-  {
-    path: '/login',
-    method: httpVerbs.POST,
-    middlewares: [validate(authValidator.login), authController.login],
-  },
-  {
     path: '/update',
     method: httpVerbs.PUT,
-    middlewares: [validate(authValidator.login), authController.login],
+    middlewares: [validate(authValidator.login), authController.update],
   },
   {
     path: '/forgot',

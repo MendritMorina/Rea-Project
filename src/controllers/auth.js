@@ -175,4 +175,4 @@ const reset = asyncHandler(async (request, response, next) => {
 });
 
 // Exports of this file.
-module.exports = { authenticate, signup, login, update, adminLogin, forgot, reset };
+module.exports = { authenticate, update, adminLogin, forgot, reset };
