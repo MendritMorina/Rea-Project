@@ -9,6 +9,7 @@ const Company = require('./Company');
 const Coupon = require('./Coupon');
 const Story = require('./Story');
 const UsedCoupon = require('./UsedCoupon');
+const Advertisement = require('./Advertisement');
 
 // Bundler object that is used to export all models inside ./src/models.
 const bundler = {
@@ -22,6 +23,7 @@ const bundler = {
   Coupon,
   Story,
   UsedCoupon,
+  Advertisement,
 };
 
 // Exports of this file.

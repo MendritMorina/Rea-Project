@@ -5,11 +5,17 @@ const router = express.Router();
 // Imports: local files.
 const { authController } = require('../controllers');
 const { authValidator } = require('../validations');
+
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
 
 // Define routes here.
 const routes = [
+  {
+    path: '/userAuthenticatation',
+    method: httpVerbs.POST,
+    middlewares: [authController.userAuthenticatation],
+  },
   {
     path: '/signup',
     method: httpVerbs.POST,
@@ -18,6 +24,11 @@ const routes = [
   {
     path: '/login',
     method: httpVerbs.POST,
+    middlewares: [validate(authValidator.login), authController.login],
+  },
+  {
+    path: '/update',
+    method: httpVerbs.PUT,
     middlewares: [validate(authValidator.login), authController.login],
   },
   {

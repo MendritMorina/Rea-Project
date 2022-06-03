@@ -104,39 +104,32 @@ const create = asyncHandler(async (request, response, next) => {
     }
   );
 
-  if (request.files) {
-    const fileTypes = request.files ? Object.keys(request.files) : [];
+  const fileTypes = request.files ? Object.keys(request.files) : [];
 
-    const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
+  const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
 
-    if (fileTypes.length !== 4) {
-      next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
+  if (fileTypes.length !== 4) {
+    await recommendationCard.remove();
+    next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  for (const fileType of fileTypes) {
+    if (!requiredTypes.includes(fileType)) {
+      await recommendationCard.remove();
+      next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
       return;
     }
+  }
 
-    for (const fileType of fileTypes) {
-      if (!requiredTypes.includes(fileType)) {
-        next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
-        return;
-      }
-    }
+  const fileResults = await fileResult(recommendationCard._id, userId, request, fileTypes);
 
-    const fileResults = await fileResult(
-      recommendationCard._id,
-      userId,
-      request,
-      //['small', 'medium', 'large', 'thumbnail']
-      //['medium', 'large', 'thumbnail']
-      //Object.keys(request.files) // doesn't work if you don't send file returns error
-      fileTypes
-    );
-
-    for (let key in fileResults) {
-      const fileUploadResult = fileResults[key];
-      if (fileUploadResult && !fileUploadResult.success) {
-        next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
-        return;
-      }
+  for (let key in fileResults) {
+    const fileUploadResult = fileResults[key];
+    if (fileUploadResult && !fileUploadResult.success) {
+      await recommendationCard.remove();
+      next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+      return;
     }
   }
 
@@ -266,14 +259,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
       }
     }
 
-    const fileResults = await fileResult(
-      editedRecommendationCard._id,
-      userId,
-      request,
-      //['small', 'medium', 'large', 'thumbnail']
-      // ['medium', 'large', 'thumbnail']
-      fileTypes
-    );
+    const fileResults = await fileResult(editedRecommendationCard._id, userId, request, fileTypes);
 
     for (let key in fileResults) {
       const fileUploadResult = fileResults[key];

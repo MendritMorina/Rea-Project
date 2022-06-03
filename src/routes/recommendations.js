@@ -17,6 +17,11 @@ const routes = [
     middlewares: [validate(recommendationValidator.getAllRecommendations), recommendationController.getAll],
   },
   {
+    path: '/randomRecCardFromRec',
+    method: httpVerbs.GET,
+    middlewares: [recommendationController.getRandomOne],
+  },
+  {
     path: '/:recommendationId',
     method: httpVerbs.GET,
     middlewares: [validate(recommendationValidator.validateRecommendationId), recommendationController.getOne],
