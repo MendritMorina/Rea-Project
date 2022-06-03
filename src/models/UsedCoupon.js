@@ -22,6 +22,16 @@ const UsedCouponSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isUsed: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  usedAt: {
+    type: Date,
+    required: false,
+    default: null,
+  },
   ...Base,
 });
 

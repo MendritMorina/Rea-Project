@@ -6,7 +6,7 @@ const path = require('path');
 const Advertisement = require('../models/Advertisement');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
-const { filterValues } = require('../utils/functions');
+const { filterValues, getMode } = require('../utils/functions');
 const { httpCodes } = require('../configs');
 
 /**
@@ -382,8 +382,7 @@ const uploadFile = async (advertisementId, userId, request, fileType) => {
     return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
   }
 
-  // const publicURL = isMode('production') ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
-  const publicURL = 'http://localhost:5000';
+  const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
   const fileURL = `${publicURL}/advertisements/${fileName}`;
 
   const updatedAdvertisement = await Advertisement.findOneAndUpdate(

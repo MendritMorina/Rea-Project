@@ -211,7 +211,7 @@ const uploadLogo = async (companyId, adminId, request) => {
     return { success: false, data: null, error: 'Failed to upload logo!', code: httpCodes.INTERNAL_ERROR };
   }
 
-  const publicURL = getMode('production') ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
+  const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
   const fileURL = `${publicURL}/companies/${fileName}`;
 
   const updatedCompany = await Company.findOneAndUpdate(

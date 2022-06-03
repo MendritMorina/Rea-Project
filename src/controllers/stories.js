@@ -6,6 +6,7 @@ const fs = require('fs');
 const { Story } = require('../models');
 const { ApiError } = require('../utils/classes');
 const { httpCodes } = require('../configs');
+const { getMode } = require('../utils/functions');
 const { asyncHandler } = require('../middlewares');
 
 /**
@@ -308,8 +309,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
     return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
   }
 
-  // const publicURL = isMode('production') ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
-  const publicURL = 'http://localhost:5000';
+  const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
   const fileURL = `${publicURL}/stories/${fileName}`;
 
   const updatedStory = await Story.findOneAndUpdate(
