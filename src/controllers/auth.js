@@ -1,8 +1,9 @@
 // Imports: local files.
-const { User } = require('../models');
+const { Admin, User } = require('../models');
 const { ApiError } = require('../utils/classes');
 const { asyncHandler } = require('../middlewares');
 const { httpCodes } = require('../configs');
+const { jwt } = require('../utils/functions');
 
 const admin = require('firebase-admin');
 const { getAuth } = require('firebase-admin/auth');
@@ -105,7 +106,7 @@ const signup = asyncHandler(async (request, response, next) => {
 
 /**
  * @description Login.
- * @route       POST /api/auth/login.
+ * @route       POST /api/auth/admin/login.
  * @access      Public.
  */
 const login = asyncHandler(async (request, response, next) => {
@@ -223,6 +224,41 @@ const update = asyncHandler(async (request, response, next) => {
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { editedUser, updatedFireBaseUser }, error: null });
+  return;
+});
+
+/**
+ * @description Admin login.
+ * @route       POST /api/auth/admin/login.
+ * @access      Public.
+ */
+const adminLogin = asyncHandler(async (request, response, next) => {
+  const { email, password, remember } = request.body;
+
+  const admin = await Admin.findOne({ email, isDeleted: false }).select('_id email password');
+  if (!admin) {
+    next(new ApiError('Invalid Credentials!', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  const samePassword = await Admin.comparePasswords(password, admin.password);
+  if (!samePassword) {
+    next(new ApiError('Invalid Credentials!', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  const jwtResult = await jwt.sign({
+    id: admin._id,
+    email: admin.email,
+    remember: remember,
+  });
+  if (!jwtResult.success) {
+    next(new ApiError(jwtResult.error, httpCodes.INTERNAL_ERROR));
+    return;
+  }
+
+  const { encoded } = jwtResult.data;
+  response.status(httpCodes.CREATED).json({ success: true, data: { token: encoded }, error: null });
 });
 
 /**
@@ -244,4 +280,4 @@ const reset = asyncHandler(async (request, response, next) => {
 });
 
 // Exports of this file.
-module.exports = { userAuthenticatation, signup, login, update, forgot, reset };
+module.exports = { userAuthenticatation, signup, login, update, adminLogin, forgot, reset };

@@ -8,12 +8,16 @@ const Base = require('./Base');
 
 // Coupon Schema that is used to represent single Coupon in our API.
 const CouponSchema = new mongoose.Schema({
+  discount: {
+    type: Number,
+    required: true,
+  },
   description: {
     type: String,
     required: true,
   },
-  discount: {
-    type: Number,
+  startDate: {
+    type: Date,
     required: true,
   },
   expirationDate: {
@@ -23,6 +27,11 @@ const CouponSchema = new mongoose.Schema({
   company: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
+    required: true,
+  },
+  type: {
+    type: String,
+    enum: ['singular', 'plural'],
     required: true,
   },
   ...Base,

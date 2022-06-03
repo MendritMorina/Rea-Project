@@ -21,10 +21,13 @@ const StorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  photo: {
+  thumbnail: {
     ...File,
   },
   audio: {
+    ...File,
+  },
+  backgroundImage: {
     ...File,
   },
   authorName: {
@@ -46,17 +49,10 @@ const StorySchema = new mongoose.Schema({
   category: {
     type: String,
     enum: ['Child', 'Adult'],
-    required: true,
+    required: false,
   },
   length: {
     type: Number,
-    required: true,
-  },
-  thumbnail: {
-    ...File,
-  },
-  backgroundUrl: {
-    type: String,
     required: true,
   },
   ...Base,

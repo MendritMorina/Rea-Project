@@ -27,6 +27,12 @@ const validator = {
       email: Joi.string().email().optional(),
     }),
   },
+  adminLogin: {
+    body: Joi.object({
+      email: Joi.string().email().required(),
+      password: Joi.string().required(),
+    }),
+  },
 };
 
 // Exports of this file.

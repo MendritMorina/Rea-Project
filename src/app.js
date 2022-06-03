@@ -24,6 +24,10 @@ const {
   recommendationCardRouter,
   advertisementsRouter,
   usersRouter,
+  couponRouter,
+  companyRouter,
+  storyRouter,
+  usedCouponRouter,
 } = require('./routes');
 
 // Use general middleware.
@@ -37,6 +41,10 @@ app.use('/api/recommendations', recommendationRouter);
 app.use('/api/recommendationcards', recommendationCardRouter);
 app.use('/api/advertisements', advertisementsRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/coupons', couponRouter);
+app.use('/api/companies', companyRouter);
+app.use('/api/stories', storyRouter);
+app.use('/api/usedCoupons', usedCouponRouter);
 
 // Use error handling middleware.
 app.use(errorHandler);

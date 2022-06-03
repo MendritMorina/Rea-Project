@@ -41,6 +41,11 @@ const routes = [
     method: httpVerbs.POST,
     middlewares: [validate(authValidator.reset), authController.reset],
   },
+  {
+    path: '/admin/login',
+    method: httpVerbs.POST,
+    middlewares: [validate(authValidator.adminLogin), authController.login],
+  },
 ];
 
 // Mount routes accordingly.
