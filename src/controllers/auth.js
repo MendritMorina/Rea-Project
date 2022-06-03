@@ -108,17 +108,16 @@ const update = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const updatedFireBaseUser = await getAuth().updateUser(firebaseUser.uid, {
+  const updatedFirebaseUser = await getAuth().updateUser(firebaseUser.uid, {
     email,
-    password,
     displayName: `${name} ${surname}`,
   });
-  if (!updatedFireBaseUser) {
-    next(new ApiError('Failed to update FireBase User!', httpCodes.BAD_REQUEST));
+  if (!updatedFirebaseUser) {
+    next(new ApiError('Failed to update user in Firebase!', httpCodes.BAD_REQUEST));
     return;
   }
 
-  response.status(httpCodes.OK).json({ success: true, data: { editedUser, updatedFireBaseUser }, error: null });
+  response.status(httpCodes.OK).json({ success: true, data: { user: editedUser }, error: null });
   return;
 });
 

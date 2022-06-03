@@ -7,14 +7,29 @@ const { usedCouponController } = require('../controllers');
 const { usedCouponValidator } = require('../validations');
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
-const { authorize } = require('../middlewares');
+const { authorize, authorizeAdmin } = require('../middlewares');
 
 // Define routes here.
 const routes = [
   {
     path: '/',
+    method: httpVerbs.GET,
+    middlewares: [authorizeAdmin, validate(usedCouponValidator.getAll), usedCouponController.getAll],
+  },
+  {
+    path: '/:couponCode',
+    method: httpVerbs.GET,
+    middlewares: [validate(usedCouponValidator.getOne), usedCouponController.getOne],
+  },
+  {
+    path: '/',
     method: httpVerbs.POST,
-    middlewares: [authorize, validate(usedCouponValidator.createUsedCoupon), usedCouponController.create],
+    middlewares: [authorize, validate(usedCouponValidator.create), usedCouponController.create],
+  },
+  {
+    path: '/use',
+    method: httpVerbs.POST,
+    middlewares: [validate(usedCouponValidator.use), usedCouponController.use],
   },
 ];
 

@@ -24,12 +24,12 @@ const getAll = asyncHandler(async (request, response) => {
   };
 
   const query = { isDeleted: false };
-
   const companies = await Company.paginate(query, options);
 
   response.status(httpCodes.OK).json({ success: true, data: { companies }, error: null });
   return;
 });
+
 /**
  * @description Get company by id.
  * @route       GET /api/companies/:companyId.

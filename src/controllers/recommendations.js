@@ -11,11 +11,12 @@ const { httpCodes } = require('../configs');
  * @access      Public.
  */
 const getAll = asyncHandler(async (request, response) => {
-  const { page, limit, select, sort } = request.query;
+  const { page, limit, pagination, select, sort } = request.query;
 
   const options = {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
+    pagination: pagination,
     select: select
       ? filterValues(select, ['haveDiseaseDiagnosis', 'hasChildren', 'hasChildrenDisease', 'energySource'])
       : 'name description',

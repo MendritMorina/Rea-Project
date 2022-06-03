@@ -17,7 +17,9 @@ const validator = {
       startDate: Joi.date().required(),
       expirationDate: Joi.date().required(),
       type: Joi.string().required(),
-      company: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+      company: Joi.string()
+        .regex(/^[0-9a-fA-F]{24}$/)
+        .required(),
     }),
   },
   updateCoupon: {
@@ -30,7 +32,9 @@ const validator = {
       startDate: Joi.date().required(),
       expirationDate: Joi.date().required(),
       type: Joi.string().required(),
-      company: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+      company: Joi.string()
+        .regex(/^[0-9a-fA-F]{24}$/)
+        .required(),
     }),
   },
   validateCouponId: {

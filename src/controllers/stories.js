@@ -29,6 +29,7 @@ const getAll = asyncHandler(async (request, response) => {
   response.status(200).json({ success: true, data: { stories }, error: null });
   return;
 });
+
 /**
  * @description Get story by id.
  * @route       GET /api/stories/:storyId.
@@ -201,7 +202,9 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { story: latestUpdateStory }, error: null });
+  return;
 });
+
 /**
  * @description Delete a story.
  * @route       DELETE /api/stories/:storyId.

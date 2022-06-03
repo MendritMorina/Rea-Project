@@ -3,8 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Imports: local files.
-const RecommendationCard = require('../models/RecommendationCard');
-const Recommendation = require('../models/Recommendation');
+const { RecommendationCard, Recommendation } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { filterValues, getMode } = require('../utils/functions');
@@ -17,11 +16,12 @@ const { httpCodes } = require('../configs');
  * @access      Public.
  */
 const getAll = asyncHandler(async (request, response) => {
-  const { page, limit, select, sort } = request.query;
+  const { page, limit, pagination, select, sort } = request.query;
 
   const options = {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
+    pagination: pagination,
     select: select ? filterValues(select, ['name']) : 'name description',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
     populate: 'recommendation',
