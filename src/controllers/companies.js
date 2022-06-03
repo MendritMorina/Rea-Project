@@ -207,7 +207,6 @@ const uploadLogo = async (companyId, adminId, request) => {
   try {
     fs.writeFileSync(filePath, data, { encoding: 'utf-8' });
   } catch (error) {
-    console.log(error);
     return { success: false, data: null, error: 'Failed to upload logo!', code: httpCodes.INTERNAL_ERROR };
   }
 
