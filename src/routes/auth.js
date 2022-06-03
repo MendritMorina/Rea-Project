@@ -5,16 +5,15 @@ const router = express.Router();
 // Imports: local files.
 const { authController } = require('../controllers');
 const { authValidator } = require('../validations');
-
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
 
 // Define routes here.
 const routes = [
   {
-    path: '/userAuthenticatation',
+    path: '/',
     method: httpVerbs.POST,
-    middlewares: [authController.userAuthenticatation],
+    middlewares: [authController.authenticate],
   },
   {
     path: '/signup',

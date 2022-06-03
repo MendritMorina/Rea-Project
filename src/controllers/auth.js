@@ -1,3 +1,6 @@
+// Imports: third-party packages.
+const { getAuth } = require('firebase-admin/auth');
+
 // Imports: local files.
 const { Admin, User } = require('../models');
 const { ApiError } = require('../utils/classes');
@@ -5,22 +8,17 @@ const { asyncHandler } = require('../middlewares');
 const { httpCodes } = require('../configs');
 const { jwt } = require('../utils/functions');
 
-const admin = require('firebase-admin');
-const { getAuth } = require('firebase-admin/auth');
-const { response } = require('express');
-
 /**
  * @description Authenticate an user .
- * @route       POST /api/auth/userAuthenticatation.
+ * @route       POST /api/auth.
  * @access      Public.
  */
-const userAuthenticatation = asyncHandler(async (request, response, next) => {
+const authenticate = asyncHandler(async (request, response, next) => {
   const { name, surname, token } = request.body;
 
   const decodedToken = await getAuth().verifyIdToken(token);
-
   if (!decodedToken) {
-    next(new ApiError('Unauthorized to access', httpCodes.UNAUTHORIZED));
+    next(new ApiError('Unauthorized to access!', httpCodes.UNAUTHORIZED));
     return;
   }
 
@@ -28,115 +26,32 @@ const userAuthenticatation = asyncHandler(async (request, response, next) => {
   const providerId = decodedToken.firebase.sign_in_provider;
 
   const firebaseUser = await getAuth().getUser(uid);
-
   if (!firebaseUser) {
     next(new ApiError('User is not registred in firebase!', httpCodes.BAD_REQUEST));
     return;
   }
 
   const allowedProviders = ['password', 'google.com', 'facebook.com'];
-
   if (!allowedProviders.includes(providerId)) {
     next(new ApiError('Not allowed provider', httpCodes.UNAUTHORIZED));
     return;
   }
 
   const user = await User.findOne({ firebaseUid: uid, isDeleted: false });
-
   if (user) {
     response.status(httpCodes.OK).json({ success: true, data: { token }, error: null });
-  } else {
-    const payload = {
-      name,
-      surname,
-      email: firebaseUser.email,
-      firebaseUid: firebaseUser.uid, // uid
-      providerId,
-    };
-
-    const createdUser = await User.create(payload);
-
-    if (!createdUser) {
-      next(new ApiError('User failed to create!', httpCodes.INTERNAL_ERROR));
-      return;
-    }
-
-    response.status(httpCodes.CREATED).json({ success: true, data: { token }, error: null });
-  }
-});
-
-/**
- * @description Sign up.
- * @route       POST /api/auth/signup.
- * @access      Public.
- */
-const signup = asyncHandler(async (request, response, next) => {
-  const { providerId, uid, name, surname } = request.body;
-
-  const firebaseUser = await getAuth().getUser(uid);
-
-  if (!firebaseUser) {
-    next(new ApiError('User is not registred in firebase!', httpCodes.BAD_REQUEST));
     return;
   }
 
-  const user = await User.findOne({ firebaseUid: uid, isDeleted: false });
-
-  if (user) {
-    next(new ApiError('User already exists in database!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  const payload = {
-    email: firebaseUser.email,
-    firebaseUid: firebaseUser.uid, // uid
-    name,
-    surname,
-  };
-
+  const payload = { name, surname, email: firebaseUser.email, firebaseUid: firebaseUser.uid, providerId };
   const createdUser = await User.create(payload);
-
   if (!createdUser) {
-    next(new ApiError('User failed to create!', httpCodes.INTERNAL_ERROR));
+    next(new ApiError('Failed to create user!', httpCodes.INTERNAL_ERROR));
     return;
   }
 
-  response.status(httpCodes.CREATED).json({ success: true, data: { firebaseUser, createdUser }, error: null });
-});
-
-/**
- * @description Login.
- * @route       POST /api/auth/admin/login.
- * @access      Public.
- */
-const login = asyncHandler(async (request, response, next) => {
-  const { token } = request.body;
-
-  const decodedToken = await getAuth().verifyIdToken(token);
-
-  if (!decodedToken) {
-    next(new ApiError('Unauthorized to access', httpCodes.UNAUTHORIZED));
-    return;
-  }
-
-  const uid = decodedToken.user_id;
-  const providerId = decodedToken.firebase.sign_in_provider;
-
-  const firebaseUser = await getAuth().getUser(uid);
-
-  if (!firebaseUser) {
-    next(new ApiError('There is no user in firebase!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  const user = await User.findOne({ firebaseUid: uid, isDeleted: false });
-
-  if (!user) {
-    next(new ApiError('User not found in database!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  response.status(httpCodes.OK).json({ success: true, data: { token }, error: null });
+  response.status(httpCodes.CREATED).json({ success: true, data: { token }, error: null });
+  return;
 });
 
 /**
@@ -145,14 +60,11 @@ const login = asyncHandler(async (request, response, next) => {
  * @access      Public.
  */
 const update = asyncHandler(async (request, response, next) => {
-  const theUserId = '625e6c53419131c236181826';
-  //const { userId } = '625e6c53419131c236181826';
   const userId = request.user._id;
   const {
     name,
     surname,
     email,
-    password,
     age,
     gender,
     weather,
@@ -170,25 +82,15 @@ const update = asyncHandler(async (request, response, next) => {
   }
 
   const firebaseUser = await getAuth().getUser(user.firebaseUid);
-
   if (!firebaseUser) {
-    next(new ApiError('User is not registred in firebase!', httpCodes.NOT_FOUND));
+    next(new ApiError('User not found in firebase!', httpCodes.NOT_FOUND));
     return;
-  }
-
-  if (name !== user.name) {
-    const userExists = (await User.countDocuments({ _id: { $ne: user._id }, name, isDeleted: false })) > 0;
-    if (userExists) {
-      next(new ApiError('User with given name already exists!', httpCodes.BAD_REQUEST));
-      return;
-    }
   }
 
   const payload = {
     name,
     surname,
     email,
-    password,
     age,
     gender,
     weather,
@@ -197,16 +99,10 @@ const update = asyncHandler(async (request, response, next) => {
     aqi,
     hasChildren,
     hasChildrenDisease,
-    lastEditBy: theUserId,
-    lastEditAt: new Date(Date.now()),
+    updatedBy: userId,
+    updatedAt: new Date(Date.now()),
   };
-  const editedUser = await User.findOneAndUpdate(
-    { _id: user._id },
-    {
-      $set: payload,
-    },
-    { new: true }
-  );
+  const editedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: payload }, { new: true });
   if (!editedUser) {
     next(new ApiError('Failed to update user!', httpCodes.INTERNAL_ERROR));
     return;
@@ -217,7 +113,6 @@ const update = asyncHandler(async (request, response, next) => {
     password,
     displayName: `${name} ${surname}`,
   });
-
   if (!updatedFireBaseUser) {
     next(new ApiError('Failed to update FireBase User!', httpCodes.BAD_REQUEST));
     return;
@@ -280,4 +175,4 @@ const reset = asyncHandler(async (request, response, next) => {
 });
 
 // Exports of this file.
-module.exports = { userAuthenticatation, signup, login, update, adminLogin, forgot, reset };
+module.exports = { authenticate, signup, login, update, adminLogin, forgot, reset };

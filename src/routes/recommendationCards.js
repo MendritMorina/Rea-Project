@@ -7,6 +7,7 @@ const { recommendationCardController } = require('../controllers');
 const { recommendationCardValidator } = require('../validations');
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
+const { authorizeAdmin } = require('../middlewares');
 
 // Define routes here.
 const routes = [
@@ -26,12 +27,17 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [validate(recommendationCardValidator.createRecommendationCard), recommendationCardController.create],
+    middlewares: [
+      authorizeAdmin,
+      validate(recommendationCardValidator.createRecommendationCard),
+      recommendationCardController.create,
+    ],
   },
   {
     path: '/:recommendationCardId',
     method: httpVerbs.PUT,
     middlewares: [
+      authorizeAdmin,
       validate(recommendationCardValidator.updateRecommendationCard),
       recommendationCardController.updateOne,
     ],
@@ -40,6 +46,7 @@ const routes = [
     path: '/:recommendationCardId',
     method: httpVerbs.DELETE,
     middlewares: [
+      authorizeAdmin,
       validate(recommendationCardValidator.validateRecommendationCardId),
       recommendationCardController.deleteOne,
     ],

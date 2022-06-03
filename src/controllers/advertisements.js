@@ -2,14 +2,11 @@
 const fs = require('fs');
 const path = require('path');
 
-//const Advertisement = require('../models');
+// Imports: local files.
 const Advertisement = require('../models/Advertisement');
-
 const { asyncHandler } = require('../middlewares');
-
 const { ApiError } = require('../utils/classes');
 const { filterValues } = require('../utils/functions');
-
 const { httpCodes } = require('../configs');
 
 /**
@@ -27,13 +24,11 @@ const getAll = asyncHandler(async (request, response) => {
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
   };
 
-  const query = {
-    isDeleted: false,
-  };
-
+  const query = { isDeleted: false };
   const advertisements = await Advertisement.paginate(query, options);
 
   response.status(httpCodes.OK).json({ success: true, data: { advertisements }, error: null });
+  return;
 });
 
 /**
@@ -44,28 +39,24 @@ const getAll = asyncHandler(async (request, response) => {
 const getOne = asyncHandler(async (request, response, next) => {
   const { advertisementId } = request.params;
 
-  const advertisement = await Advertisement.findOne({ _id: advertisementId, isDeleted: false }).select(
-    'name description photo thumbnail'
-  );
-
+  const advertisement = await Advertisement.findOne({ _id: advertisementId, isDeleted: false });
   if (!advertisement) {
-    next(new ApiError('Advertisement not found!', httpCodes.NOT_FOUND));
+    next(new ApiError('Advertisement with given ide not found!', httpCodes.NOT_FOUND));
     return;
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { advertisement }, error: null });
+  return;
 });
 
 /**
  * @description Get random advertisement by priority.
- * @route       GET /api/advertisements/randomAdvertisement.
+ * @route       GET /api/advertisements/random.
  * @access      Public.
  */
 const getRandomOne = asyncHandler(async (request, response, next) => {
   const temp = [];
-
   const advertisements = await Advertisement.find({ isDeleted: false });
-
   for (const advertisement of advertisements) {
     for (let i = 0; i < advertisement.priority; i++) {
       temp.push(advertisement);
@@ -73,43 +64,35 @@ const getRandomOne = asyncHandler(async (request, response, next) => {
   }
 
   const randomAdvertisement = temp[parseInt(Math.random() * temp.length, 10)];
-
   if (!randomAdvertisement) {
     next(new ApiError('Random Advertisement not found!', httpCodes.NOT_FOUND));
     return;
   }
-
-  // randomAdvertisement.viewCounter += 1;
-  // const savedrandomAdvertisement = await randomAdvertisement.save();
 
   const updatedRandomAdvertisement = await Advertisement.findOneAndUpdate(
     { _id: randomAdvertisement._id },
     { $inc: { viewCounter: 1 } },
     { new: true }
   );
-
   if (!updatedRandomAdvertisement) {
-    next(new ApiError('Random Advertisement view count failed to increment!', httpCodes.NOT_FOUND));
+    next(new ApiError('Failed to increment view count of advertisement!', httpCodes.NOT_FOUND));
     return;
   }
 
-  response.status(httpCodes.OK).json({ success: true, data: { updatedRandomAdvertisement }, error: null });
+  response
+    .status(httpCodes.OK)
+    .json({ success: true, data: { advertisement: updatedRandomAdvertisement }, error: null });
+  return;
 });
 
 /**
- * @description Create a advertisement.
+ * @description Create an advertisement.
  * @route       POST /api/advertisements.
  * @access      Private.
  */
 const create = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const userId = request.admin._id;
   const { name, description, priority, webLink, iosLink, androidLink } = request.body;
-
-  const advertisementExists = (await Advertisement.countDocuments({ name, isDeleted: false })) > 0;
-  if (advertisementExists) {
-    next(new ApiError('Advertisement with given name already exists!', httpCodes.BAD_REQUEST));
-    return;
-  }
 
   const payload = {
     name,
@@ -121,7 +104,6 @@ const create = asyncHandler(async (request, response, next) => {
     createdBy: userId,
     createdAt: new Date(Date.now()),
   };
-
   const advertisement = await Advertisement.create(payload);
   if (!advertisement) {
     next(new ApiError('Failed to create new advertisement!', httpCodes.INTERNAL_ERROR));
@@ -129,7 +111,6 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
-
   const requiredTypes = ['photo', 'thumbnail'];
 
   if (fileTypes.length !== 2) {
@@ -147,7 +128,6 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileResults = await fileResult(advertisement._id, userId, request, fileTypes);
-
   for (let key in fileResults) {
     const fileUploadResult = fileResults[key];
     if (fileUploadResult && !fileUploadResult.success) {
@@ -158,13 +138,15 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const latestUpdateAdvertisement = await Advertisement.findOne({ _id: advertisement._id });
-
   if (!latestUpdateAdvertisement) {
     next(new ApiError('Failed to get the latest advertisement!', httpCodes.INTERNAL_ERROR));
     return;
   }
 
-  response.status(httpCodes.CREATED).json({ success: true, data: { latestUpdateAdvertisement }, error: null });
+  response
+    .status(httpCodes.CREATED)
+    .json({ success: true, data: { advertisement: latestUpdateAdvertisement }, error: null });
+  return;
 });
 
 /**
@@ -173,7 +155,7 @@ const create = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const updateOne = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const userId = request.admin._id;
   const { advertisementId } = request.params;
   const { name, description, priority, webLink, iosLink, androidLink, toBeDeleted } = request.body;
 
@@ -183,15 +165,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (name !== advertisement.name) {
-    const advertisementExists =
-      (await Advertisement.countDocuments({ _id: { $ne: advertisement._id }, name, isDeleted: false })) > 0;
-    if (advertisementExists) {
-      next(new ApiError('Advertisement with given name already exists!', httpCodes.BAD_REQUEST));
-      return;
-    }
-  }
-
   const payload = {
     name,
     description,
@@ -199,15 +172,12 @@ const updateOne = asyncHandler(async (request, response, next) => {
     webLink,
     iosLink,
     androidLink,
-    lastEditBy: userId,
-    lastEditAt: new Date(Date.now()),
+    updatedBy: userId,
+    updatedAt: new Date(Date.now()),
   };
-
   const editedAdvertisement = await Advertisement.findOneAndUpdate(
     { _id: advertisement._id },
-    {
-      $set: payload,
-    },
+    { $set: payload },
     { new: true }
   );
   if (!editedAdvertisement) {
@@ -230,7 +200,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   if (request.files) {
     const fileTypes = request.files ? Object.keys(request.files) : [];
-
     const requiredTypes = ['photo', 'thumbnail'];
 
     // if (fileTypes.length !== 2) {
@@ -267,7 +236,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   const latestUpdateAdvertisement = await Advertisement.findOne({ _id: editedAdvertisement._id });
-
   if (!latestUpdateAdvertisement) {
     next(new ApiError('Failed to get the latest advertisement!', httpCodes.INTERNAL_ERROR));
     return;
@@ -276,6 +244,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   response
     .status(httpCodes.OK)
     .json({ success: true, data: { advertisement: latestUpdateAdvertisement }, error: null });
+  return;
 });
 
 /**
@@ -284,7 +253,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const deleteOne = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const userId = request.admin._id;
   const { advertisementId } = request.params;
 
   const advertisement = await Advertisement.findOne({ _id: advertisementId, isDeleted: false });
@@ -298,8 +267,8 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     {
       $set: {
         isDeleted: true,
-        lastEditBy: userId,
-        lastEditAt: new Date(Date.now()),
+        updatedBy: userId,
+        updatedAt: new Date(Date.now()),
       },
     },
     { new: true }
@@ -314,7 +283,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 
 /**
  * @description Click a advertisement.
- * @route       POST /api/advertisements/clickAdvertisement.
+ * @route       POST /api/advertisements/click.
  * @access      Public.
  */
 const clickAdvertisement = asyncHandler(async (request, response, next) => {
@@ -327,24 +296,23 @@ const clickAdvertisement = asyncHandler(async (request, response, next) => {
   }
 
   const allowedTypes = ['photoClickCounter', 'thumbnailClickCounter'];
-
   if (!allowedTypes.includes(type)) {
     next(new ApiError(`This type ${type} is not allowed, it must be ${allowedTypes}`, httpCodes.BAD_REQUEST));
     return;
   }
 
-  // advertisement[type] += 1;
-  // const clickedAdvertisement = await advertisement.save();
-
   const clickedAdvertisement = await Advertisement.findOneAndUpdate(
     { _id: advertisement._id },
-    {
-      $inc: { [type]: 1 },
-    },
+    { $inc: { [type]: 1 } },
     { new: true }
   );
+  if (!clickedAdvertisement) {
+    next(new ApiError('Failed to count click on advertisement!', httpCodes.INTERNAL_ERROR));
+    return;
+  }
 
   response.status(httpCodes.OK).json({ success: true, data: { advertisement: clickedAdvertisement }, error: null });
+  return;
 });
 
 async function fileResult(advertisement, userId, req, fileTypes) {
@@ -385,7 +353,6 @@ const uploadFile = async (advertisementId, userId, request, fileType) => {
   const { data, mimetype, name, size } = request.files[fileType];
 
   const type = mimetype.split('/').pop();
-
   let allowedTypes = ['jpeg', 'jpg', 'png'];
 
   if (!allowedTypes.includes(type)) {
@@ -429,8 +396,8 @@ const uploadFile = async (advertisementId, userId, request, fileType) => {
           mimetype: mimetype,
           size: size,
         },
-        lastEditBy: userId,
-        lastEditAt: new Date(Date.now()),
+        updatedBy: userId,
+        updatedAt: new Date(Date.now()),
       },
     },
     { new: true }

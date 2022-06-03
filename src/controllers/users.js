@@ -135,13 +135,11 @@ const create = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const updateOne = asyncHandler(async (request, response, next) => {
-  const theUserId = '625e6c53419131c236181826';
   const { userId } = request.params;
   const {
     name,
     surname,
     email,
-    password,
     age,
     gender,
     weather,
@@ -177,7 +175,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     name,
     surname,
     email,
-    password,
     age,
     gender,
     weather,
@@ -186,8 +183,8 @@ const updateOne = asyncHandler(async (request, response, next) => {
     aqi,
     hasChildren,
     hasChildrenDisease,
-    lastEditBy: theUserId,
-    lastEditAt: new Date(Date.now()),
+    updatedBy: userId,
+    updatedAt: new Date(Date.now()),
   };
   const editedUser = await User.findOneAndUpdate(
     { _id: user._id },
@@ -203,11 +200,11 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   const updatedFireBaseUser = await getAuth().updateUser(firebaseUser.uid, {
     email,
-    password,
     displayName: `${name} ${surname}`,
   });
 
   response.status(httpCodes.OK).json({ success: true, data: { editedUser, updatedFireBaseUser }, error: null });
+  return;
 });
 
 /**
@@ -216,7 +213,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const deleteOne = asyncHandler(async (request, response, next) => {
-  const theUserId = '625e6c53419131c236181826';
   const { userId } = request.params;
 
   const user = await User.findOne({ _id: userId, isDeleted: false });
@@ -230,8 +226,8 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     {
       $set: {
         isDeleted: true,
-        lastEditBy: theUserId,
-        lastEditAt: new Date(Date.now()),
+        updatedBy: userId,
+        updatedAt: new Date(Date.now()),
       },
     },
     { new: true }
@@ -252,6 +248,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     });
 
   response.status(httpCodes.OK).json({ success: true, data: { deletedUser }, error: null });
+  return;
 });
 
 // Exports of this file.

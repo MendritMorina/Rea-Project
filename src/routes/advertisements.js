@@ -7,6 +7,7 @@ const { advertisementController } = require('../controllers');
 const { advertisementsValidator } = require('../validations');
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
+const { authorizeAdmin } = require('../middlewares');
 
 // Define routes here.
 const routes = [
@@ -16,12 +17,12 @@ const routes = [
     middlewares: [validate(advertisementsValidator.getAllAdvertisements), advertisementController.getAll],
   },
   {
-    path: '/randomAdvertisement',
+    path: '/random',
     method: httpVerbs.GET,
     middlewares: [advertisementController.getRandomOne],
   },
   {
-    path: '/clickAdvertisement',
+    path: '/click',
     method: httpVerbs.POST,
     middlewares: [validate(advertisementsValidator.clickAdvertisement), advertisementController.clickAdvertisement],
   },
@@ -33,17 +34,29 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [validate(advertisementsValidator.createAdvertisement), advertisementController.create],
+    middlewares: [
+      authorizeAdmin,
+      validate(advertisementsValidator.createAdvertisement),
+      advertisementController.create,
+    ],
   },
   {
     path: '/:advertisementId',
     method: httpVerbs.PUT,
-    middlewares: [validate(advertisementsValidator.updateAdvertisement), advertisementController.updateOne],
+    middlewares: [
+      authorizeAdmin,
+      validate(advertisementsValidator.updateAdvertisement),
+      advertisementController.updateOne,
+    ],
   },
   {
     path: '/:advertisementId',
     method: httpVerbs.DELETE,
-    middlewares: [validate(advertisementsValidator.validateAdvertisement), advertisementController.deleteOne],
+    middlewares: [
+      authorizeAdmin,
+      validate(advertisementsValidator.validateAdvertisement),
+      advertisementController.deleteOne,
+    ],
   },
 ];
 

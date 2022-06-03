@@ -22,12 +22,11 @@ const getAll = asyncHandler(async (request, response) => {
     pagination: pagination,
   };
 
-  const query = {
-    isDeleted: false,
-  };
+  const query = { isDeleted: false };
   const stories = await Story.paginate(query, options);
 
-  return response.status(200).json({ success: true, data: { stories }, error: null });
+  response.status(200).json({ success: true, data: { stories }, error: null });
+  return;
 });
 /**
  * @description Get story by id.
@@ -38,13 +37,13 @@ const getOne = asyncHandler(async (request, response, next) => {
   const { storyId } = request.params;
 
   const story = await Story.findOne({ _id: storyId, isDeleted: false });
-
   if (!story) {
     next(new ApiError('Story not found!', httpCodes.NOT_FOUND));
     return;
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { story }, error: null });
+  return;
 });
 
 /**
@@ -77,7 +76,6 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
-
   const requiredTypes = ['thumbnail', 'audio', 'backgroundImage'];
 
   if (fileTypes.length !== 3) {
@@ -105,13 +103,13 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const latestUpdateStory = await Story.findOne({ _id: story._id });
-
   if (!latestUpdateStory) {
     next(new ApiError('Failed to get the latest story!', httpCodes.INTERNAL_ERROR));
     return;
   }
 
-  response.status(httpCodes.CREATED).json({ success: true, data: { latestUpdateStory }, error: null });
+  response.status(httpCodes.CREATED).json({ success: true, data: { story: latestUpdateStory }, error: null });
+  return;
 });
 
 /**
@@ -141,31 +139,24 @@ const updateOne = asyncHandler(async (request, response, next) => {
     narratorSurname,
     category,
     length,
-    lastEditBy: adminId,
-    lastEditAt: new Date(Date.now()),
+    updatedBy: adminId,
+    updatedAt: new Date(Date.now()),
   };
-  const editedStory = await Story.findOneAndUpdate(
-    { _id: story._id },
-    {
-      $set: payload,
-    },
-    { new: true }
-  );
+
+  const editedStory = await Story.findOneAndUpdate({ _id: story._id }, { $set: payload }, { new: true });
   if (!editedStory) {
     next(new ApiError('Failed to update story!', httpCodes.INTERNAL_ERROR));
     return;
   }
 
-  ///////////
   const availableValues = ['thumbnail', 'audio', 'backgroundImage'];
   const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
 
   if (toBeDeletedinfo.length > 0) {
     availableValues.forEach((value) => {
-      if (toBeDeletedinfo.includes(value)) {
-        editedStory[value] = null;
-      }
+      if (toBeDeletedinfo.includes(value)) editedStory[value] = null;
     });
+
     await editedStory.save();
   }
 
@@ -203,7 +194,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   const latestUpdateStory = await Story.findOne({ _id: editedStory._id });
-
   if (!latestUpdateStory) {
     next(new ApiError('Failed to get the latest story!', httpCodes.INTERNAL_ERROR));
     return;
@@ -231,8 +221,8 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     {
       $set: {
         isDeleted: true,
-        lastEditBy: adminId,
-        lastEditAt: new Date(Date.now()),
+        updatedBy: adminId,
+        updatedAt: new Date(Date.now()),
       },
     },
     { new: true }
@@ -243,6 +233,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { story: deletedStory }, error: null });
+  return;
 });
 
 // Exports of this file.
@@ -331,8 +322,8 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
           mimetype: mimetype,
           size: size,
         },
-        lastEditBy: adminId,
-        lastEditAt: new Date(Date.now()),
+        updatedBy: adminId,
+        updatedAt: new Date(Date.now()),
       },
     },
     { new: true }

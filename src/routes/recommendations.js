@@ -3,11 +3,12 @@ const express = require('express');
 const router = express.Router();
 
 // Imports: local files.
+const recommendationCardRouter = require('./recommendationCards');
 const { recommendationController } = require('../controllers');
 const { recommendationValidator } = require('../validations');
 const { validate } = require('../utils/functions');
-const recommendationCardRouter = require('./recommendationCards');
 const { httpVerbs } = require('../configs');
+const { authorizeAdmin } = require('../middlewares');
 
 // Define routes here.
 const routes = [
@@ -29,24 +30,35 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [validate(recommendationValidator.createRecommendation), recommendationController.create],
+    middlewares: [
+      authorizeAdmin,
+      validate(recommendationValidator.createRecommendation),
+      recommendationController.create,
+    ],
   },
   {
     path: '/:recommendationId',
     method: httpVerbs.PUT,
-    middlewares: [validate(recommendationValidator.updateRecommendation), recommendationController.updateOne],
+    middlewares: [
+      authorizeAdmin,
+      validate(recommendationValidator.updateRecommendation),
+      recommendationController.updateOne,
+    ],
   },
   {
     path: '/:recommendationId',
     method: httpVerbs.DELETE,
-    middlewares: [validate(recommendationValidator.validateRecommendationId), recommendationController.deleteOne],
+    middlewares: [
+      authorizeAdmin,
+      validate(recommendationValidator.validateRecommendationId),
+      recommendationController.deleteOne,
+    ],
   },
 ];
 
 // Mount routes accordingly.
 for (const route of routes) router.route(route.path)[route.method](route.middlewares);
 
-//router.use('/:recommendationId', recommendationCardRouter);
 router.use('/:recommendationId/recommendationcards', recommendationCardRouter);
 
 // Exports of this file.

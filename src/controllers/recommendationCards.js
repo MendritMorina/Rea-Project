@@ -6,10 +6,8 @@ const path = require('path');
 const RecommendationCard = require('../models/RecommendationCard');
 const Recommendation = require('../models/Recommendation');
 const { asyncHandler } = require('../middlewares');
-
 const { ApiError } = require('../utils/classes');
 const { filterValues } = require('../utils/functions');
-
 const { httpCodes } = require('../configs');
 
 /**
@@ -43,7 +41,8 @@ const getAll = asyncHandler(async (request, response) => {
     recommendationCards = await RecommendationCard.paginate(query, options);
   }
 
-  return response.status(200).json({ success: true, data: { recommendationCards }, error: null });
+  response.status(200).json({ success: true, data: { recommendationCards }, error: null });
+  return;
 });
 
 /**
@@ -54,16 +53,16 @@ const getAll = asyncHandler(async (request, response) => {
 const getOne = asyncHandler(async (request, response, next) => {
   const { recommendationCardId } = request.params;
 
-  const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false })
-    //.select('name description')
-    .populate('recommendation');
-
+  const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false }).populate(
+    'recommendation'
+  );
   if (!recommendationCard) {
     next(new ApiError('RecommendationCard not found!', httpCodes.NOT_FOUND));
     return;
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { recommendationCard }, error: null });
+  return;
 });
 
 /**
@@ -72,11 +71,10 @@ const getOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const create = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const userId = request.admin._id;
   const { name, description, recommendationId } = request.body;
 
   const recommendation = await Recommendation.findOne({ _id: recommendationId, isDeleted: false });
-
   if (!recommendation) {
     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
     return;
@@ -91,7 +89,6 @@ const create = asyncHandler(async (request, response, next) => {
   };
 
   const recommendationCard = await RecommendationCard.create(payload);
-
   if (!recommendationCard) {
     next(new ApiError('RecommendationCard was not created', httpCodes.NOT_FOUND));
     return;
@@ -105,7 +102,6 @@ const create = asyncHandler(async (request, response, next) => {
   );
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
-
   const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
 
   if (fileTypes.length !== 4) {
@@ -123,7 +119,6 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileResults = await fileResult(recommendationCard._id, userId, request, fileTypes);
-
   for (let key in fileResults) {
     const fileUploadResult = fileResults[key];
     if (fileUploadResult && !fileUploadResult.success) {
@@ -134,13 +129,13 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const updatedRecommendationCard = await RecommendationCard.findOne({ _id: recommendationCard._id, isDeleted: false });
-
   if (!updatedRecommendationCard) {
     next(new ApiError('RecommendationCard not found!', httpCodes.NOT_FOUND));
     return;
   }
 
-  return response.status(200).json({ success: true, data: { updatedRecommendationCard }, error: null });
+  response.status(200).json({ success: true, data: { updatedRecommendationCard }, error: null });
+  return;
 });
 
 /**
@@ -149,7 +144,7 @@ const create = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const updateOne = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const userId = request.admin._id;
   const { recommendationCardId } = request.params;
   const { name, description, recommendationId, toBeDeleted } = request.body;
 
@@ -173,18 +168,15 @@ const updateOne = asyncHandler(async (request, response, next) => {
     name,
     description,
     recommendation: recommendationId ? recommendationId : recommendationCard.recommendation,
-    lastEditBy: userId,
-    lastEditAt: new Date(Date.now()),
+    updatedBy: userId,
+    updatedAt: new Date(Date.now()),
   };
 
   const editedRecommendationCard = await RecommendationCard.findOneAndUpdate(
     { _id: recommendationCard._id },
-    {
-      $set: payload,
-    },
+    { $set: payload },
     { new: true }
   );
-
   if (!editedRecommendationCard) {
     next(new ApiError('Failed to update RecommendationCard!', httpCodes.INTERNAL_ERROR));
     return;
@@ -194,7 +186,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     _id: editedRecommendationCard.recommendation,
     isDeleted: false,
   });
-
   if (!recommendation) {
     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
     return;
@@ -203,16 +194,12 @@ const updateOne = asyncHandler(async (request, response, next) => {
   if (recommendationId !== recommendationCard.recommendation && recommendationId !== null) {
     await Recommendation.findOneAndUpdate(
       { _id: recommendationCard.recommendation },
-      {
-        $pull: { recommendationCards: recommendationCard._id },
-      }
+      { $pull: { recommendationCards: recommendationCard._id } }
     );
 
     await Recommendation.findOneAndUpdate(
       { _id: editedRecommendationCard.recommendation },
-      {
-        $push: { recommendationCards: editedRecommendationCard._id },
-      }
+      { $push: { recommendationCards: editedRecommendationCard._id } }
     );
   }
 
@@ -222,16 +209,14 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   if (toBeDeletedinfo.length > 0) {
     availableValues.forEach((value) => {
-      if (toBeDeletedinfo.includes(value)) {
-        editedRecommendationCard[value] = null;
-      }
+      if (toBeDeletedinfo.includes(value)) editedRecommendationCard[value] = null;
     });
+
     await editedRecommendationCard.save();
   }
 
   if (request.files) {
     const fileTypes = request.files ? Object.keys(request.files) : [];
-
     const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
 
     if (fileTypes.length !== 4) {
@@ -274,7 +259,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     _id: editedRecommendationCard._id,
     isDeleted: false,
   });
-
   if (!editedFileRecommendationCard) {
     next(new ApiError('Edited File RecommendationCard not found!', httpCodes.NOT_FOUND));
     return;
@@ -283,6 +267,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   response
     .status(httpCodes.OK)
     .json({ success: true, data: { recommendationCard: editedFileRecommendationCard }, error: null });
+  return;
 });
 
 /**
@@ -291,7 +276,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const deleteOne = asyncHandler(async (request, response, next) => {
-  const userId = '625e6c53419131c236181826';
+  const userId = request.admin._id;
   const { recommendationCardId } = request.params;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false });
@@ -302,7 +287,6 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   }
 
   const recommendation = await Recommendation.findOne({ _id: recommendationCard.recommendation, isDeleted: false });
-
   if (!recommendation) {
     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
     return;
@@ -313,8 +297,8 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     {
       $set: {
         isDeleted: true,
-        lastEditBy: userId,
-        lastEditAt: new Date(Date.now()),
+        updatedBy: userId,
+        updatedAt: new Date(Date.now()),
       },
     },
     { new: true }
@@ -326,11 +310,8 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 
   const updatedRecommendation = await Recommendation.findOneAndUpdate(
     { _id: recommendation._id },
-    {
-      $pull: { recommendationCards: recommendationCard._id },
-    }
+    { $pull: { recommendationCards: recommendationCard._id } }
   );
-
   if (!updatedRecommendation) {
     next(new ApiError('Failed to update recommendation!', httpCodes.INTERNAL_ERROR));
     return;
@@ -339,8 +320,13 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   response
     .status(httpCodes.OK)
     .json({ success: true, data: { recommendationCard: deletedRecommendationCard }, error: null });
+  return;
 });
 
+// Exports of this file.
+module.exports = { getAll, getOne, create, deleteOne, updateOne };
+
+// Helpers for this controller.
 async function fileResult(recommendationCard, userId, req, fileTypes) {
   if (req.files && Object.keys(req.files).length) {
     const resultObj = {};
@@ -423,8 +409,8 @@ const uploadFile = async (recommendationCardId, userId, request, fileType) => {
           mimetype: mimetype,
           size: size,
         },
-        lastEditBy: userId,
-        lastEditAt: new Date(Date.now()),
+        updatedBy: userId,
+        updatedAt: new Date(Date.now()),
       },
     },
     { new: true }
@@ -435,6 +421,3 @@ const uploadFile = async (recommendationCardId, userId, request, fileType) => {
 
   return { success: true, data: { updatedRecommendationCard }, error: null, code: null };
 };
-
-// Exports of this file.
-module.exports = { getAll, getOne, create, deleteOne, updateOne };

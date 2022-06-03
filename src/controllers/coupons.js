@@ -19,13 +19,12 @@ const getAll = asyncHandler(async (request, response) => {
     populate: 'company',
   };
 
-  const query = {
-    isDeleted: false,
-  };
+  const query = { isDeleted: false };
 
   const coupons = await Coupon.paginate(query, options);
 
   response.status(httpCodes.OK).json({ success: true, data: { coupons }, error: null });
+  return;
 });
 
 /**
@@ -42,6 +41,7 @@ const getOne = asyncHandler(async (request, response, next) => {
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { coupon }, error: null });
+  return;
 });
 
 /**
@@ -70,6 +70,7 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   response.status(httpCodes.CREATED).json({ success: true, data: { coupon }, error: null });
+  return;
 });
 
 /**
@@ -94,22 +95,17 @@ const updateOne = asyncHandler(async (request, response, next) => {
     expirationDate,
     type,
     company,
-    lastEditBy: adminId,
-    lastEditAt: new Date(Date.now()),
+    updatedBy: adminId,
+    updatedAt: new Date(Date.now()),
   };
-  const editedCoupon = await Coupon.findOneAndUpdate(
-    { _id: coupon._id },
-    {
-      $set: payload,
-    },
-    { new: true }
-  );
+  const editedCoupon = await Coupon.findOneAndUpdate({ _id: coupon._id }, { $set: payload }, { new: true });
   if (!editedCoupon) {
     next(new ApiError('Failed to update coupon!', httpCodes.INTERNAL_ERROR));
     return;
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { coupon: editedCoupon }, error: null });
+  return;
 });
 
 /**
@@ -122,7 +118,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   const { couponId } = request.params;
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
-    next(new ApiError('Coupon not found!', httpCodes.NOT_FOUND));
+    next(new ApiError('Coupon with given id not found!', httpCodes.NOT_FOUND));
     return;
   }
 
@@ -131,8 +127,8 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     {
       $set: {
         isDeleted: true,
-        lastEditBy: adminId,
-        lastEditAt: new Date(Date.now()),
+        updatedBy: adminId,
+        updatedAt: new Date(Date.now()),
       },
     },
     { new: true }
@@ -143,6 +139,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { coupon: deletedCoupon }, error: null });
+  return;
 });
 
 // Exports of this file.

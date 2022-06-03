@@ -23,13 +23,12 @@ const getAll = asyncHandler(async (request, response) => {
     pagination: pagination,
   };
 
-  const query = {
-    isDeleted: false,
-  };
+  const query = { isDeleted: false };
 
   const companies = await Company.paginate(query, options);
 
   response.status(httpCodes.OK).json({ success: true, data: { companies }, error: null });
+  return;
 });
 /**
  * @description Get company by id.
@@ -40,10 +39,11 @@ const getOne = asyncHandler(async (request, response, next) => {
   const { companyId } = request.params;
   const company = await Company.findOne({ _id: companyId, isDeleted: false });
   if (!company) {
-    next(new ApiError('Company not found!', httpCodes.NOT_FOUND));
+    next(new ApiError('Company with given id not found!', httpCodes.NOT_FOUND));
     return;
   }
   response.status(httpCodes.OK).json({ success: true, data: { company }, error: null });
+  return;
 });
 
 /**
@@ -86,6 +86,7 @@ const create = asyncHandler(async (request, response, next) => {
 
   const updatedCompany = logoResult && logoResult.success && logoResult.data ? logoResult.data.updatedCompany : company;
   response.status(httpCodes.CREATED).json({ success: true, data: { company: updatedCompany }, error: null });
+  return;
 });
 
 /**
@@ -115,23 +116,17 @@ const updateOne = asyncHandler(async (request, response, next) => {
     name,
     email,
     number,
-    lastEditBy: adminId,
-    lastEditAt: new Date(Date.now()),
+    updatedBy: adminId,
+    updatedAt: new Date(Date.now()),
   };
 
-  const editedCompany = await Company.findOneAndUpdate(
-    { _id: company._id },
-    {
-      $set: payload,
-    },
-    { new: true }
-  );
+  const editedCompany = await Company.findOneAndUpdate({ _id: company._id }, { $set: payload }, { new: true });
   if (!editedCompany) {
     next(new ApiError('Failed to update company!', httpCodes.INTERNAL_ERROR));
     return;
   }
-  let logoResult = null;
 
+  let logoResult = null;
   if (request.files && Object.keys(request.files).length && request.files['logo']) {
     logoResult = await uploadLogo(company._id, adminId, request);
     if (!logoResult.success) {
@@ -142,6 +137,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   const updatedCompany = logoResult && logoResult.success && logoResult.data ? logoResult.data.updatedCompany : company;
   response.status(httpCodes.CREATED).json({ success: true, data: { company: updatedCompany }, error: null });
+  return;
 });
 
 /**
@@ -163,8 +159,8 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     {
       $set: {
         isDeleted: true,
-        lastEditBy: adminId,
-        lastEditAt: new Date(Date.now()),
+        updatedBy: adminId,
+        updatedAt: new Date(Date.now()),
       },
     },
     { new: true }
@@ -175,6 +171,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { company: deletedCompany }, error: null });
+  return;
 });
 
 // Exports of this file.
@@ -227,8 +224,8 @@ const uploadLogo = async (companyId, adminId, request) => {
           mimetype: mimetype,
           size: size,
         },
-        lastEditBy: adminId,
-        lastEditAt: new Date(Date.now()),
+        updatedBy: adminId,
+        updatedAt: new Date(Date.now()),
       },
     },
     { new: true }
