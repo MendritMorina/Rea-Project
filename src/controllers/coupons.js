@@ -51,10 +51,11 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const { _id: adminId } = request.admin;
-  const { discount, startDate, expirationDate, type, company } = request.body;
+  const { discount, description, startDate, expirationDate, type, company } = request.body;
 
   const payload = {
     discount,
+    description,
     startDate,
     expirationDate,
     type,
@@ -81,7 +82,7 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const { _id: adminId } = request.admin;
   const { couponId } = request.params;
-  const { discount, startDate, expirationDate, type, company } = request.body;
+  const { discount, description, startDate, expirationDate, type, company } = request.body;
 
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
@@ -91,6 +92,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   const payload = {
     discount,
+    description,
     startDate,
     expirationDate,
     type,

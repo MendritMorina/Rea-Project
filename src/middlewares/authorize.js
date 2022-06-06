@@ -7,7 +7,7 @@ const asyncHandler = require('./asyncHandler');
 const { httpCodes } = require('../configs');
 const { ApiError } = require('../utils/classes');
 
-const authorize = asyncHandler(async (request, next) => {
+const authorize = asyncHandler(async (request, response, next) => {
   const { authorization } = request.headers;
   if (!authorization) {
     next(new ApiError('Missing auth header!', httpCodes.UNAUTHORIZED));
