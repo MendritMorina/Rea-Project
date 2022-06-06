@@ -3,7 +3,7 @@ const { Recommendation, RecommendationCard } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { filterValues } = require('../utils/functions');
-const { httpCodes } = require('../configs');
+const { httpCodes, staticValues } = require('../configs');
 
 /**
  * @description Get all recommendations.
@@ -237,6 +237,11 @@ const create = asyncHandler(async (request, response, next) => {
     description,
     weather,
     aqi,
+    age,
+    airQuality,
+    gender,
+    type,
+    isPregnant,
     haveDiseaseDiagnosis,
     energySource,
     hasChildren,
@@ -248,6 +253,90 @@ const create = asyncHandler(async (request, response, next) => {
   if (recommendationExists) {
     next(new ApiError('Recommendation with given name already exists!', httpCodes.BAD_REQUEST));
     return;
+  }
+
+  // for (const value of age) {
+  //   if (!staticValues.age.includes(value)) {
+  //     next(
+  //       new ApiError(`The value of ${value} is not in allowed values : ${staticValues.age} !`, httpCodes.BAD_REQUEST)
+  //     );
+  //     return;
+  //   }
+  // }
+
+  // for (const value of gender) {
+  //   if (!staticValues.gender.includes(value)) {
+  //     next(
+  //       new ApiError(`The value of ${value} is not in allowed values : ${staticValues.gender} !`, httpCodes.BAD_REQUEST)
+  //     );
+  //     return;
+  //   }
+  // }
+
+  if (isPregnant && !gender.includes('Female')) {
+    next(
+      new ApiError(
+        "You cannot create a recommendation where is pregnant is equal to true and gender doesn't incude female!",
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  // for (const value of haveDiseaseDiagnosis) {
+  //   if (!staticValues.hasDiseaseDiagnosis.includes(value)) {
+  //     next(
+  //       new ApiError(
+  //         `The value of ${value} is not in allowed values : ${staticValues.hasDiseaseDiagnosis} !`,
+  //         httpCodes.BAD_REQUEST
+  //       )
+  //     );
+  //     return;
+  //   }
+  // }
+
+  // for (const value of energySource) {
+  //   if (!staticValues.energySource.includes(value)) {
+  //     next(
+  //       new ApiError(
+  //         `The value of ${value} is not in allowed values : ${staticValues.energySource} !`,
+  //         httpCodes.BAD_REQUEST
+  //       )
+  //     );
+  //     return;
+  //   }
+  // }
+
+  // for (const value of hasChildrenDisease) {
+  //   if (!staticValues.hasDiseaseDiagnosis.includes(value)) {
+  //     next(
+  //       new ApiError(
+  //         `The value of ${value} is not in allowed values : ${staticValues.hasDiseaseDiagnosis} !`,
+  //         httpCodes.BAD_REQUEST
+  //       )
+  //     );
+  //     return;
+  //   }
+  // }
+
+  if (!staticValues.airQuality.includes(airQuality)) {
+    next(
+      new ApiError(
+        `The value of ${value} is not in allowed values : ${staticValues.airQuality} !`,
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+
+  for (const type of types) {
+    const result = checkValidValues(type, request.body[type]);
+    if (result && result.error) {
+      next(new ApiError(result.error, httpCodes.BAD_REQUEST));
+      return;
+    }
   }
 
   const payload = {
@@ -273,6 +362,22 @@ const create = asyncHandler(async (request, response, next) => {
   response.status(httpCodes.CREATED).json({ success: true, data: { recommendation }, error: null });
   return;
 });
+
+// type = hasDiseaseDiagnosis, energySource, airQuality, age
+function checkValidValues(type, values) {
+  for (const value of values) {
+    if (!staticValues[type].includes(value)) {
+      // next(
+      //   new ApiError(`The value of ${value} is not in allowed values : ${staticValues[type]} !`, httpCodes.BAD_REQUEST)
+      // );
+      return {
+        error: `The value of ${value} is not in allowed values : ${staticValues[type]} !`,
+        code: httpCodes.BAD_REQUEST,
+      };
+    }
+  }
+  return null;
+}
 
 /**
  * @description Update a recommendation.
