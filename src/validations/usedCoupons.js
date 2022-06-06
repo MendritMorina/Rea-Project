@@ -49,6 +49,13 @@ const validator = {
       couponCode: Joi.string().required(),
     }),
   },
+  validateCouponId: {
+    params: Joi.object({
+      couponId: Joi.string()
+        .regex(/^[0-9a-fA-F]{24}$/)
+        .required(),
+    }),
+  },
 };
 
 // Exports of this file.

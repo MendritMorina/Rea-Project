@@ -96,6 +96,20 @@ const getOne = asyncHandler(async (request, response, next) => {
 });
 
 /**
+ * @description Get number of times a coupon was used.
+ * @route       GET /api/usedCoupons/:couponId/number.
+ * @access      Public.
+ */
+const getNumberOfUses = asyncHandler(async (request, response, next) => {
+  const { couponId } = request.params;
+
+  const number = await UsedCoupon.countDocuments({ _id: couponId, isDeleted: false, isUsed: true });
+
+  response.status(httpCodes.OK).json({ success: true, data: { number }, error: null });
+  return;
+});
+
+/**
  * @description Create an used coupon.
  * @route       POST /api/usedCoupons.
  * @access      Private, only users.
@@ -193,4 +207,4 @@ const use = asyncHandler(async (request, response, next) => {
   return;
 });
 
-module.exports = { getAll, getOne, create, use };
+module.exports = { getAll, getOne, getNumberOfUses, create, use };

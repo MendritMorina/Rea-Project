@@ -22,6 +22,11 @@ const routes = [
     middlewares: [validate(usedCouponValidator.getOne), usedCouponController.getOne],
   },
   {
+    path: '/:couponId/number',
+    method: httpVerbs.GET,
+    middlewares: [authorizeAdmin, validate(usedCouponValidator.validateCouponId), usedCouponController.getNumberOfUses],
+  },
+  {
     path: '/',
     method: httpVerbs.POST,
     middlewares: [authorize, validate(usedCouponValidator.create), usedCouponController.create],
