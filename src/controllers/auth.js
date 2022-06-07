@@ -6,7 +6,7 @@ const { Admin, User } = require('../models');
 const { ApiError } = require('../utils/classes');
 const { asyncHandler } = require('../middlewares');
 const { httpCodes } = require('../configs');
-const { jwt } = require('../utils/functions');
+const { jwt, checkValidValues } = require('../utils/functions');
 
 /**
  * @description Authenticate an user .
@@ -79,7 +79,6 @@ const update = asyncHandler(async (request, response, next) => {
     email,
     age,
     gender,
-    weather,
     aqi,
     isPregnant,
     haveDiseaseDiagnosis,
@@ -100,13 +99,29 @@ const update = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  // if (isPregnant && gender !== 'Female') {
+  //   next(new ApiError('You cannot create a user where is pregnant and is not female!', httpCodes.BAD_REQUEST));
+  //   return;
+  // }
+
+  // const types = ['haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+
+  // for (const type of types) {
+  //   if (request.body[type]) {
+  //     const result = checkValidValues(type, request.body[type]);
+  //     if (result && result.error) {
+  //       next(new ApiError(result.error, httpCodes.BAD_REQUEST));
+  //       return;
+  //     }
+  //   }
+  // }
+
   const payload = {
     name,
     surname,
     email,
     age,
     gender,
-    weather,
     isPregnant,
     haveDiseaseDiagnosis,
     energySource,
@@ -116,6 +131,7 @@ const update = asyncHandler(async (request, response, next) => {
     updatedBy: userId,
     updatedAt: new Date(Date.now()),
   };
+
   const editedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: payload }, { new: true });
   if (!editedUser) {
     next(new ApiError('Failed to update user!', httpCodes.INTERNAL_ERROR));

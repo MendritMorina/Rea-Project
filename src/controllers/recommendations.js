@@ -2,7 +2,7 @@
 const { Recommendation, RecommendationCard } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
-const { filterValues } = require('../utils/functions');
+const { filterValues, checkValidValues } = require('../utils/functions');
 const { httpCodes, staticValues } = require('../configs');
 
 /**
@@ -467,17 +467,17 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   return;
 });
 
-function checkValidValues(type, values) {
-  for (const value of values) {
-    if (!staticValues[type].includes(value)) {
-      return {
-        error: `The value of ${value} is not in allowed values : ${staticValues[type]} !`,
-        code: httpCodes.BAD_REQUEST,
-      };
-    }
-  }
-  return null;
-}
+// function checkValidValues(type, values) {
+//   for (const value of values) {
+//     if (!staticValues[type].includes(value)) {
+//       return {
+//         error: `The value of ${value} is not in allowed values : ${staticValues[type]} !`,
+//         code: httpCodes.BAD_REQUEST,
+//       };
+//     }
+//   }
+//   return null;
+// }
 
 // Exports of this file.
 module.exports = { getAll, getOne, create, deleteOne, updateOne, getRandomOne };

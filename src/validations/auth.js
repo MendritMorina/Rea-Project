@@ -16,6 +16,7 @@ const validator = {
       surname: Joi.string().optional(),
       email: Joi.string().email().optional(),
       age: Joi.string().optional(),
+      gender: Joi.string().optional(),
       weather: Joi.string().optional().default(null),
       aqi: Joi.number().optional().default(0),
       isPregnant: Joi.boolean().optional().default(false),
