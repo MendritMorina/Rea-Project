@@ -32,7 +32,7 @@ const routes = [
     method: httpVerbs.POST,
     middlewares: [
       authorizeAdmin,
-      //  validate(recommendationValidator.createRecommendation),
+      validate(recommendationValidator.createRecommendation),
       recommendationController.create,
     ],
   },

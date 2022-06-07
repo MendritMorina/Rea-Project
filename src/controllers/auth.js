@@ -164,8 +164,7 @@ const adminLogin = asyncHandler(async (request, response, next) => {
 const getMe = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
 
-  const user = await User.findById(userId);
-
+  const user = await User.findOne({ _id: userId, isDeleted: false });
   if (!user) {
     next(new ApiError('User is not registred in database!', httpCodes.NOT_FOUND));
     return;

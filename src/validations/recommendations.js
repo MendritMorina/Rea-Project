@@ -35,15 +35,15 @@ const validator = {
         .required(),
     }),
     body: Joi.object({
-      name: Joi.string().required(),
-      description: Joi.string().required(),
+      name: Joi.string().optional(),
+      description: Joi.string().optional(),
       weather: Joi.string().optional().default(null),
       aqi: Joi.number().optional().default(0),
       haveDiseaseDiagnosis: Joi.array().optional().items(Joi.string().required()).default(null),
       energySource: Joi.array().optional().items(Joi.string().required()).default(null),
       hasChildren: Joi.boolean().optional().default(false),
       hasChildrenDisease: Joi.array().optional().items(Joi.string().required()).default(null),
-      category: Joi.string().required(),
+      category: Joi.string().optional(),
     }),
   },
   validateRecommendationId: {

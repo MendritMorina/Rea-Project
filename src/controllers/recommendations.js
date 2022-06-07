@@ -302,6 +302,7 @@ const create = asyncHandler(async (request, response, next) => {
     type,
     haveDiseaseDiagnosis,
     energySource,
+    isPregnant,
     hasChildren,
     hasChildrenDisease,
     category,
@@ -344,6 +345,8 @@ const updateOne = asyncHandler(async (request, response, next) => {
     description,
     weather,
     aqi,
+    age,
+    type,
     haveDiseaseDiagnosis,
     energySource,
     hasChildren,
@@ -370,6 +373,36 @@ const updateOne = asyncHandler(async (request, response, next) => {
     updatedBy: userId,
     updatedAt: new Date(Date.now()),
   };
+
+  if (isPregnant && !gender.includes('Female')) {
+    next(
+      new ApiError(
+        "You cannot create a recommendation where is pregnant is equal to true and gender doesn't incude female!",
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  if (!staticValues.airQuality.includes(airQuality)) {
+    next(
+      new ApiError(
+        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+
+  for (const type of types) {
+    const result = checkValidValues(type, request.body[type]);
+    if (result && result.error) {
+      next(new ApiError(result.error, httpCodes.BAD_REQUEST));
+      return;
+    }
+  }
 
   const editedRecommendation = await Recommendation.findOneAndUpdate(
     { _id: recommendation._id },
