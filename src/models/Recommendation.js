@@ -15,10 +15,6 @@ const RecommendationSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  weather: {
-    type: String,
-    required: false,
-  },
   aqi: {
     type: Number,
     required: false,

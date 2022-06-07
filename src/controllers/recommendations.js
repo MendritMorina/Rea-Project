@@ -243,7 +243,6 @@ const create = asyncHandler(async (request, response, next) => {
   const {
     name,
     description,
-    weather,
     aqi,
     age,
     airQuality,
@@ -286,20 +285,22 @@ const create = asyncHandler(async (request, response, next) => {
   const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
 
   for (const type of types) {
-    const result = checkValidValues(type, request.body[type]);
-    if (result && result.error) {
-      next(new ApiError(result.error, httpCodes.BAD_REQUEST));
-      return;
+    if (request.body[type]) {
+      const result = checkValidValues(type, request.body[type]);
+      if (result && result.error) {
+        next(new ApiError(result.error, httpCodes.BAD_REQUEST));
+        return;
+      }
     }
   }
 
   const payload = {
     name,
     description,
-    weather,
     aqi,
     age,
     type,
+    airQuality,
     haveDiseaseDiagnosis,
     energySource,
     isPregnant,
@@ -320,18 +321,6 @@ const create = asyncHandler(async (request, response, next) => {
   return;
 });
 
-function checkValidValues(type, values) {
-  for (const value of values) {
-    if (!staticValues[type].includes(value)) {
-      return {
-        error: `The value of ${value} is not in allowed values : ${staticValues[type]} !`,
-        code: httpCodes.BAD_REQUEST,
-      };
-    }
-  }
-  return null;
-}
-
 /**
  * @description Update a recommendation.
  * @route       PUT /api/recommendations/:recommendationId.
@@ -343,10 +332,12 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const {
     name,
     description,
-    weather,
     aqi,
     age,
     type,
+    gender,
+    isPregnant,
+    airQuality,
     haveDiseaseDiagnosis,
     energySource,
     hasChildren,
@@ -363,12 +354,14 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const payload = {
     name,
     description,
-    weather,
     haveDiseaseDiagnosis,
     energySource,
     aqi,
     age,
     type,
+    gender,
+    airQuality,
+    isPregnant,
     hasChildren,
     hasChildrenDisease,
     category,
@@ -386,7 +379,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (!staticValues.airQuality.includes(airQuality)) {
+  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
     next(
       new ApiError(
         `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
@@ -399,10 +392,12 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
 
   for (const type of types) {
-    const result = checkValidValues(type, request.body[type]);
-    if (result && result.error) {
-      next(new ApiError(result.error, httpCodes.BAD_REQUEST));
-      return;
+    if (request.body[type]) {
+      const result = checkValidValues(type, request.body[type]);
+      if (result && result.error) {
+        next(new ApiError(result.error, httpCodes.BAD_REQUEST));
+        return;
+      }
     }
   }
 
@@ -471,6 +466,18 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   response.status(httpCodes.OK).json({ success: true, data: { recommendation: deletedRecommendation }, error: null });
   return;
 });
+
+function checkValidValues(type, values) {
+  for (const value of values) {
+    if (!staticValues[type].includes(value)) {
+      return {
+        error: `The value of ${value} is not in allowed values : ${staticValues[type]} !`,
+        code: httpCodes.BAD_REQUEST,
+      };
+    }
+  }
+  return null;
+}
 
 // Exports of this file.
 module.exports = { getAll, getOne, create, deleteOne, updateOne, getRandomOne };

@@ -7,7 +7,7 @@ const { advertisementController } = require('../controllers');
 const { advertisementsValidator } = require('../validations');
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
-const { authorizeAdmin } = require('../middlewares');
+const { authorize, authorizeAdmin } = require('../middlewares');
 
 // Define routes here.
 const routes = [
@@ -19,12 +19,16 @@ const routes = [
   {
     path: '/random',
     method: httpVerbs.GET,
-    middlewares: [advertisementController.getRandomOne],
+    middlewares: [authorize, advertisementController.getRandomOne],
   },
   {
     path: '/click',
     method: httpVerbs.POST,
-    middlewares: [validate(advertisementsValidator.clickAdvertisement), advertisementController.clickAdvertisement],
+    middlewares: [
+      authorize,
+      validate(advertisementsValidator.clickAdvertisement),
+      advertisementController.clickAdvertisement,
+    ],
   },
   {
     path: '/:advertisementId',

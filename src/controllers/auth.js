@@ -14,7 +14,19 @@ const { jwt } = require('../utils/functions');
  * @access      Public.
  */
 const authenticate = asyncHandler(async (request, response, next) => {
-  const { name, surname, token } = request.body;
+  const { name, surname } = request.body;
+  const { authorization } = request.headers;
+
+  if (!authorization) {
+    next(new ApiError('Missing auth header!', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  const [bearer, token] = authorization.split(' ');
+  if (!bearer || bearer !== 'Bearer' || !token) {
+    next(new ApiError('Wrong auth header!', httpCodes.UNAUTHORIZED));
+    return;
+  }
 
   const decodedToken = await getAuth().verifyIdToken(token);
   if (!decodedToken) {
