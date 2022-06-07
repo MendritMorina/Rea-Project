@@ -156,9 +156,11 @@ const adminLogin = asyncHandler(async (request, response, next) => {
   response.status(httpCodes.CREATED).json({ success: true, data: { token: encoded }, error: null });
 });
 
-// @desc  Get current logged in user
-// @route POST /api/v1/auth/getMe
-// @access Private
+/**
+ * @description Get current logged in user
+ * @route       POST /api/auth/getMe.
+ * @access      Private.
+ */
 const getMe = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
 

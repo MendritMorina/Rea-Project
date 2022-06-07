@@ -111,11 +111,19 @@ const getRandomOne = asyncHandler(async (request, response, next) => {
     airQuery = 'Shume e dobet';
   }
 
+  // const query1A = {
+  //   $and: [
+  //     { haveDiseaseDiagnosis: { $size: 1, $all: userInfo.haveDiseaseDiagnosis } },
+  //     { energySource: { $size: 2, $all: userInfo.energySource } },
+  //     { hasChildrenDisease: { $size: 1, $all: userInfo.hasChildrenDisease } },
+  //   ],
+  // };
+
   const query1A = {
     $and: [
-      { haveDiseaseDiagnosis: { $size: 1, $all: userInfo.haveDiseaseDiagnosis } },
-      { energySource: { $size: 2, $all: userInfo.energySource } },
-      { hasChildrenDisease: { $size: 1, $all: userInfo.hasChildrenDisease } },
+      { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
+      { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
+      { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
     ],
   };
 
@@ -268,7 +276,7 @@ const create = asyncHandler(async (request, response, next) => {
   if (!staticValues.airQuality.includes(airQuality)) {
     next(
       new ApiError(
-        `The value of ${value} is not in allowed values : ${staticValues.airQuality} !`,
+        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
         httpCodes.BAD_REQUEST
       )
     );
