@@ -156,6 +156,29 @@ const adminLogin = asyncHandler(async (request, response, next) => {
   response.status(httpCodes.CREATED).json({ success: true, data: { token: encoded }, error: null });
 });
 
+// @desc  Get current logged in user
+// @route POST /api/v1/auth/getMe
+// @access Private
+const getMe = asyncHandler(async (request, response, next) => {
+  const { _id: userId } = request.user;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    next(new ApiError('User is not registred in database!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const firebaseUser = await getAuth().getUser(user.firebaseUid);
+
+  if (!firebaseUser) {
+    next(new ApiError('User is not registred in firebase!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  response.status(httpCodes.OK).json({ success: true, data: { user }, error: null });
+});
+
 /**
  * @description Forgot password.
  * @route       POST /api/auth/forgot.
@@ -175,4 +198,4 @@ const reset = asyncHandler(async (request, response, next) => {
 });
 
 // Exports of this file.
-module.exports = { authenticate, update, adminLogin, forgot, reset };
+module.exports = { authenticate, update, adminLogin, forgot, reset, getMe };
