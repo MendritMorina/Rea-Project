@@ -367,6 +367,8 @@ const updateOne = asyncHandler(async (request, response, next) => {
     haveDiseaseDiagnosis,
     energySource,
     aqi,
+    age,
+    type,
     hasChildren,
     hasChildrenDisease,
     category,

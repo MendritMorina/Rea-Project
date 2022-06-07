@@ -95,6 +95,7 @@ const update = asyncHandler(async (request, response, next) => {
     age,
     gender,
     weather,
+    isPregnant,
     haveDiseaseDiagnosis,
     energySource,
     aqi,
