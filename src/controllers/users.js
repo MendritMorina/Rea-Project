@@ -56,6 +56,29 @@ const getOne = asyncHandler(async (request, response, next) => {
   return;
 });
 
+// @desc  Get current logged in user
+// @route POST /api/v1/auth/me
+// @access Private
+exports.getMe = asyncHandler(async (req, res, next) => {
+  const { _id: userId } = request.user;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    next(new ApiError('User is not registred in database!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const firebaseUser = await getAuth().getUser(user.firebaseUid);
+
+  if (!firebaseUser) {
+    next(new ApiError('User is not registred in firebase!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  res.status(200).json({ success: true, data: user });
+});
+
 /**
  * @description Update a user.
  * @route       PUT /api/users/:userId.

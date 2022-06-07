@@ -3,12 +3,11 @@ const { Joi } = require('express-validation');
 
 // Validator object that is used to validate requests related to the Auth controller.
 const validator = {
-  signup: {
+  authenticate: {
     body: Joi.object({
-      providerId: Joi.string().required(),
-      uid: Joi.string().required(),
       name: Joi.string().required(),
       surname: Joi.string().required(),
+      token: Joi.string().required(),
     }),
   },
   login: {

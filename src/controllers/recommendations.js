@@ -290,6 +290,8 @@ const create = asyncHandler(async (request, response, next) => {
     description,
     weather,
     aqi,
+    age,
+    type,
     haveDiseaseDiagnosis,
     energySource,
     hasChildren,
