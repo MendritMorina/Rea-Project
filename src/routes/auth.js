@@ -18,7 +18,7 @@ const routes = [
   },
   {
     path: '/getMe',
-    method: httpVerbs.POST,
+    method: httpVerbs.GET,
     middlewares: [authorize, authController.getMe],
   },
   {
