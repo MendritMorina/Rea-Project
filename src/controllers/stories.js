@@ -122,7 +122,7 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const { _id: adminId } = request.admin;
   const { storyId } = request.params;
-  const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category, length } =
+  const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category, length, toBeDeleted } =
     request.body;
 
   const story = await Story.findOne({ _id: storyId, isDeleted: false });

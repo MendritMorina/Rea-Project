@@ -115,7 +115,8 @@ const getNumberOfUses = asyncHandler(async (request, response, next) => {
  * @access      Private, only users.
  */
 const create = asyncHandler(async (request, response, next) => {
-  const { _id: userId } = request.user;
+  //const { _id: userId } = request.user;
+  const userId='629f05b277dd164b6b63285b';
   const { couponId } = request.body;
 
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });

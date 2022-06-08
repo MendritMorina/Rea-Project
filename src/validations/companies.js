@@ -15,7 +15,6 @@ const validator = {
       name: Joi.string().required(),
       email: Joi.string().email().required(),
       number: Joi.number().required(),
-      logo: Joi.any().optional(),
     }),
   },
   updateCompany: {
@@ -25,10 +24,9 @@ const validator = {
         .required(),
     }),
     body: Joi.object({
-      name: Joi.string().required(),
-      email: Joi.string().email().required(),
-      number: Joi.number().required(),
-      logo: Joi.any().optional(),
+      name: Joi.string().optional(),
+      email: Joi.string().email().optional(),
+      number: Joi.number().optional(),
     }),
   },
   validateCompanyId: {
