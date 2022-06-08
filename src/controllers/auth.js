@@ -5,7 +5,7 @@ const { getAuth } = require('firebase-admin/auth');
 const { Admin, User } = require('../models');
 const { ApiError } = require('../utils/classes');
 const { asyncHandler } = require('../middlewares');
-const { httpCodes } = require('../configs');
+const { httpCodes, staticValues } = require('../configs');
 const { jwt, checkValidValues } = require('../utils/functions');
 
 /**
@@ -72,7 +72,8 @@ const authenticate = asyncHandler(async (request, response, next) => {
  * @access      Public.
  */
 const update = asyncHandler(async (request, response, next) => {
-  const userId = request.user._id;
+  //const userId = request.user._id;
+  const userId = '628253c7a69fe7319f35261e';
   const {
     name,
     surname,
@@ -99,22 +100,41 @@ const update = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // if (isPregnant && gender !== 'Female') {
-  //   next(new ApiError('You cannot create a user where is pregnant and is not female!', httpCodes.BAD_REQUEST));
-  //   return;
-  // }
+  if (age && !staticValues.age.includes(age)) {
+    next(new ApiError(`The value of ${age} is not in allowed values : ${staticValues.age} !`, httpCodes.BAD_REQUEST));
+    return;
+  }
 
-  // const types = ['haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+  if (gender && !staticValues.gender.includes(gender)) {
+    next(
+      new ApiError(`The value of ${gender} is not in allowed values : ${staticValues.gender} !`, httpCodes.BAD_REQUEST)
+    );
+    return;
+  }
 
-  // for (const type of types) {
-  //   if (request.body[type]) {
-  //     const result = checkValidValues(type, request.body[type]);
-  //     if (result && result.error) {
-  //       next(new ApiError(result.error, httpCodes.BAD_REQUEST));
-  //       return;
-  //     }
-  //   }
-  // }
+  if (isPregnant && gender !== 'Female') {
+    next(new ApiError('You cannot create a user where is pregnant and is not female!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0) {
+    next(
+      new ApiError('You cannot create a user where it has children disease and has no children!', httpCodes.BAD_REQUEST)
+    );
+    return;
+  }
+
+  const types = ['haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+
+  for (const type of types) {
+    if (request.body[type]) {
+      const result = checkValidValues(type, request.body[type]);
+      if (result && result.error) {
+        next(new ApiError(result.error, result.code));
+        return;
+      }
+    }
+  }
 
   const payload = {
     name,

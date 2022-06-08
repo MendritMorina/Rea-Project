@@ -379,6 +379,16 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0) {
+    next(
+      new ApiError(
+        'You cannot create a recommendation where it has children disease and has no children!',
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
   if (airQuality && !staticValues.airQuality.includes(airQuality)) {
     next(
       new ApiError(
