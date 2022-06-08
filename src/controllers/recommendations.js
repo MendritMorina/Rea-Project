@@ -272,7 +272,7 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (!staticValues.airQuality.includes(airQuality)) {
+  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
     next(
       new ApiError(
         `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
@@ -288,7 +288,7 @@ const create = asyncHandler(async (request, response, next) => {
     if (request.body[type]) {
       const result = checkValidValues(type, request.body[type]);
       if (result && result.error) {
-        next(new ApiError(result.error, httpCodes.BAD_REQUEST));
+        next(new ApiError(result.error, result.code));
         return;
       }
     }
@@ -299,6 +299,7 @@ const create = asyncHandler(async (request, response, next) => {
     description,
     aqi,
     age,
+    gender,
     type,
     airQuality,
     haveDiseaseDiagnosis,
@@ -405,7 +406,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     if (request.body[type]) {
       const result = checkValidValues(type, request.body[type]);
       if (result && result.error) {
-        next(new ApiError(result.error, httpCodes.BAD_REQUEST));
+        next(new ApiError(result.error, result.code));
         return;
       }
     }
@@ -476,18 +477,6 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   response.status(httpCodes.OK).json({ success: true, data: { recommendation: deletedRecommendation }, error: null });
   return;
 });
-
-// function checkValidValues(type, values) {
-//   for (const value of values) {
-//     if (!staticValues[type].includes(value)) {
-//       return {
-//         error: `The value of ${value} is not in allowed values : ${staticValues[type]} !`,
-//         code: httpCodes.BAD_REQUEST,
-//       };
-//     }
-//   }
-//   return null;
-// }
 
 // Exports of this file.
 module.exports = { getAll, getOne, create, deleteOne, updateOne, getRandomOne };
