@@ -16,11 +16,6 @@ const validator = {
     }),
   },
   getAll: {
-    params: Joi.object({
-      couponId: Joi.string()
-        .regex(/^[0-9a-fA-F]{24}$/)
-        .required(),
-    }),
     query: Joi.object({
       page: Joi.number().optional().default(1),
       limit: Joi.number().optional().default(10),
