@@ -24,7 +24,7 @@ const routes = [
   {
     path: '/update',
     method: httpVerbs.PUT,
-    middlewares: [validate(authValidator.update), authController.update],
+    middlewares: [authorize, validate(authValidator.update), authController.update],
   },
   {
     path: '/forgot',

@@ -72,8 +72,8 @@ const authenticate = asyncHandler(async (request, response, next) => {
  * @access      Public.
  */
 const update = asyncHandler(async (request, response, next) => {
-  //const userId = request.user._id;
-  const userId = '628253c7a69fe7319f35261e';
+  const userId = request.user._id;
+  // const userId = '628253c7a69fe7319f35261e';
   const {
     name,
     surname,
