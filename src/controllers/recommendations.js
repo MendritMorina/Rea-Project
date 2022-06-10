@@ -262,7 +262,7 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (isPregnant && !gender.includes('Female')) {
+  if (isPregnant && !gender.includes('Femër')) {
     next(
       new ApiError(
         "You cannot create a recommendation where is pregnant is equal to true and gender doesn't incude female!",
@@ -370,7 +370,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     updatedAt: new Date(Date.now()),
   };
 
-  if (isPregnant && !gender.includes('Female')) {
+  if (isPregnant && !gender.includes('Femër')) {
     next(
       new ApiError(
         "You cannot create a recommendation where is pregnant is equal to true and gender doesn't incude female!",

@@ -2,27 +2,22 @@
 
 const staticValues = {
   age: ['0-19', '20-29', '30-39', '40-49', '50-59', '>65'],
-  // hasDiseaseDiagnosis: [
-  //   'Semundjet te frymarrjes/mushkerive',
-  //   'Semundje te zemres (kardiovaskulare)',
-  //   'Diabetin',
-  //   'Semundje neurologjike',
-  // ],
+
   haveDiseaseDiagnosis: [
-    'Semundjet te frymarrjes/mushkerive',
-    'Semundje te zemres (kardiovaskulare)',
+    'Sëmundje të frymëmarrjes/mushkërive',
+    'Sëmundje të zemrës (kardiovaskulare)',
     'Diabetin',
-    'Semundje neurologjike',
+    'Sëmundje neurologjike',
   ],
   hasChildrenDisease: [
-    'Semundjet te frymarrjes/mushkerive',
-    'Semundje te zemres (kardiovaskulare)',
+    'Sëmundje të frymëmarrjes/mushkërive',
+    'Sëmundje të zemrës (kardiovaskulare)',
     'Diabetin',
-    'Semundje neurologjike',
+    'Sëmundje neurologjike',
   ],
-  energySource: ['Qymyr', 'Gas', 'Rryme elektrike', 'Zjarr/dru'],
+  energySource: ['Qymyr', 'Gas', 'Rrymë elektrike', 'Zjarr/Dru'],
   airQuality: ['E mire', 'E pranueshme', 'Mesatare', 'E dobet', 'Shume e dobet'],
-  gender: ['Male', 'Female'],
+  gender: ['Mashkull', 'Femër'],
 };
 
 module.exports = staticValues;

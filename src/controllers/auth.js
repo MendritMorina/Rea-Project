@@ -112,7 +112,7 @@ const update = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (isPregnant && gender !== 'Female') {
+  if (isPregnant && gender !== 'Femër') {
     next(new ApiError('You cannot create a user where is pregnant and is not female!', httpCodes.BAD_REQUEST));
     return;
   }
