@@ -70,36 +70,145 @@ const getOne = asyncHandler(async (request, response, next) => {
  * @route       POST /api/recommendationcards.
  * @access      Private.
  */
+// const create = asyncHandler(async (request, response, next) => {
+//   //const userId = request.admin._id;
+//   const userId = '62a6f9ccc6d0625cae95a0c8';
+//   const { name, description, recommendationId } = request.body;
+
+//   const recommendation = await Recommendation.findOne({ _id: recommendationId, isDeleted: false });
+//   if (!recommendation) {
+//     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
+//     return;
+//   }
+
+//   const payload = {
+//     name,
+//     description,
+//     recommendation: recommendation._id,
+//     createdBy: userId,
+//     createdAt: new Date(Date.now()),
+//   };
+
+//   const recommendationCard = await RecommendationCard.create(payload);
+//   if (!recommendationCard) {
+//     next(new ApiError('RecommendationCard was not created', httpCodes.NOT_FOUND));
+//     return;
+//   }
+
+//   const updatedRecommendation = await Recommendation.findOneAndUpdate(
+//     { _id: recommendation._id },
+//     {
+//       $push: { recommendationCards: recommendationCard._id },
+//     }
+//   );
+
+//   const fileTypes = request.files ? Object.keys(request.files) : [];
+//   const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
+
+//   if (fileTypes.length !== 4) {
+//     await recommendationCard.remove();
+//     next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
+//     return;
+//   }
+
+//   for (const fileType of fileTypes) {
+//     if (!requiredTypes.includes(fileType)) {
+//       await recommendationCard.remove();
+//       next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+//       return;
+//     }
+//   }
+
+//   const fileResults = await fileResult(recommendationCard._id, userId, request, fileTypes);
+//   for (let key in fileResults) {
+//     const fileUploadResult = fileResults[key];
+//     if (fileUploadResult && !fileUploadResult.success) {
+//       await recommendationCard.remove();
+//       next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+//       return;
+//     }
+//   }
+
+//   const updatedRecommendationCard = await RecommendationCard.findOne({ _id: recommendationCard._id, isDeleted: false });
+//   if (!updatedRecommendationCard) {
+//     next(new ApiError('RecommendationCard not found!', httpCodes.NOT_FOUND));
+//     return;
+//   }
+
+//   response.status(200).json({ success: true, data: { updatedRecommendationCard }, error: null });
+//   return;
+// });
+
+/**
+ * @description Create a recommendationCard.
+ * @route       POST /api/base/recommendationcards.
+ * @access      Private.
+ */
 const create = asyncHandler(async (request, response, next) => {
-  const userId = request.admin._id;
-  const { name, description, recommendationId } = request.body;
+  //const userId = request.admin._id;
+  const userId = '62a6f9ccc6d0625cae95a0c8';
+  const { name, description, recommendationId, type } = request.body;
 
-  const recommendation = await Recommendation.findOne({ _id: recommendationId, isDeleted: false });
-  if (!recommendation) {
-    next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
-    return;
-  }
+  let recommendationCard = null;
 
-  const payload = {
-    name,
-    description,
-    recommendation: recommendation._id,
-    createdBy: userId,
-    createdAt: new Date(Date.now()),
-  };
-
-  const recommendationCard = await RecommendationCard.create(payload);
-  if (!recommendationCard) {
-    next(new ApiError('RecommendationCard was not created', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  const updatedRecommendation = await Recommendation.findOneAndUpdate(
-    { _id: recommendation._id },
-    {
-      $push: { recommendationCards: recommendationCard._id },
+  if (type === 'base') {
+    const baseRecommendation = await BaseRecommendation.findOne({ _id: recommendationId, isDeleted: false });
+    if (!baseRecommendation) {
+      next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
+      return;
     }
-  );
+
+    const payload = {
+      name,
+      description,
+      recommendation: baseRecommendation._id,
+      createdBy: userId,
+      createdAt: new Date(Date.now()),
+    };
+
+    recommendationCard = await RecommendationCard.create(payload);
+    if (!recommendationCard) {
+      next(new ApiError('RecommendationCard was not created', httpCodes.NOT_FOUND));
+      return;
+    }
+
+    const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
+      { _id: baseRecommendation._id },
+      {
+        $push: { recommendationCards: recommendationCard._id },
+      }
+    );
+  } else {
+    const informativeRecommendation = await InformativeRecommendation.findOne({
+      _id: recommendationId,
+      isDeleted: false,
+    });
+    if (!informativeRecommendation) {
+      next(new ApiError('Informative Recommendation not found!', httpCodes.NOT_FOUND));
+      return;
+    }
+
+    const payload = {
+      name,
+      description,
+      recommendation: informativeRecommendation._id,
+      createdBy: userId,
+      createdAt: new Date(Date.now()),
+    };
+
+    recommendationCard = await RecommendationCard.create(payload);
+    if (!recommendationCard) {
+      next(new ApiError('RecommendationCard was not created', httpCodes.NOT_FOUND));
+      return;
+    }
+
+    const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
+      { _id: informativeRecommendation._id },
+      {
+        $push: { recommendationCards: recommendationCard._id },
+      }
+    );
+  }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
   const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
@@ -144,7 +253,8 @@ const create = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const updateOne = asyncHandler(async (request, response, next) => {
-  const userId = request.admin._id;
+  //const userId = request.admin._id;
+  const userId = '62a6f9ccc6d0625cae95a0c8';
   const { recommendationCardId } = request.params;
   const { name, description, recommendationId, toBeDeleted } = request.body;
 
@@ -327,10 +437,10 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
   const userInfo = {
     age: '20-30',
     gender: 'male',
-    haveDiseaseDiagnosis: ['Semundje neurologjike'],
-    energySource: ['Gas', 'Zjarr/dru'],
+    haveDiseaseDiagnosis: ['Sëmundje të frymëmarrjes/mushkërive', 'Sëmundje të zemrës (kardiovaskulare)'],
+    energySource: ['Qymyr', 'Gas'],
     hasChildren: true,
-    hasChildrenDisease: ['Semundjet te frymarrjes/mushkerive'],
+    hasChildrenDisease: ['Diabetin', 'Sëmundje neurologjike'],
     aqi: 250,
     city: 'prishtina',
   };
@@ -357,7 +467,7 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
     ],
   };
 
-  const baseRecommendation = await BaseRecommendation.findOne(query);
+  const baseRecommendation = await BaseRecommendation.findOne(query).populate('recommendationCards');
 
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
@@ -374,10 +484,10 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
   const userInfo = {
     age: '20-30',
     gender: 'male',
-    haveDiseaseDiagnosis: ['Semundje neurologjike'],
-    energySource: ['Gas', 'Zjarr/dru'],
+    haveDiseaseDiagnosis: ['Sëmundje të frymëmarrjes/mushkërive', 'Sëmundje të zemrës (kardiovaskulare)'],
+    energySource: ['Qymyr', 'Gas'],
     hasChildren: true,
-    hasChildrenDisease: ['Semundjet te frymarrjes/mushkerive'],
+    hasChildrenDisease: ['Diabetin', 'Sëmundje neurologjike'],
     aqi: 250,
     city: 'prishtina',
   };
@@ -404,7 +514,7 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     ],
   };
 
-  const baseRecommendation = await BaseRecommendation.findOne(query);
+  const baseRecommendation = await BaseRecommendation.findOne(query).populate('informativeRecommendations');
 
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
@@ -414,6 +524,14 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
   const informativeRecommendations = baseRecommendation.informativeRecommendations;
 
   const informativeRecommendationsCards = [];
+
+  // informativeRecommendations.forEach((informativeRecommendation) => {
+  //   const informativeRecommendationCards = informativeRecommendation.recommendationCards;
+
+  //   informativeRecommendationCards.forEach((informativeRecommendationCard) => {
+  //     informativeRecommendationsCards.push(informativeRecommendationCard);
+  //   });
+  // });
 
   for (const informativeRecommendation of informativeRecommendations) {
     const informativeRecommendationCards = informativeRecommendation.recommendationCards;
@@ -439,7 +557,15 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
 });
 
 // Exports of this file.
-module.exports = { getAll, getOne, create, deleteOne, updateOne };
+module.exports = {
+  getAll,
+  getOne,
+  create,
+  deleteOne,
+  updateOne,
+  getBaseRecommendationCards,
+  getRandomInformativeRecommendationCards,
+};
 
 // Helpers for this controller.
 async function fileResult(recommendationCard, userId, req, fileTypes) {

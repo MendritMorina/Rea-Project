@@ -17,7 +17,7 @@ const routes = [
     middlewares: [informativeRecommendationController.getAll],
   },
   {
-    path: '/:recommendationId',
+    path: '/:informativeRecommendationId',
     method: httpVerbs.GET,
     middlewares: [informativeRecommendationController.getOne],
   },
@@ -27,12 +27,12 @@ const routes = [
     middlewares: [informativeRecommendationController.create],
   },
   {
-    path: '/:recommendationId',
+    path: '/:informativeRecommendationId',
     method: httpVerbs.PUT,
     middlewares: [informativeRecommendationController.updateOne],
   },
   {
-    path: '/:recommendationId',
+    path: '/:informativeRecommendationId',
     method: httpVerbs.DELETE,
     middlewares: [informativeRecommendationController.deleteOne],
   },
@@ -41,7 +41,7 @@ const routes = [
 // Mount routes accordingly.
 for (const route of routes) router.route(route.path)[route.method](route.middlewares);
 
-router.use('/:recommendationId/recommendationcards', recommendationCardRouter);
+router.use('/:informativeRecommendationId/recommendationcards', recommendationCardRouter);
 
 // Exports of this file.
 module.exports = router;

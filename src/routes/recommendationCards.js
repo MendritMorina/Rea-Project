@@ -17,6 +17,16 @@ const routes = [
     middlewares: [validate(recommendationCardValidator.getAllRecommendationCards), recommendationCardController.getAll],
   },
   {
+    path: '/randomInformativeRecommendationCards',
+    method: httpVerbs.GET,
+    middlewares: [recommendationCardController.getRandomInformativeRecommendationCards],
+  },
+  {
+    path: '/baseRecommendationCards',
+    method: httpVerbs.GET,
+    middlewares: [recommendationCardController.getBaseRecommendationCards],
+  },
+  {
     path: '/:recommendationCardId',
     method: httpVerbs.GET,
     middlewares: [
@@ -28,8 +38,8 @@ const routes = [
     path: '/',
     method: httpVerbs.POST,
     middlewares: [
-      authorizeAdmin,
-      validate(recommendationCardValidator.createRecommendationCard),
+      // authorizeAdmin,
+      // validate(recommendationCardValidator.createRecommendationCard),
       recommendationCardController.create,
     ],
   },

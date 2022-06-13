@@ -264,6 +264,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
       $set: {
         isDeleted: true,
         recommendationCards: [],
+        informativeRecommendations: [],
         updatedBy: userId,
         updatedAt: new Date(Date.now()),
       },
@@ -271,7 +272,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     { new: true }
   );
   if (!deletedBaseRecommendation) {
-    next(new ApiError('Failed to delete recommendation!', httpCodes.INTERNAL_ERROR));
+    next(new ApiError('Failed to delete base recommendation!', httpCodes.INTERNAL_ERROR));
     return;
   }
 
