@@ -186,7 +186,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   if (isPregnant && !gender.includes('Femër')) {
     next(
       new ApiError(
-        "You cannot create a recommendation where is pregnant is equal to true and gender doesn't incude female!",
+        "You cannot create a base recommendation where is pregnant is equal to true and gender doesn't incude female!",
         httpCodes.BAD_REQUEST
       )
     );
@@ -196,7 +196,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0) {
     next(
       new ApiError(
-        'You cannot create a recommendation where it has children disease and has no children!',
+        'You cannot create a base recommendation where it has children disease and has no children!',
         httpCodes.BAD_REQUEST
       )
     );

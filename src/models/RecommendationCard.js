@@ -37,6 +37,11 @@ const RecommendationCardSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: false,
   },
+  type: {
+    type: String,
+    required: false,
+    enum: ['base', 'informative'],
+  },
   ...Base,
 });
 

@@ -161,6 +161,7 @@ const create = asyncHandler(async (request, response, next) => {
     const payload = {
       name,
       description,
+      type,
       recommendation: baseRecommendation._id,
       createdBy: userId,
       createdAt: new Date(Date.now()),
@@ -178,7 +179,12 @@ const create = asyncHandler(async (request, response, next) => {
         $push: { recommendationCards: recommendationCard._id },
       }
     );
-  } else {
+
+    if (!updatedBaseRecommendation) {
+      next(new ApiError('Failed to push recommendation card in base recommendation ', httpCodes.NOT_FOUND));
+      return;
+    }
+  } else if (type === 'informative') {
     const informativeRecommendation = await InformativeRecommendation.findOne({
       _id: recommendationId,
       isDeleted: false,
@@ -191,6 +197,7 @@ const create = asyncHandler(async (request, response, next) => {
     const payload = {
       name,
       description,
+      type,
       recommendation: informativeRecommendation._id,
       createdBy: userId,
       createdAt: new Date(Date.now()),
@@ -208,6 +215,14 @@ const create = asyncHandler(async (request, response, next) => {
         $push: { recommendationCards: recommendationCard._id },
       }
     );
+
+    if (!updatedInformativeRecommendation) {
+      next(new ApiError('Failed to push recommendation card in informative recommendation ', httpCodes.NOT_FOUND));
+      return;
+    }
+  } else {
+    next(new ApiError('Illegal type!', httpCodes.BAD_REQUEST));
+    return;
   }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
@@ -381,12 +396,14 @@ const updateOne = asyncHandler(async (request, response, next) => {
 });
 
 /**
- * @description Delete a RecommendationCard.
+ * @description Delete a recommendation Card.
  * @route       DELETE /api/recommendationcards/:recommendationCardId.
  * @access      Private.
  */
+
 const deleteOne = asyncHandler(async (request, response, next) => {
-  const userId = request.admin._id;
+  // const userId = request.admin._id;
+  const userId = '62a6f9ccc6d0625cae95a0c8';
   const { recommendationCardId } = request.params;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false });
@@ -396,34 +413,83 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const recommendation = await Recommendation.findOne({ _id: recommendationCard.recommendation, isDeleted: false });
-  if (!recommendation) {
-    next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
-    return;
-  }
+  const type = recommendationCard.type;
+  const recommendationId = recommendationCard.recommendation;
 
-  const deletedRecommendationCard = await RecommendationCard.findOneAndUpdate(
-    { _id: recommendationCardId },
-    {
-      $set: {
-        isDeleted: true,
-        updatedBy: userId,
-        updatedAt: new Date(Date.now()),
+  if (type === 'base') {
+    const baseRecommendation = await BaseRecommendation.findOne({
+      _id: recommendationId,
+      isDeleted: false,
+    });
+    if (!baseRecommendation) {
+      next(new ApiError('Base recommendation not found!', httpCodes.NOT_FOUND));
+      return;
+    }
+
+    const deletedRecommendationCard = await RecommendationCard.findOneAndUpdate(
+      { _id: recommendationCard._id },
+      {
+        $set: {
+          isDeleted: true,
+          updatedBy: userId,
+          updatedAt: new Date(Date.now()),
+        },
       },
-    },
-    { new: true }
-  );
-  if (!deletedRecommendationCard) {
-    next(new ApiError('Failed to delete recommendation!', httpCodes.INTERNAL_ERROR));
-    return;
-  }
+      { new: true }
+    );
+    if (!deletedRecommendationCard) {
+      next(new ApiError('Failed to delete recommendation!', httpCodes.INTERNAL_ERROR));
+      return;
+    }
 
-  const updatedRecommendation = await Recommendation.findOneAndUpdate(
-    { _id: recommendation._id },
-    { $pull: { recommendationCards: recommendationCard._id } }
-  );
-  if (!updatedRecommendation) {
-    next(new ApiError('Failed to update recommendation!', httpCodes.INTERNAL_ERROR));
+    const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
+      { _id: baseRecommendation._id },
+      { $pull: { recommendationCards: recommendationCard._id } }
+    );
+
+    if (!updatedBaseRecommendation) {
+      next(new ApiError('Failed to update recommendation!', httpCodes.INTERNAL_ERROR));
+      return;
+    }
+  } else if (type === 'informative') {
+    const informativeRecommendation = await InformativeRecommendation.findOne({
+      _id: recommendationId,
+      isDeleted: false,
+    });
+
+    if (!informativeRecommendation) {
+      next(new ApiError('Informative Recommendation not found!', httpCodes.NOT_FOUND));
+      return;
+    }
+
+    const deletedRecommendationCard = await RecommendationCard.findOneAndUpdate(
+      { _id: recommendationCard._id },
+      {
+        $set: {
+          isDeleted: true,
+          updatedBy: userId,
+          updatedAt: new Date(Date.now()),
+        },
+      },
+      { new: true }
+    );
+
+    if (!deletedRecommendationCard) {
+      next(new ApiError('Failed to delete recommendation!', httpCodes.INTERNAL_ERROR));
+      return;
+    }
+
+    const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
+      { _id: informativeRecommendation._id },
+      { $pull: { recommendationCards: recommendationCard._id } }
+    );
+
+    if (!updatedInformativeRecommendation) {
+      next(new ApiError('Failed to update informative recommendation!', httpCodes.INTERNAL_ERROR));
+      return;
+    }
+  } else {
+    next(new ApiError('Illegal type!', httpCodes.INTERNAL_ERROR));
     return;
   }
 
@@ -432,6 +498,54 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     .json({ success: true, data: { recommendationCard: deletedRecommendationCard }, error: null });
   return;
 });
+
+// const deleteOne = asyncHandler(async (request, response, next) => {
+//   const userId = request.admin._id;
+//   const { recommendationCardId } = request.params;
+
+//   const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false });
+
+//   if (!recommendationCard) {
+//     next(new ApiError('RecommendationCard not found!', httpCodes.NOT_FOUND));
+//     return;
+//   }
+
+//   const recommendation = await Recommendation.findOne({ _id: recommendationCard.recommendation, isDeleted: false });
+//   if (!recommendation) {
+//     next(new ApiError('Recommendation not found!', httpCodes.NOT_FOUND));
+//     return;
+//   }
+
+//   const deletedRecommendationCard = await RecommendationCard.findOneAndUpdate(
+//     { _id: recommendationCardId },
+//     {
+//       $set: {
+//         isDeleted: true,
+//         updatedBy: userId,
+//         updatedAt: new Date(Date.now()),
+//       },
+//     },
+//     { new: true }
+//   );
+//   if (!deletedRecommendationCard) {
+//     next(new ApiError('Failed to delete recommendation!', httpCodes.INTERNAL_ERROR));
+//     return;
+//   }
+
+//   const updatedRecommendation = await Recommendation.findOneAndUpdate(
+//     { _id: recommendation._id },
+//     { $pull: { recommendationCards: recommendationCard._id } }
+//   );
+//   if (!updatedRecommendation) {
+//     next(new ApiError('Failed to update recommendation!', httpCodes.INTERNAL_ERROR));
+//     return;
+//   }
+
+//   response
+//     .status(httpCodes.OK)
+//     .json({ success: true, data: { recommendationCard: deletedRecommendationCard }, error: null });
+//   return;
+// });
 
 const getBaseRecommendationCards = asyncHandler(async (request, response, next) => {
   const userInfo = {
@@ -523,36 +637,33 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
 
   const informativeRecommendations = baseRecommendation.informativeRecommendations;
 
-  const informativeRecommendationsCards = [];
+  const randomInformativeRecommendation =
+    informativeRecommendations[parseInt(Math.random() * informativeRecommendations.length)];
 
-  // informativeRecommendations.forEach((informativeRecommendation) => {
+  const randomInformativeRecommendationCards = randomInformativeRecommendation.recommendationCards;
+
+  // const informativeRecommendationsCards = [];
+
+  // for (const informativeRecommendation of informativeRecommendations) {
   //   const informativeRecommendationCards = informativeRecommendation.recommendationCards;
 
-  //   informativeRecommendationCards.forEach((informativeRecommendationCard) => {
+  //   for (const informativeRecommendationCard of informativeRecommendationCards) {
   //     informativeRecommendationsCards.push(informativeRecommendationCard);
-  //   });
-  // });
+  //   }
+  // }
 
-  for (const informativeRecommendation of informativeRecommendations) {
-    const informativeRecommendationCards = informativeRecommendation.recommendationCards;
+  // const randominformativeRecommendationsCards = [];
 
-    for (const informativeRecommendationCard of informativeRecommendationCards) {
-      informativeRecommendationsCards.push(informativeRecommendationCard);
-    }
-  }
+  // for (let i = 0; i < 5; i++) {
+  //   const randomInformativeRecommendationCard =
+  //     informativeRecommendationsCards[parseInt(Math.random() * informativeRecommendationsCards.length)];
 
-  const randominformativeRecommendationsCards = [];
+  //   if (!randominformativeRecommendationsCards.includes(randomInformativeRecommendationCard)) {
+  //     randominformativeRecommendationsCards.push(randomInformativeRecommendationCard);
+  //   }
+  // }
 
-  for (let i = 0; i < 5; i++) {
-    const randomInformativeRecommendationCard =
-      informativeRecommendationsCards[parseInt(Math.random() * informativeRecommendationsCards.length)];
-
-    if (!randominformativeRecommendationsCards.includes(randomInformativeRecommendationCard)) {
-      randominformativeRecommendationsCards.push(randomInformativeRecommendationCard);
-    }
-  }
-
-  response.status(httpCodes.OK).json({ success: true, data: { randominformativeRecommendationsCards }, error: null });
+  response.status(httpCodes.OK).json({ success: true, data: { randomInformativeRecommendationCards }, error: null });
   return;
 });
 
