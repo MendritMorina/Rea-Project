@@ -42,6 +42,10 @@ const validator = {
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
       couponCode: Joi.string().required(),
+      user: Joi.string()
+        .regex(/^[0-9a-fA-F]{24}$/)
+        .optional()
+        .default(null),
     }),
   },
   validateCouponId: {
