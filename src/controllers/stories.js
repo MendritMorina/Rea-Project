@@ -10,11 +10,11 @@ const { getMode } = require('../utils/functions');
 const { asyncHandler } = require('../middlewares');
 
 /**
- * @description Get all stories.
- * @route       GET /api/stories.
+ * @description Get all stories for AdminPanel.
+ * @route       GET /api/stories/admin.
  * @access      Public
  */
-const getAll = asyncHandler(async (request, response) => {
+const getAllAdmin = asyncHandler(async (request, response) => {
   const { page, limit, pagination } = request.query;
 
   const options = {
@@ -22,6 +22,33 @@ const getAll = asyncHandler(async (request, response) => {
     limit: parseInt(limit, 10),
     pagination: pagination,
   };
+
+  const query = { isDeleted: false };
+  const stories = await Story.paginate(query, options);
+
+  response.status(200).json({ success: true, data: { stories }, error: null });
+  return;
+});
+
+/**
+ * @description Get all stories for Mobile.
+ * @route       GET /api/stories/mobile.
+ * @access      Public
+ */
+const getAllMobile = asyncHandler(async (request, response) => {
+  const user = request.user;
+  const { page, limit, pagination } = request.query;
+
+  const options = {
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
+    pagination: pagination,
+  };
+
+  if (!user.currentSubscription || !user.currentSubscription.isActive) {
+    next(new ApiError('The Current Subscription not found', httpCodes.NOT_FOUND));
+    return;
+  }
 
   const query = { isDeleted: false };
   const stories = await Story.paginate(query, options);
@@ -122,8 +149,18 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const { _id: adminId } = request.admin;
   const { storyId } = request.params;
-  const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category, length, toBeDeleted } =
-    request.body;
+  const {
+    name,
+    title,
+    description,
+    authorName,
+    authorSurname,
+    narratorName,
+    narratorSurname,
+    category,
+    length,
+    toBeDeleted,
+  } = request.body;
 
   const story = await Story.findOne({ _id: storyId, isDeleted: false });
   if (!story) {
@@ -241,7 +278,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 });
 
 // Exports of this file.
-module.exports = { getAll, getOne, create, updateOne, deleteOne };
+module.exports = { getAllAdmin, getAllMobile, getOne, create, updateOne, deleteOne };
 
 //Create fileResult
 async function fileResult(story, adminId, req, fileTypes) {

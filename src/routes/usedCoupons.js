@@ -14,8 +14,7 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.GET,
-   // middlewares: [authorizeAdmin, validate(usedCouponValidator.getAll), usedCouponController.getAll],
-   middlewares: [validate(usedCouponValidator.getAll), usedCouponController.getAll],
+    middlewares: [authorizeAdmin, validate(usedCouponValidator.getAll), usedCouponController.getAll],
   },
   {
     path: '/:couponCode',
@@ -25,14 +24,12 @@ const routes = [
   {
     path: '/:couponId/number',
     method: httpVerbs.GET,
-    //middlewares: [authorizeAdmin, validate(usedCouponValidator.validateCouponId), usedCouponController.getNumberOfUses],
-    middlewares: [validate(usedCouponValidator.validateCouponId), usedCouponController.getNumberOfUses],
+    middlewares: [authorizeAdmin, validate(usedCouponValidator.validateCouponId), usedCouponController.getNumberOfUses],
   },
   {
     path: '/',
     method: httpVerbs.POST,
-    //middlewares: [authorize, validate(usedCouponValidator.create), usedCouponController.create],
-    middlewares: [validate(usedCouponValidator.create), usedCouponController.create],
+    middlewares: [authorize, validate(usedCouponValidator.create), usedCouponController.create],
   },
   {
     path: '/use',
