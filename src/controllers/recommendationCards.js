@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Imports: local files.
-const { RecommendationCard, Recommendation } = require('../models');
+const { RecommendationCard, Recommendation, BaseRecommendation, InformativeRecommendation } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { filterValues, getMode } = require('../utils/functions');
@@ -320,6 +320,121 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   response
     .status(httpCodes.OK)
     .json({ success: true, data: { recommendationCard: deletedRecommendationCard }, error: null });
+  return;
+});
+
+const getBaseRecommendationCards = asyncHandler(async (request, response, next) => {
+  const userInfo = {
+    age: '20-30',
+    gender: 'male',
+    haveDiseaseDiagnosis: ['Semundje neurologjike'],
+    energySource: ['Gas', 'Zjarr/dru'],
+    hasChildren: true,
+    hasChildrenDisease: ['Semundjet te frymarrjes/mushkerive'],
+    aqi: 250,
+    city: 'prishtina',
+  };
+
+  let airQuery = '';
+
+  if (userInfo.aqi >= 1 && userInfo.aqi <= 50) {
+    airQuery = 'E mire';
+  } else if (userInfo.aqi > 50 && userInfo.aqi <= 100) {
+    airQuery = 'E pranueshme';
+  } else if (userInfo.aqi > 100 && userInfo.aqi <= 150) {
+    airQuery = 'Mesatare';
+  } else if (userInfo.aqi > 150 && userInfo.aqi <= 200) {
+    airQuery = 'E dobet';
+  } else {
+    airQuery = 'Shume e dobet';
+  }
+
+  const query = {
+    $and: [
+      { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
+      { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
+      { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
+    ],
+  };
+
+  const baseRecommendation = await BaseRecommendation.findOne(query);
+
+  if (!baseRecommendation) {
+    next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const baseRecommendationCards = baseRecommendation.recommendationCards;
+
+  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendationCards }, error: null });
+  return;
+});
+
+const getRandomInformativeRecommendationCards = asyncHandler(async (request, response, next) => {
+  const userInfo = {
+    age: '20-30',
+    gender: 'male',
+    haveDiseaseDiagnosis: ['Semundje neurologjike'],
+    energySource: ['Gas', 'Zjarr/dru'],
+    hasChildren: true,
+    hasChildrenDisease: ['Semundjet te frymarrjes/mushkerive'],
+    aqi: 250,
+    city: 'prishtina',
+  };
+
+  let airQuery = '';
+
+  if (userInfo.aqi >= 1 && userInfo.aqi <= 50) {
+    airQuery = 'E mire';
+  } else if (userInfo.aqi > 50 && userInfo.aqi <= 100) {
+    airQuery = 'E pranueshme';
+  } else if (userInfo.aqi > 100 && userInfo.aqi <= 150) {
+    airQuery = 'Mesatare';
+  } else if (userInfo.aqi > 150 && userInfo.aqi <= 200) {
+    airQuery = 'E dobet';
+  } else {
+    airQuery = 'Shume e dobet';
+  }
+
+  const query = {
+    $and: [
+      { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
+      { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
+      { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
+    ],
+  };
+
+  const baseRecommendation = await BaseRecommendation.findOne(query);
+
+  if (!baseRecommendation) {
+    next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const informativeRecommendations = baseRecommendation.informativeRecommendations;
+
+  const informativeRecommendationsCards = [];
+
+  for (const informativeRecommendation of informativeRecommendations) {
+    const informativeRecommendationCards = informativeRecommendation.recommendationCards;
+
+    for (const informativeRecommendationCard of informativeRecommendationCards) {
+      informativeRecommendationsCards.push(informativeRecommendationCard);
+    }
+  }
+
+  const randominformativeRecommendationsCards = [];
+
+  for (let i = 0; i < 5; i++) {
+    const randomInformativeRecommendationCard =
+      informativeRecommendationsCards[parseInt(Math.random() * informativeRecommendationsCards.length)];
+
+    if (!randominformativeRecommendationsCards.includes(randomInformativeRecommendationCard)) {
+      randominformativeRecommendationsCards.push(randomInformativeRecommendationCard);
+    }
+  }
+
+  response.status(httpCodes.OK).json({ success: true, data: { randominformativeRecommendationsCards }, error: null });
   return;
 });
 
