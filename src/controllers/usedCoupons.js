@@ -1,4 +1,5 @@
 // Imports: third-party packages.
+const mongoose = require('mongoose');
 const { v4 } = require('uuid');
 
 // Imports: local files.
@@ -22,7 +23,7 @@ const getAll = asyncHandler(async (request, response, next) => {
   if (user) query['user._id'] = user;
   if (isUsed === 1) query['isUsed'] = true;
   else if (isUsed === 0) query['isUsed'] = false;
-  console.log(query);
+
   const usedCouponsAggregate = UsedCoupon.aggregate([
     {
       $lookup: {
@@ -115,7 +116,7 @@ const getNumberOfUses = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
   const { couponId } = request.body;
-
+  console.log(userId);
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
     next(new ApiError('Coupon with given id not found', httpCodes.NOT_FOUND));
