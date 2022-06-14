@@ -646,6 +646,35 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
   return;
 });
 
+/**
+ * @description Get recommandationCard by id and increment its view couter.
+ * @route       GET /api/recommendationcards/view/:recommendationCardId.
+ * @access      Public.
+ */
+const viewCardCounter = asyncHandler(async (request, response, next) => {
+  const { recommendationCardId } = request.params;
+
+  const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false });
+
+  if (!recommendationCard) {
+    next(new ApiError('RecommendationCard not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const updatedRecommendationCard = await RecommendationCard.findOneAndUpdate(
+    { _id: recommendationCard._id },
+    { $inc: { viewCounter: 1 } },
+    { new: true }
+  );
+  if (!updatedRecommendationCard) {
+    next(new ApiError('Failed to increment view count of recommendation Card!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  response.status(httpCodes.OK).json({ success: true, data: { updatedRecommendationCard }, error: null });
+  return;
+});
+
 // Exports of this file.
 module.exports = {
   getAll,
@@ -655,6 +684,7 @@ module.exports = {
   updateOne,
   getBaseRecommendationCards,
   getRandomInformativeRecommendationCards,
+  viewCardCounter,
 };
 
 // Helpers for this controller.

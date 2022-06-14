@@ -33,6 +33,11 @@ const RecommendationCardSchema = new mongoose.Schema({
   //   ref: 'Recommendation',
   //   required: false,
   // },
+  viewCounter: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   recommendation: {
     type: mongoose.Schema.Types.ObjectId,
     required: false,

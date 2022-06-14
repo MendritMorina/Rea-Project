@@ -27,6 +27,11 @@ const routes = [
     middlewares: [recommendationCardController.getBaseRecommendationCards],
   },
   {
+    path: '/view/:recommendationCardId',
+    method: httpVerbs.GET,
+    middlewares: [recommendationCardController.viewCardCounter],
+  },
+  {
     path: '/:recommendationCardId',
     method: httpVerbs.GET,
     middlewares: [
