@@ -8,6 +8,7 @@ const validator = {
       page: Joi.number().optional().default(1),
       limit: Joi.number().optional().default(10),
       pagination: Joi.boolean().optional().default(true),
+      expired: Joi.number().optional().default(0).allow(null, 0, 1),
     }),
   },
   createCoupon: {
