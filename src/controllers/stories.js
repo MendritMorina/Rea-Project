@@ -320,7 +320,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
 
   const type = mimetype.split('/').pop();
 
-  let allowedTypes = ['jpeg', 'jpg', 'png', 'mp4'];
+  let allowedTypes = ['jpeg', 'jpg', 'png', 'svg', 'mpeg'];
 
   if (!allowedTypes.includes(type)) {
     return { success: false, data: null, error: `Wrong ${fileType} type!`, code: httpCodes.BAD_REQUEST };
