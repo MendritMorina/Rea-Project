@@ -1,5 +1,5 @@
 // Imports: local files.
-const { BaseRecommendation, RecommendationCard } = require('../models');
+const { BaseRecommendation, RecommendationCard, InformativeRecommendation } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { filterValues, checkValidValues } = require('../utils/functions');
@@ -258,8 +258,21 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  for (const informativeRecommendation of baseRecommendation.informativeRecommendations) {
+    const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
+      { _id: informativeRecommendation._id },
+      { $pull: { baseRecommendations: baseRecommendation._id } }
+    );
+    if (!updatedInformativeRecommendation) {
+      next(
+        new ApiError('Failed to pull base recommendation from informative recommendation!', httpCodes.INTERNAL_ERROR)
+      );
+      return;
+    }
+  }
+
   const deletedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
-    { _id: baseRecommendationId },
+    { _id: baseRecommendation._id },
     {
       $set: {
         isDeleted: true,
@@ -277,7 +290,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   }
 
   const deletedBaseRecommendationCards = await RecommendationCard.updateMany(
-    { recommendation: baseRecommendationId },
+    { recommendation: baseRecommendation._id },
     {
       $set: {
         isDeleted: true,

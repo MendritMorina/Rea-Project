@@ -107,7 +107,18 @@ const create = asyncHandler(async (request, response, next) => {
     }
   }
 
-  response.status(httpCodes.CREATED).json({ success: true, data: { informativeRecommendation }, error: null });
+  const latestUpdatedInformativeRecommendation = await InformativeRecommendation.findOne({
+    _id: informativeRecommendation._id,
+    isDeleted: false,
+  });
+  if (!latestUpdatedInformativeRecommendation) {
+    next(new ApiError('Informative Recommendation with given id not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  response
+    .status(httpCodes.CREATED)
+    .json({ success: true, data: { latestUpdatedInformativeRecommendation }, error: null });
   return;
 });
 
@@ -149,9 +160,35 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (pullFromId && informativeRecommendation.baseRecommendations.includes(pullFromId)) {
+  if (pullFromId) {
+    // && informativeRecommendation.baseRecommendations.includes(pullFromId)
+
+    const baseRecommendation = await BaseRecommendation.findOne({ _id: pullFromId, isDeleted: false });
+
+    if (!baseRecommendation) {
+      next(new ApiError("The given Base Recommendation to pull to doesn't exist!", httpCodes.NOT_FOUND));
+      return;
+    }
+
+    if (!baseRecommendation.informativeRecommendations.includes(informativeRecommendation._id)) {
+      next(
+        new ApiError("The Base Recommendation doesn't contains the Informative Recommendation!", httpCodes.NOT_FOUND)
+      );
+      return;
+    }
+
+    if (!informativeRecommendation.baseRecommendations.includes(baseRecommendation._id)) {
+      next(
+        new ApiError(
+          "Informative recommendation doesn't contain the base recommendation with given id!",
+          httpCodes.INTERNAL_ERROR
+        )
+      );
+      return;
+    }
+
     const editedPullBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
-      { _id: pullFromId },
+      { _id: baseRecommendation._id },
       { $pull: { informativeRecommendations: informativeRecommendation._id } }
     );
 
@@ -162,12 +199,12 @@ const updateOne = asyncHandler(async (request, response, next) => {
       return;
     }
 
-    const editedPushInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
+    const editedPullInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
       { _id: informativeRecommendation._id },
-      { $pull: { baseRecommendations: pullFromId } }
+      { $pull: { baseRecommendations: baseRecommendation._id } }
     );
 
-    if (!editedPushInformativeRecommendation) {
+    if (!editedPullInformativeRecommendation) {
       next(
         new ApiError('Failed to pull Base recommendation from Informative recommendation!', httpCodes.INTERNAL_ERROR)
       );
@@ -246,23 +283,6 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const deletedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
-    { _id: informativeRecommendation._id },
-    {
-      $set: {
-        isDeleted: true,
-        recommendationCards: [],
-        updatedBy: userId,
-        updatedAt: new Date(Date.now()),
-      },
-    },
-    { new: true }
-  );
-  if (!deletedInformativeRecommendation) {
-    next(new ApiError('Failed to delete informative recommendation!', httpCodes.INTERNAL_ERROR));
-    return;
-  }
-
   for (const baseRecommendation of informativeRecommendation.baseRecommendations) {
     const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
       { _id: baseRecommendation._id },
@@ -272,6 +292,24 @@ const deleteOne = asyncHandler(async (request, response, next) => {
       next(new ApiError('Failed to update base recommendation!', httpCodes.INTERNAL_ERROR));
       return;
     }
+  }
+
+  const deletedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
+    { _id: informativeRecommendation._id },
+    {
+      $set: {
+        isDeleted: true,
+        recommendationCards: [],
+        baseRecommendations: [],
+        updatedBy: userId,
+        updatedAt: new Date(Date.now()),
+      },
+    },
+    { new: true }
+  );
+  if (!deletedInformativeRecommendation) {
+    next(new ApiError('Failed to delete informative recommendation!', httpCodes.INTERNAL_ERROR));
+    return;
   }
 
   const deletedRecommendationCards = await RecommendationCard.updateMany(

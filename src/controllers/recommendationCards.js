@@ -559,19 +559,23 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
     city: 'prishtina',
   };
 
-  let airQuery = '';
+  const airQuery = airQueryFromAqi(userInfo.aqi);
 
-  if (userInfo.aqi >= 1 && userInfo.aqi <= 50) {
-    airQuery = 'E mire';
-  } else if (userInfo.aqi > 50 && userInfo.aqi <= 100) {
-    airQuery = 'E pranueshme';
-  } else if (userInfo.aqi > 100 && userInfo.aqi <= 150) {
-    airQuery = 'Mesatare';
-  } else if (userInfo.aqi > 150 && userInfo.aqi <= 200) {
-    airQuery = 'E dobet';
-  } else {
-    airQuery = 'Shume e dobet';
-  }
+  console.log(airQuery);
+
+  // let airQuery = '';
+
+  // if (userInfo.aqi >= 1 && userInfo.aqi <= 50) {
+  //   airQuery = 'E mire';
+  // } else if (userInfo.aqi > 50 && userInfo.aqi <= 100) {
+  //   airQuery = 'E pranueshme';
+  // } else if (userInfo.aqi > 100 && userInfo.aqi <= 150) {
+  //   airQuery = 'Mesatare';
+  // } else if (userInfo.aqi > 150 && userInfo.aqi <= 200) {
+  //   airQuery = 'E dobet';
+  // } else {
+  //   airQuery = 'Shume e dobet';
+  // }
 
   const query = {
     $and: [
@@ -594,6 +598,24 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
   return;
 });
 
+function airQueryFromAqi(aqi) {
+  let airQuery = '';
+
+  if (aqi >= 1 && aqi <= 50) {
+    airQuery = 'E mire';
+  } else if (aqi > 50 && aqi <= 100) {
+    airQuery = 'E pranueshme';
+  } else if (aqi > 100 && aqi <= 150) {
+    airQuery = 'Mesatare';
+  } else if (aqi > 150 && aqi <= 200) {
+    airQuery = 'E dobet';
+  } else {
+    airQuery = 'Shume e dobet';
+  }
+
+  return airQuery;
+}
+
 const getRandomInformativeRecommendationCards = asyncHandler(async (request, response, next) => {
   const userInfo = {
     age: '20-30',
@@ -606,19 +628,23 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     city: 'prishtina',
   };
 
-  let airQuery = '';
+  const airQuery = airQueryFromAqi(userInfo.aqi);
 
-  if (userInfo.aqi >= 1 && userInfo.aqi <= 50) {
-    airQuery = 'E mire';
-  } else if (userInfo.aqi > 50 && userInfo.aqi <= 100) {
-    airQuery = 'E pranueshme';
-  } else if (userInfo.aqi > 100 && userInfo.aqi <= 150) {
-    airQuery = 'Mesatare';
-  } else if (userInfo.aqi > 150 && userInfo.aqi <= 200) {
-    airQuery = 'E dobet';
-  } else {
-    airQuery = 'Shume e dobet';
-  }
+  console.log(airQuery);
+
+  // let airQuery = '';
+
+  // if (userInfo.aqi >= 1 && userInfo.aqi <= 50) {
+  //   airQuery = 'E mire';
+  // } else if (userInfo.aqi > 50 && userInfo.aqi <= 100) {
+  //   airQuery = 'E pranueshme';
+  // } else if (userInfo.aqi > 100 && userInfo.aqi <= 150) {
+  //   airQuery = 'Mesatare';
+  // } else if (userInfo.aqi > 150 && userInfo.aqi <= 200) {
+  //   airQuery = 'E dobet';
+  // } else {
+  //   airQuery = 'Shume e dobet';
+  // }
 
   const query = {
     $and: [
