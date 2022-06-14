@@ -10,7 +10,7 @@ const { asyncHandler } = require('../middlewares');
  * @access      Public
  */
 const getAll = asyncHandler(async (request, response) => {
-  const { page, limit, pagination } = request.query;
+  const { page, limit, pagination, expired } = request.query;
 
   const options = {
     page: parseInt(page, 10),
@@ -20,6 +20,7 @@ const getAll = asyncHandler(async (request, response) => {
   };
 
   const query = { isDeleted: false };
+  if (expired === 0) query['expirationDate'] = { $gte: new Date(Date.now()) };
 
   const coupons = await Coupon.paginate(query, options);
 
@@ -69,7 +70,6 @@ const create = asyncHandler(async (request, response, next) => {
     next(new ApiError('Failed to create new coupon!', httpCodes.INTERNAL_ERROR));
     return;
   }
-  
 
   response.status(httpCodes.CREATED).json({ success: true, data: { coupon }, error: null });
   return;
