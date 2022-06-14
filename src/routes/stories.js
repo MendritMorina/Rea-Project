@@ -12,9 +12,14 @@ const { authorizeAdmin } = require('../middlewares');
 // Define routes here.
 const routes = [
   {
-    path: '/',
+    path: '/admin',
     method: httpVerbs.GET,
-    middlewares: [validate(storyValidator.getAllStories), storyController.getAll],
+    middlewares: [validate(storyValidator.getAllStories), storyController.getAllAdmin],
+  },
+  {
+    path: '/mobile',
+    method: httpVerbs.GET,
+    middlewares: [validate(storyValidator.getAllStories), storyController.getAllMobile],
   },
   {
     path: '/:storyId',

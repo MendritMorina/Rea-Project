@@ -40,7 +40,7 @@ const authorize = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const user = await User.find({ isDeleted: false, firebaseUid: uid });
+  const user = await User.findOne({ isDeleted: false, firebaseUid: uid });
   if (!user) {
     next(new ApiError('Unauthorized!', httpCodes.UNAUTHORIZED));
     return;
