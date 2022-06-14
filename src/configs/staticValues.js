@@ -8,14 +8,16 @@ const staticValues = {
     'Sëmundje të zemrës (kardiovaskulare)',
     'Diabetin',
     'Sëmundje neurologjike',
+    'Asnjёra',
   ],
   hasChildrenDisease: [
     'Sëmundje të frymëmarrjes/mushkërive',
     'Sëmundje të zemrës (kardiovaskulare)',
     'Diabetin',
     'Sëmundje neurologjike',
+    'Asnjёra',
   ],
-  energySource: ['Qymyr', 'Gas', 'Rrymë elektrike', 'Zjarr/Dru'],
+  energySource: ['Qymyr', 'Gas', 'Rrymë elektrike', 'Zjarr/Dru', 'Asnjёra'],
   airQuality: ['E mire', 'E pranueshme', 'Mesatare', 'E dobet', 'Shume e dobet'],
   gender: ['Mashkull', 'Femër'],
 };
