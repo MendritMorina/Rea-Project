@@ -69,6 +69,7 @@ const create = asyncHandler(async (request, response, next) => {
     next(new ApiError('Failed to create new coupon!', httpCodes.INTERNAL_ERROR));
     return;
   }
+  
 
   response.status(httpCodes.CREATED).json({ success: true, data: { coupon }, error: null });
   return;

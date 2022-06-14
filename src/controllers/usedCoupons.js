@@ -1,4 +1,5 @@
 // Imports: third-party packages.
+const mongoose = require('mongoose');
 const { v4 } = require('uuid');
 
 // Imports: local files.
@@ -14,16 +15,12 @@ const { asyncHandler } = require('../middlewares');
  */
 const getAll = asyncHandler(async (request, response, next) => {
   const { page, limit, pagination, type, company, user, isUsed, couponId } = request.query;
-
   const options = { page, limit, pagination };
   const query = { isDeleted: false };
-
-  if (couponId) query['coupon._id'] = couponId;
-
+  if (couponId) query['coupon._id'] = new mongoose.Types.ObjectId(couponId);
   if (type) query['coupon.type'] = type;
-  if (company) query['company._id'] = company;
+  if (company) query['company._id'] = new mongoose.Types.ObjectId(company);
   if (user) query['user._id'] = user;
-
   if (isUsed === 1) query['isUsed'] = true;
   else if (isUsed === 0) query['isUsed'] = false;
 
@@ -36,6 +33,7 @@ const getAll = asyncHandler(async (request, response, next) => {
         as: 'coupon',
       },
     },
+    { $unwind: { path: '$coupon', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: 'users',
@@ -44,6 +42,7 @@ const getAll = asyncHandler(async (request, response, next) => {
         as: 'user',
       },
     },
+    { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: 'companies',
@@ -52,6 +51,7 @@ const getAll = asyncHandler(async (request, response, next) => {
         as: 'company',
       },
     },
+    { $unwind: { path: '$company', preserveNullAndEmptyArrays: true } },
     {
       $match: query,
     },
@@ -72,7 +72,6 @@ const getAll = asyncHandler(async (request, response, next) => {
     },
   ]);
   const usedCoupons = await UsedCoupon.aggregatePaginate(usedCouponsAggregate, options);
-
   response.status(httpCodes.OK).json({ success: true, data: { usedCoupons }, error: null });
   return;
 });
@@ -85,7 +84,7 @@ const getAll = asyncHandler(async (request, response, next) => {
 const getOne = asyncHandler(async (request, response, next) => {
   const { couponCode } = request.params;
 
-  const usedCoupon = await UsedCoupon.findOne({ couponCode, isDeleted: false }).populate('coupon').populate('user');
+  const usedCoupon = await UsedCoupon.findOne({ couponCode, isDeleted: false }).populate('coupon').populate('userId');
   if (!usedCoupon) {
     next(new ApiError('Used Coupon with given code was not found!', httpCodes.NOT_FOUND));
     return;
@@ -117,7 +116,7 @@ const getNumberOfUses = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
   const { couponId } = request.body;
-
+  console.log(userId);
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
     next(new ApiError('Coupon with given id not found', httpCodes.NOT_FOUND));

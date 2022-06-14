@@ -74,9 +74,14 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  let logoResult = null;
+  const hasFile = request.files && Object.keys(request.files).length && request.files['logo'];
+  if (!hasFile) {
+    next(new ApiError('File is missing!', httpCodes.INTERNAL_ERROR));
+    return;
+  }
 
-  if (request.files && Object.keys(request.files).length && request.files['logo']) {
+  let logoResult = null;
+  if (hasFile) {
     logoResult = await uploadLogo(company._id, adminId, request);
     if (!logoResult.success) {
       next(new ApiError(logoResult.error, httpCodes.INTERNAL_ERROR));
@@ -86,7 +91,6 @@ const create = asyncHandler(async (request, response, next) => {
 
   const updatedCompany = logoResult && logoResult.success && logoResult.data ? logoResult.data.updatedCompany : company;
   response.status(httpCodes.CREATED).json({ success: true, data: { company: updatedCompany }, error: null });
-  return;
 });
 
 /**
@@ -128,7 +132,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   let logoResult = null;
   if (request.files && Object.keys(request.files).length && request.files['logo']) {
-    logoResult = await uploadLogo(company._id, adminId, request);
+    logoResult = await uploadLogo(editedCompany._id, adminId, request);
     if (!logoResult.success) {
       next(new ApiError(logoResult.error, httpCodes.INTERNAL_ERROR));
       return;

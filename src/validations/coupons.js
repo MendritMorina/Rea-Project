@@ -27,14 +27,14 @@ const validator = {
       couponId: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
     }),
     body: Joi.object({
-      discount: Joi.number().required(),
-      description: Joi.string().required(),
-      startDate: Joi.date().required(),
-      expirationDate: Joi.date().required(),
-      type: Joi.string().required(),
+      discount: Joi.number().optional(),
+      description: Joi.string().optional(),
+      startDate: Joi.date().optional(),
+      expirationDate: Joi.date().optional(),
+      type: Joi.string().optional(),
       company: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
-        .required(),
+        .optional(),
     }),
   },
   validateCouponId: {

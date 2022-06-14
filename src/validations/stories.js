@@ -10,6 +10,13 @@ const validator = {
       pagination: Joi.boolean().optional().default(true),
     }),
   },
+  getAllAdmin: {
+    query: Joi.object({
+      page: Joi.number().optional().default(1),
+      limit: Joi.number().optional().default(10),
+      pagination: Joi.boolean().optional().default(true),
+    }),
+  },
   createStory: {
     body: Joi.object({
       name: Joi.string().required(),
@@ -30,15 +37,15 @@ const validator = {
         .required(),
     }),
     body: Joi.object({
-      name: Joi.string().required(),
-      title: Joi.string().required(),
-      description: Joi.string().required(),
-      authorName: Joi.string().required(),
-      authorSurname: Joi.string().required(),
-      narratorName: Joi.string().required(),
-      narratorSurname: Joi.string().required(),
-      category: Joi.string(),
-      length: Joi.number().required(),
+      name: Joi.string().optional(),
+      title: Joi.string().optional(),
+      description: Joi.string().optional(),
+      authorName: Joi.string().optional(),
+      authorSurname: Joi.string().optional(),
+      narratorName: Joi.string().optional(),
+      narratorSurname: Joi.string().optional(),
+      category: Joi.string().optional(),
+      length: Joi.number().optional(),
     }),
   },
   validateStoryId: {
