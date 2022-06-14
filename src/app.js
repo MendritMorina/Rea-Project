@@ -21,6 +21,8 @@ const { errorHandler } = require('./middlewares');
 const {
   authRouter,
   recommendationRouter,
+  baseRecommendionRouter,
+  informativeRecommendionRouter,
   recommendationCardRouter,
   advertisementsRouter,
   usersRouter,
@@ -38,6 +40,8 @@ app.use(fileUpload());
 
 app.use('/api/auth', authRouter);
 app.use('/api/recommendations', recommendationRouter);
+app.use('/api/baserecommendations', baseRecommendionRouter);
+app.use('/api/informativerecommendations', informativeRecommendionRouter);
 app.use('/api/recommendationcards', recommendationCardRouter);
 app.use('/api/advertisements', advertisementsRouter);
 app.use('/api/users', usersRouter);

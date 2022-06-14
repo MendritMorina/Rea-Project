@@ -6,17 +6,13 @@ const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
 const Base = require('./Base');
 
 // Recommendation Schema that is used to represent single Recommendation in our API.
-const RecommendationSchema = new mongoose.Schema({
+const BaseRecommendationSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
   },
   description: {
     type: String,
-    required: false,
-  },
-  aqi: {
-    type: Number,
     required: false,
   },
   airQuality: {
@@ -62,21 +58,17 @@ const RecommendationSchema = new mongoose.Schema({
     required: true,
     default: [],
   },
-  category: {
-    type: String,
+  informativeRecommendations: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'InformativeRecommendation' }],
     required: true,
-  },
-  type: {
-    type: String,
-    required: false,
-    enum: ['base', 'informative'],
+    default: [],
   },
   ...Base,
 });
 
 // Plugins.
-RecommendationSchema.plugin(mongoosePaginate);
-RecommendationSchema.plugin(mongooseAggregatePaginate);
+BaseRecommendationSchema.plugin(mongoosePaginate);
+BaseRecommendationSchema.plugin(mongooseAggregatePaginate);
 
 // Exports of this file.
-module.exports = mongoose.model('Recommendation', RecommendationSchema);
+module.exports = mongoose.model('BaseRecommendation', BaseRecommendationSchema);
