@@ -43,8 +43,8 @@ const routes = [
     path: '/',
     method: httpVerbs.POST,
     middlewares: [
-      // authorizeAdmin,
-      // validate(recommendationCardValidator.createRecommendationCard),
+      authorizeAdmin,
+      validate(recommendationCardValidator.createRecommendationCard),
       recommendationCardController.create,
     ],
   },
@@ -61,8 +61,8 @@ const routes = [
     path: '/:recommendationCardId',
     method: httpVerbs.DELETE,
     middlewares: [
-      // authorizeAdmin,
-      // validate(recommendationCardValidator.validateRecommendationCardId),
+      authorizeAdmin,
+      validate(recommendationCardValidator.validateRecommendationCardId),
       recommendationCardController.deleteOne,
     ],
   },

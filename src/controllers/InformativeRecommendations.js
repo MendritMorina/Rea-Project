@@ -2,8 +2,8 @@
 const { InformativeRecommendation, BaseRecommendation, RecommendationCard } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
-const { filterValues, checkValidValues } = require('../utils/functions');
-const { httpCodes, staticValues } = require('../configs');
+const { filterValues } = require('../utils/functions');
+const { httpCodes } = require('../configs');
 
 /**
  * @description Get all recommendations.
@@ -56,8 +56,7 @@ const getOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const create = asyncHandler(async (request, response, next) => {
-  // const userId = request.admin._id;
-  const userId = '62a6f9ccc6d0625cae95a0c8';
+  const userId = request.admin._id;
   const { name, description, baseRecommendationsId, isGeneric } = request.body;
 
   const informativeRecommendationExists =
@@ -128,8 +127,7 @@ const create = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const updateOne = asyncHandler(async (request, response, next) => {
-  // const userId = request.admin._id;
-  const userId = '62a6f9ccc6d0625cae95a0c8';
+  const userId = request.admin._id;
   const { informativeRecommendationId } = request.params;
   const { name, description, isGeneric, pullFromId, pushToId } = request.body;
 
@@ -270,8 +268,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const deleteOne = asyncHandler(async (request, response, next) => {
-  // const userId = request.admin._id;
-  const userId = '62a6f9ccc6d0625cae95a0c8';
+  const userId = request.admin._id;
   const { informativeRecommendationId } = request.params;
 
   const informativeRecommendation = await InformativeRecommendation.findOne({
@@ -312,20 +309,20 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const deletedRecommendationCards = await RecommendationCard.updateMany(
-    { recommendation: informativeRecommendation._id },
-    {
-      $set: {
-        isDeleted: true,
-        updatedBy: userId,
-        updatedAt: new Date(Date.now()),
-      },
-    }
-  );
-  if (!deletedRecommendationCards) {
-    next(new ApiError('Failed to delete the recommendation cards!', httpCodes.INTERNAL_ERROR));
-    return;
-  }
+  // const deletedRecommendationCards = await RecommendationCard.updateMany(
+  //   { recommendation: informativeRecommendation._id },
+  //   {
+  //     $set: {
+  //       isDeleted: true,
+  //       updatedBy: userId,
+  //       updatedAt: new Date(Date.now()),
+  //     },
+  //   }
+  // );
+  // if (!deletedRecommendationCards) {
+  //   next(new ApiError('Failed to delete the recommendation cards!', httpCodes.INTERNAL_ERROR));
+  //   return;
+  // }
 
   response.status(httpCodes.OK).json({ success: true, data: { deletedInformativeRecommendation }, error: null });
   return;
