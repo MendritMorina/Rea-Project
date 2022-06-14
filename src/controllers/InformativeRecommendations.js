@@ -120,7 +120,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   // const userId = request.admin._id;
   const userId = '62a6f9ccc6d0625cae95a0c8';
   const { informativeRecommendationId } = request.params;
-  const { name, description, isGeneric } = request.body;
+  const { name, description, isGeneric, pullFromId, pushToId } = request.body;
 
   const informativeRecommendation = await InformativeRecommendation.findOne({
     _id: informativeRecommendationId,
@@ -147,6 +147,78 @@ const updateOne = asyncHandler(async (request, response, next) => {
   if (!editedInformativeRecommendation) {
     next(new ApiError('Failed to update informative recommendation!', httpCodes.INTERNAL_ERROR));
     return;
+  }
+
+  if (pullFromId && informativeRecommendation.baseRecommendations.includes(pullFromId)) {
+    const editedPullBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
+      { _id: pullFromId },
+      { $pull: { informativeRecommendations: informativeRecommendation._id } }
+    );
+
+    if (!editedPullBaseRecommendation) {
+      next(
+        new ApiError('Failed to pull Informative recommendation from Base recommendation!', httpCodes.INTERNAL_ERROR)
+      );
+      return;
+    }
+
+    const editedPushInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
+      { _id: informativeRecommendation._id },
+      { $pull: { baseRecommendations: pullFromId } }
+    );
+
+    if (!editedPushInformativeRecommendation) {
+      next(
+        new ApiError('Failed to pull Base recommendation from Informative recommendation!', httpCodes.INTERNAL_ERROR)
+      );
+      return;
+    }
+  }
+
+  if (pushToId) {
+    const baseRecommendation = await BaseRecommendation.findOne({ _id: pushToId, isDeleted: false });
+
+    if (!baseRecommendation) {
+      next(new ApiError("The given Base Recommendation to push to doesn't exist!", httpCodes.NOT_FOUND));
+      return;
+    }
+
+    if (baseRecommendation.informativeRecommendations.includes(informativeRecommendation._id)) {
+      next(
+        new ApiError('The Base Recommendation already contains the Informative Recommendation!', httpCodes.NOT_FOUND)
+      );
+      return;
+    }
+
+    if (informativeRecommendation.baseRecommendations.includes(baseRecommendation._id)) {
+      next(
+        new ApiError(
+          'The Informative Recommendation already contains the given Base Recommendation!',
+          httpCodes.NOT_FOUND
+        )
+      );
+      return;
+    }
+
+    const editedPushBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
+      { _id: baseRecommendation._id },
+      { $push: { informativeRecommendations: informativeRecommendation._id } }
+    );
+
+    if (!editedPushBaseRecommendation) {
+      next(new ApiError('Failed to push informative recommendation to Base recommendation!', httpCodes.INTERNAL_ERROR));
+      return;
+    }
+
+    const editedPushInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
+      { _id: informativeRecommendation._id },
+      { $push: { baseRecommendations: baseRecommendation._id } }
+    );
+
+    if (!editedPushInformativeRecommendation) {
+      next(new ApiError('Failed to push Base recommendation to Informative recommendation!', httpCodes.INTERNAL_ERROR));
+      return;
+    }
   }
 
   response
