@@ -17,7 +17,7 @@ const staticValues = {
     'Sëmundje neurologjike',
     'Asnjёra',
   ],
-  energySource: ['Qymyr', 'Gas', 'Rrymë elektrike', 'Zjarr/Dru', 'Asnjёra'],
+  energySource: ['Qymyr', 'Gas', 'Rrymë elektrike', 'Zjarr/Dru'],
   airQuality: ['E mire', 'E pranueshme', 'Mesatare', 'E dobet', 'Shume e dobet'],
   gender: ['Mashkull', 'Femër'],
 };

@@ -642,27 +642,6 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
 
   const randomInformativeRecommendationCards = randomInformativeRecommendation.recommendationCards;
 
-  // const informativeRecommendationsCards = [];
-
-  // for (const informativeRecommendation of informativeRecommendations) {
-  //   const informativeRecommendationCards = informativeRecommendation.recommendationCards;
-
-  //   for (const informativeRecommendationCard of informativeRecommendationCards) {
-  //     informativeRecommendationsCards.push(informativeRecommendationCard);
-  //   }
-  // }
-
-  // const randominformativeRecommendationsCards = [];
-
-  // for (let i = 0; i < 5; i++) {
-  //   const randomInformativeRecommendationCard =
-  //     informativeRecommendationsCards[parseInt(Math.random() * informativeRecommendationsCards.length)];
-
-  //   if (!randominformativeRecommendationsCards.includes(randomInformativeRecommendationCard)) {
-  //     randominformativeRecommendationsCards.push(randomInformativeRecommendationCard);
-  //   }
-  // }
-
   response.status(httpCodes.OK).json({ success: true, data: { randomInformativeRecommendationCards }, error: null });
   return;
 });
