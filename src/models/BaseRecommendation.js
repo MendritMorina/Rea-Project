@@ -15,10 +15,6 @@ const BaseRecommendationSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  aqi: {
-    type: Number,
-    required: false,
-  },
   airQuality: {
     type: String,
     required: false,
@@ -67,7 +63,6 @@ const BaseRecommendationSchema = new mongoose.Schema({
     required: true,
     default: [],
   },
-
   ...Base,
 });
 

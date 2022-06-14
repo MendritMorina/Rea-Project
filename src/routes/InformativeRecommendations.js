@@ -8,6 +8,7 @@ const { informativeRecommendationController } = require('../controllers');
 // const { recommendationValidator } = require('../validations');
 // const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
+const { authorizeAdmin } = require('../middlewares');
 
 // Define routes here.
 const routes = [
@@ -24,17 +25,17 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [informativeRecommendationController.create],
+    middlewares: [authorizeAdmin, informativeRecommendationController.create],
   },
   {
     path: '/:informativeRecommendationId',
     method: httpVerbs.PUT,
-    middlewares: [informativeRecommendationController.updateOne],
+    middlewares: [authorizeAdmin, informativeRecommendationController.updateOne],
   },
   {
     path: '/:informativeRecommendationId',
     method: httpVerbs.DELETE,
-    middlewares: [informativeRecommendationController.deleteOne],
+    middlewares: [authorizeAdmin, informativeRecommendationController.deleteOne],
   },
 ];
 
