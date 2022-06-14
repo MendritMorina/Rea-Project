@@ -22,8 +22,8 @@ const getAll = asyncHandler(async (request, response) => {
 
   const query = { isDeleted: false };
   if (expired === 0) {
-    query['startDate'] = { $gte: new Date(Date.now()) };
-    query['expirationDate'] = { $lte: new Date(Date.now()) };
+    query['startDate'] = { $lte: new Date(Date.now()) };
+    query['expirationDate'] = { $gte: new Date(Date.now()) };
   }
   const coupons = await Coupon.paginate(query, options);
 
