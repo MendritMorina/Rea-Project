@@ -116,7 +116,7 @@ const getNumberOfUses = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
   const { couponId } = request.body;
-  console.log(userId);
+
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
     next(new ApiError('Coupon with given id not found', httpCodes.NOT_FOUND));
