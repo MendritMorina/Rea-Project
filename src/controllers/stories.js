@@ -82,8 +82,7 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const { _id: adminId } = request.admin;
-  const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category, length } =
-    request.body;
+  const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category } = request.body;
 
   const payload = {
     name,
@@ -94,7 +93,6 @@ const create = asyncHandler(async (request, response, next) => {
     narratorName,
     narratorSurname,
     category,
-    length,
     createdBy: adminId,
     createdAt: new Date(Date.now()),
   };
@@ -149,18 +147,8 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const { _id: adminId } = request.admin;
   const { storyId } = request.params;
-  const {
-    name,
-    title,
-    description,
-    authorName,
-    authorSurname,
-    narratorName,
-    narratorSurname,
-    category,
-    length,
-    toBeDeleted,
-  } = request.body;
+  const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category, toBeDeleted } =
+    request.body;
 
   const story = await Story.findOne({ _id: storyId, isDeleted: false });
   if (!story) {
@@ -177,7 +165,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     narratorName,
     narratorSurname,
     category,
-    length,
     updatedBy: adminId,
     updatedAt: new Date(Date.now()),
   };

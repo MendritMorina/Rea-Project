@@ -41,16 +41,6 @@ const AQISchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // isActive: {
-  //   type: Boolean,
-  //   required: false,
-  //   default: true,
-  // },
-  // isDeleted: {
-  //   type: Boolean,
-  //   required: false,
-  //   default: false,
-  // },
   createdAt: {
     type: Date,
     required: false,

@@ -51,10 +51,6 @@ const StorySchema = new mongoose.Schema({
     enum: ['Child', 'Adult'],
     required: false,
   },
-  length: {
-    type: Number,
-    required: true,
-  },
   ...Base,
 });
 
