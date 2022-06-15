@@ -5,8 +5,8 @@ const router = express.Router();
 // Imports: local files.
 const recommendationCardRouter = require('./recommendationCards');
 const { baseRecommendationController } = require('../controllers');
-// const { recommendationValidator } = require('../validations');
-// const { validate } = require('../utils/functions');
+const { baseRecommendationValidator } = require('../validations');
+const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
 const { authorizeAdmin } = require('../middlewares');
 
@@ -15,27 +15,42 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.GET,
-    middlewares: [baseRecommendationController.getAll],
+    middlewares: [validate(baseRecommendationValidator.getAllBaseRecommendations), baseRecommendationController.getAll],
   },
   {
     path: '/:baseRecommendationId',
     method: httpVerbs.GET,
-    middlewares: [baseRecommendationController.getOne],
+    middlewares: [
+      validate(baseRecommendationValidator.validateBaseRecommendationId),
+      baseRecommendationController.getOne,
+    ],
   },
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [authorizeAdmin, baseRecommendationController.create],
+    middlewares: [
+      authorizeAdmin,
+      validate(baseRecommendationValidator.createBaseRecommendation),
+      baseRecommendationController.create,
+    ],
   },
   {
     path: '/:baseRecommendationId',
     method: httpVerbs.PUT,
-    middlewares: [authorizeAdmin, baseRecommendationController.updateOne],
+    middlewares: [
+      authorizeAdmin,
+      validate(baseRecommendationValidator.updateBaseRecommendation),
+      baseRecommendationController.updateOne,
+    ],
   },
   {
     path: '/:baseRecommendationId',
     method: httpVerbs.DELETE,
-    middlewares: [authorizeAdmin, baseRecommendationController.deleteOne],
+    middlewares: [
+      authorizeAdmin,
+      validate(baseRecommendationValidator.validateBaseRecommendationId),
+      baseRecommendationController.deleteOne,
+    ],
   },
 ];
 

@@ -6,8 +6,8 @@ const { filterValues } = require('../utils/functions');
 const { httpCodes } = require('../configs');
 
 /**
- * @description Get all recommendations.
- * @route       GET /api/recommendations.
+ * @description Get all informative recommendations.
+ * @route       GET /api/informativerecommendations.
  * @access      Public.
  */
 const getAll = asyncHandler(async (request, response) => {
@@ -17,7 +17,7 @@ const getAll = asyncHandler(async (request, response) => {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
     pagination: pagination,
-    select: select ? filterValues(select, []) : 'name description',
+    select: select ? filterValues(select, []) : 'name description baseRecommendations isGeneric',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
     populate: 'recommendationCards',
   };

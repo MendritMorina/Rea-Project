@@ -18,10 +18,10 @@ const getAll = asyncHandler(async (request, response) => {
     limit: parseInt(limit, 10),
     pagination: pagination,
     select: select
-      ? filterValues(select, ['haveDiseaseDiagnosis', 'hasChildren', 'hasChildrenDisease', 'energySource'])
-      : 'name description',
+      ? filterValues(select, [])
+      : 'name description airQuality gender age haveDiseaseDiagnosis energySource isPregnant hasChildren hasChildrenDisease',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
-    populate: 'recommendationCards',
+    populate: 'informativeRecommendations recommendationCards',
   };
 
   const query = { isDeleted: false };
@@ -134,8 +134,8 @@ const create = asyncHandler(async (request, response, next) => {
 });
 
 /**
- * @description Update a recommendation.
- * @route       PUT /api/recommendations/:baseRecommendationId.
+ * @description Update a base recommendation.
+ * @route       PUT /api/baserecommendations/:baseRecommendationId.
  * @access      Private.
  */
 const updateOne = asyncHandler(async (request, response, next) => {
@@ -145,7 +145,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     name,
     description,
     age,
-    type,
     gender,
     isPregnant,
     airQuality,
@@ -167,7 +166,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     haveDiseaseDiagnosis,
     energySource,
     age,
-    type,
     gender,
     airQuality,
     isPregnant,

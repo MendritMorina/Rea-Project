@@ -13,6 +13,8 @@ const { httpCodes } = require('../configs');
  * @description Get all recommendationCards.
  * @route       GET /api/recommendationcards.
  * @route       GET /api/recommendations/:recommendationId/recommendationcards.
+ * @route       GET /api/baserecommendations/:baseRecommendationId/recommendationcards.
+ * @route       GET /api/informativerecommendations/:informativeRecommendationId/recommendationcards.
  * @access      Public.
  */
 const getAll = asyncHandler(async (request, response) => {
@@ -22,28 +24,60 @@ const getAll = asyncHandler(async (request, response) => {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
     pagination: pagination,
-    select: select ? filterValues(select, ['name']) : 'name description',
+    select: select
+      ? filterValues(select, [])
+      : 'name description small medium large thumbnail viewCounter recommendation type',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
-    populate: 'recommendation',
   };
+
+  let paramsQuery = {};
+
+  if (request.params.baseRecommendationId) {
+    paramsQuery = { recommendation: request.params.baseRecommendationId, type: 'base' };
+  } else if (request.params.informativeRecommendationId) {
+    paramsQuery = { recommendation: request.params.informativeRecommendationId, type: 'informative' };
+  }
 
   const query = {
     isDeleted: false,
+    ...paramsQuery,
   };
 
-  let recommendationCards = null;
-  if (request.params.recommendationId) {
-    recommendationCards = await RecommendationCard.paginate(
-      { ...query, recommendation: request.params.recommendationId },
-      options
-    );
-  } else {
-    recommendationCards = await RecommendationCard.paginate(query, options);
-  }
+  const recommendationCards = await RecommendationCard.paginate(query, options);
 
   response.status(200).json({ success: true, data: { recommendationCards }, error: null });
   return;
 });
+
+// const getAll = asyncHandler(async (request, response) => {
+//   const { page, limit, pagination, select, sort } = request.query;
+
+//   const options = {
+//     page: parseInt(page, 10),
+//     limit: parseInt(limit, 10),
+//     pagination: pagination,
+//     select: select ? filterValues(select, ['name']) : 'name description',
+//     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
+//     populate: 'recommendation',
+//   };
+
+//   const query = {
+//     isDeleted: false,
+//   };
+
+//   let recommendationCards = null;
+//   if (request.params.recommendationId) {
+//     recommendationCards = await RecommendationCard.paginate(
+//       { ...query, recommendation: request.params.recommendationId },
+//       options
+//     );
+//   } else {
+//     recommendationCards = await RecommendationCard.paginate(query, options);
+//   }
+
+//   response.status(200).json({ success: true, data: { recommendationCards }, error: null });
+//   return;
+// });
 
 /**
  * @description Get recommandationCard by id.
