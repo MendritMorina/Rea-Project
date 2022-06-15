@@ -5,8 +5,8 @@ const router = express.Router();
 // Imports: local files.
 const recommendationCardRouter = require('./recommendationCards');
 const { informativeRecommendationController } = require('../controllers');
-// const { recommendationValidator } = require('../validations');
-// const { validate } = require('../utils/functions');
+const { informativeRecommendationValidator } = require('../validations');
+const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
 const { authorizeAdmin } = require('../middlewares');
 
@@ -15,27 +15,45 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.GET,
-    middlewares: [informativeRecommendationController.getAll],
+    middlewares: [
+      validate(informativeRecommendationValidator.getAllInformativeRecommendations),
+      informativeRecommendationController.getAll,
+    ],
   },
   {
     path: '/:informativeRecommendationId',
     method: httpVerbs.GET,
-    middlewares: [informativeRecommendationController.getOne],
+    middlewares: [
+      validate(informativeRecommendationValidator.validateInformativeRecommendationId),
+      informativeRecommendationController.getOne,
+    ],
   },
   {
     path: '/',
     method: httpVerbs.POST,
-    middlewares: [authorizeAdmin, informativeRecommendationController.create],
+    middlewares: [
+      authorizeAdmin,
+      validate(informativeRecommendationValidator.createInformativeRecommendation),
+      informativeRecommendationController.create,
+    ],
   },
   {
     path: '/:informativeRecommendationId',
     method: httpVerbs.PUT,
-    middlewares: [authorizeAdmin, informativeRecommendationController.updateOne],
+    middlewares: [
+      authorizeAdmin,
+      validate(informativeRecommendationValidator.updateInformativeRecommendation),
+      informativeRecommendationController.updateOne,
+    ],
   },
   {
     path: '/:informativeRecommendationId',
     method: httpVerbs.DELETE,
-    middlewares: [authorizeAdmin, informativeRecommendationController.deleteOne],
+    middlewares: [
+      authorizeAdmin,
+      validate(informativeRecommendationValidator.validateInformativeRecommendationId),
+      informativeRecommendationController.deleteOne,
+    ],
   },
 ];
 
