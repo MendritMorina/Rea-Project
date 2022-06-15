@@ -26,7 +26,7 @@ const validator = {
       authorSurname: Joi.string().required(),
       narratorName: Joi.string().required(),
       narratorSurname: Joi.string().required(),
-      category: Joi.string(),
+      category: Joi.string().required(),
     }),
   },
   updateStory: {
