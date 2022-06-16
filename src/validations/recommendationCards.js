@@ -36,8 +36,6 @@ const validator = {
   },
   createRecommendationCard: {
     body: Joi.object({
-      name: Joi.string().required(),
-      description: Joi.string().required(),
       recommendationId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
@@ -51,8 +49,6 @@ const validator = {
         .required(),
     }),
     body: Joi.object({
-      name: Joi.string().optional(),
-      description: Joi.string().optional(),
       recommendationId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .optional(),

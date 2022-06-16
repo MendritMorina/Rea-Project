@@ -5,7 +5,7 @@ const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
 // Imports: local files.
 const Base = require('./Base');
 
-// Recommendation Schema that is used to represent single Recommendation in our API.
+// Informative Recommendation Schema that is used to represent single Informative Recommendation in our API.
 const InformativeRecommendationSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -28,7 +28,7 @@ const InformativeRecommendationSchema = new mongoose.Schema({
   isGeneric: {
     type: Boolean,
     required: false,
-    defauult: false,
+    default: false,
   },
   ...Base,
 });

@@ -74,7 +74,7 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
-  const { name, description, recommendationId, type } = request.body;
+  const { recommendationId, type } = request.body;
 
   let recommendationCard = null;
 
@@ -86,8 +86,6 @@ const create = asyncHandler(async (request, response, next) => {
     }
 
     const payload = {
-      name,
-      description,
       type,
       recommendation: baseRecommendation._id,
       createdBy: userId,
@@ -122,8 +120,6 @@ const create = asyncHandler(async (request, response, next) => {
     }
 
     const payload = {
-      name,
-      description,
       type,
       recommendation: informativeRecommendation._id,
       createdBy: userId,
@@ -198,7 +194,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { recommendationCardId } = request.params;
   //const { name, description, recommendationId, type, toBeDeleted } = request.body;
-  const { name, description, recommendationId: recommendation, toBeDeleted } = request.body;
+  const { recommendationId: recommendation, toBeDeleted } = request.body;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false });
 
@@ -229,8 +225,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   const payload = {
-    name,
-    description,
     recommendation,
     //recommendation: recommendationId ? recommendationId : recommendationCard.recommendation,
     updatedBy: userId,
