@@ -15,7 +15,7 @@ const { asyncHandler } = require('../middlewares');
  * @access      Public
  */
 const getAllAdmin = asyncHandler(async (request, response) => {
-  const { page, limit, pagination } = request.query;
+  const { page, limit, pagination, category } = request.query;
 
   const options = {
     page: parseInt(page, 10),
@@ -24,6 +24,7 @@ const getAllAdmin = asyncHandler(async (request, response) => {
   };
 
   const query = { isDeleted: false };
+  if (category) query['category'] = category;
   const stories = await Story.paginate(query, options);
 
   response.status(200).json({ success: true, data: { stories }, error: null });
@@ -37,7 +38,7 @@ const getAllAdmin = asyncHandler(async (request, response) => {
  */
 const getAllMobile = asyncHandler(async (request, response) => {
   const user = request.user;
-  const { page, limit, pagination } = request.query;
+  const { page, limit, pagination, category } = request.query;
 
   const options = {
     page: parseInt(page, 10),
@@ -51,6 +52,7 @@ const getAllMobile = asyncHandler(async (request, response) => {
   }
 
   const query = { isDeleted: false };
+  if (category) query['category'] = category;
   const stories = await Story.paginate(query, options);
 
   response.status(200).json({ success: true, data: { stories }, error: null });
