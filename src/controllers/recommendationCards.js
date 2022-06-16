@@ -24,9 +24,7 @@ const getAll = asyncHandler(async (request, response) => {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
     pagination: pagination,
-    select: select
-      ? filterValues(select, [])
-      : 'name description small medium large thumbnail viewCounter recommendation type',
+    select: select ? filterValues(select, []) : 'name description photo thumbnail viewCounter recommendation type',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
   };
 
@@ -48,36 +46,6 @@ const getAll = asyncHandler(async (request, response) => {
   response.status(200).json({ success: true, data: { recommendationCards }, error: null });
   return;
 });
-
-// const getAll = asyncHandler(async (request, response) => {
-//   const { page, limit, pagination, select, sort } = request.query;
-
-//   const options = {
-//     page: parseInt(page, 10),
-//     limit: parseInt(limit, 10),
-//     pagination: pagination,
-//     select: select ? filterValues(select, ['name']) : 'name description',
-//     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
-//     populate: 'recommendation',
-//   };
-
-//   const query = {
-//     isDeleted: false,
-//   };
-
-//   let recommendationCards = null;
-//   if (request.params.recommendationId) {
-//     recommendationCards = await RecommendationCard.paginate(
-//       { ...query, recommendation: request.params.recommendationId },
-//       options
-//     );
-//   } else {
-//     recommendationCards = await RecommendationCard.paginate(query, options);
-//   }
-
-//   response.status(200).json({ success: true, data: { recommendationCards }, error: null });
-//   return;
-// });
 
 /**
  * @description Get recommandationCard by id.
@@ -185,11 +153,11 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
-  const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
+  const requiredTypes = ['photo', 'thumbnail'];
 
-  if (fileTypes.length !== 4) {
+  if (fileTypes.length !== 2) {
     await recommendationCard.remove();
-    next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
+    next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
     return;
   }
 
@@ -239,11 +207,23 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (name !== recommendationCard.name) {
-    const recommendationExists =
-      (await RecommendationCard.countDocuments({ _id: { $ne: recommendationCardId }, name, isDeleted: false })) > 0;
-    if (recommendationExists) {
-      next(new ApiError('RecommendationCard with given name already exists!', httpCodes.BAD_REQUEST));
+  const type = recommendationCard.type;
+
+  if (recommendation && type === 'base') {
+    const findBaseRecommendation = await BaseRecommendation.findOne({ _id: recommendation, isDeleted: false });
+
+    if (!findBaseRecommendation) {
+      next(new ApiError('Failed to find base recommendation by given id!', httpCodes.NOT_FOUND));
+      return;
+    }
+  } else if (recommendation && type === 'informative') {
+    const findInformativeRecommendation = await InformativeRecommendation.findOne({
+      _id: recommendation,
+      isDeleted: false,
+    });
+
+    if (!findInformativeRecommendation) {
+      next(new ApiError('Failed to find informative recommendation by given id!', httpCodes.NOT_FOUND));
       return;
     }
   }
@@ -268,28 +248,53 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   if (recommendation !== recommendationCard.recommendation && recommendation !== null) {
-    const type = recommendationCard.type;
-
     if (type === 'base') {
-      await BaseRecommendation.findOneAndUpdate(
+      const updatedPullOldBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
         { _id: recommendationCard.recommendation },
         { $pull: { recommendationCards: recommendationCard._id } }
       );
 
-      await BaseRecommendation.findOneAndUpdate(
+      if (!updatedPullOldBaseRecommendation) {
+        next(new ApiError('Failed to pull RecommendationCard from old BaseRecommendation!', httpCodes.INTERNAL_ERROR));
+        return;
+      }
+
+      const updatedPushNewBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
         { _id: editedRecommendationCard.recommendation },
         { $push: { recommendationCards: editedRecommendationCard._id } }
       );
+
+      if (!updatedPushNewBaseRecommendation) {
+        next(new ApiError('Failed to push RecommendationCard to new BaseRecommendation!', httpCodes.INTERNAL_ERROR));
+        return;
+      }
     } else if (type === 'informative') {
-      await InformativeRecommendation.findOneAndUpdate(
+      const updatedPullOldInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
         { _id: recommendationCard.recommendation },
         { $pull: { recommendationCards: recommendationCard._id } }
       );
 
-      await InformativeRecommendation.findOneAndUpdate(
+      if (!updatedPullOldInformativeRecommendation) {
+        next(
+          new ApiError(
+            'Failed to pull RecommendationCard from old InformativeRecommendation!',
+            httpCodes.INTERNAL_ERROR
+          )
+        );
+        return;
+      }
+
+      const updatedPushNewInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
         { _id: editedRecommendationCard.recommendation },
         { $push: { recommendationCards: editedRecommendationCard._id } }
       );
+
+      if (!updatedPushNewInformativeRecommendation) {
+        next(
+          new ApiError('Failed to push RecommendationCard to new InformativeRecommendation!', httpCodes.INTERNAL_ERROR)
+        );
+        return;
+      }
     } else {
       next(new ApiError('Recommendation Card has illegal type!', httpCodes.NOT_FOUND));
       return;
@@ -297,7 +302,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   // toBeDeleted array of values
-  const availableValues = ['small', 'medium', 'large', 'thumbnail'];
+  const availableValues = ['photo', 'thumbnail'];
   const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
 
   if (toBeDeletedinfo.length > 0) {
@@ -310,10 +315,10 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   if (request.files) {
     const fileTypes = request.files ? Object.keys(request.files) : [];
-    const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
+    const requiredTypes = ['photo', 'thumbnail'];
 
-    if (fileTypes.length !== 4) {
-      next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
+    if (fileTypes.length !== 2) {
+      next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
       return;
     }
 
@@ -623,7 +628,7 @@ const uploadFile = async (recommendationCardId, userId, request, fileType) => {
     return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
   }
 
-  const allowedFileTypes = ['small', 'medium', 'large', 'thumbnail'];
+  const allowedFileTypes = ['photo', 'thumbnail'];
 
   if (!allowedFileTypes.includes(fileType)) {
     return {

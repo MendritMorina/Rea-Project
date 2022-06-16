@@ -16,13 +16,8 @@ const RecommendationCardSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  small: {
-    ...File,
-  },
-  medium: {
-    ...File,
-  },
-  large: {
+  // thumbnail edhe photo
+  photo: {
     ...File,
   },
   thumbnail: {

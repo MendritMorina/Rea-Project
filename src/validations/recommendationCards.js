@@ -51,11 +51,11 @@ const validator = {
         .required(),
     }),
     body: Joi.object({
-      name: Joi.string().required(),
-      description: Joi.string().required(),
+      name: Joi.string().optional(),
+      description: Joi.string().optional(),
       recommendationId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
-        .required(),
+        .optional(),
       toBeDeleted: Joi.array().optional().items(Joi.string().optional()),
     }),
   },
