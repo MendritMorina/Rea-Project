@@ -10,10 +10,10 @@ const getAPI = async () => {
     const res = await axios.get(
       'https://airqualitykosova.rks-gov.net/dataservices/open/ForecastDataJSON?offsetHour=-5'
     );
-    console.log(res.data);
+    //console.log(res.data);
     return res.data;
   } catch (err) {
-    console.log(err);
+    //console.log(err);
   }
 };
 

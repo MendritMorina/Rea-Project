@@ -107,7 +107,7 @@ const create = asyncHandler(async (request, response, next) => {
 
   if (fileTypes.length !== 3) {
     await story.remove();
-    next(new ApiError('You must input all 3 file Types!', httpCodes.BAD_REQUEST));
+    next(new ApiError('You must input thumbnail,audio,backgroundImage!', httpCodes.BAD_REQUEST));
     return;
   }
 
@@ -292,7 +292,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
     return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
   }
 
-  const allowedFileTypes = ['thumbnail', 'audio', 'backgroundImage'];
+  const allowedFileTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
 
   if (!allowedFileTypes.includes(fileType)) {
     return {
