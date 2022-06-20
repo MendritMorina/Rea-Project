@@ -27,6 +27,7 @@ const validator = {
             .required()
         )
         .default(null),
+      isGeneric: Joi.boolean().optional().default(false),
     }),
   },
   updateInformativeRecommendation: {
@@ -44,6 +45,7 @@ const validator = {
       pushToId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .optional(),
+      isGeneric: Joi.boolean().optional().default(false),
     }),
   },
   validateInformativeRecommendationId: {

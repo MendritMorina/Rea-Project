@@ -149,11 +149,11 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
-  const requiredTypes = ['photo', 'thumbnail'];
+  const requiredTypes = ['photo'];
 
-  if (fileTypes.length !== 2) {
+  if (fileTypes.length !== 1) {
     await recommendationCard.remove();
-    next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
+    next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
     return;
   }
 
@@ -296,7 +296,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   // toBeDeleted array of values
-  const availableValues = ['photo', 'thumbnail'];
+  const availableValues = ['photo'];
   const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
 
   if (toBeDeletedinfo.length > 0) {
@@ -309,10 +309,10 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   if (request.files) {
     const fileTypes = request.files ? Object.keys(request.files) : [];
-    const requiredTypes = ['photo', 'thumbnail'];
+    const requiredTypes = ['photo'];
 
-    if (fileTypes.length !== 2) {
-      next(new ApiError('You must input all 2 file Types!', httpCodes.BAD_REQUEST));
+    if (fileTypes.length !== 1) {
+      next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
       return;
     }
 
@@ -618,20 +618,20 @@ async function fileResult(recommendationCard, userId, req, fileTypes) {
 }
 
 const uploadFile = async (recommendationCardId, userId, request, fileType) => {
-  if (!request.files[fileType]) {
-    return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
-  }
+  // if (!request.files[fileType]) {
+  //   return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
+  // }
 
-  const allowedFileTypes = ['photo', 'thumbnail'];
+  // const allowedFileTypes = ['photo', 'thumbnail'];
 
-  if (!allowedFileTypes.includes(fileType)) {
-    return {
-      success: false,
-      data: null,
-      error: `File Type ${fileType} must be of ${allowedFileTypes}`,
-      code: httpCodes.BAD_REQUEST,
-    };
-  }
+  // if (!allowedFileTypes.includes(fileType)) {
+  //   return {
+  //     success: false,
+  //     data: null,
+  //     error: `File Type ${fileType} must be of ${allowedFileTypes}`,
+  //     code: httpCodes.BAD_REQUEST,
+  //   };
+  // }
 
   const { data, mimetype, name, size } = request.files[fileType];
 

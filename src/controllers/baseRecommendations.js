@@ -1,8 +1,12 @@
+// Imports: core node modules.
+const fs = require('fs');
+const path = require('path');
+
 // Imports: local files.
 const { BaseRecommendation, RecommendationCard, InformativeRecommendation } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
-const { filterValues, checkValidValues } = require('../utils/functions');
+const { filterValues, checkValidValues, getMode } = require('../utils/functions');
 const { httpCodes, staticValues } = require('../configs');
 
 /**
@@ -129,7 +133,40 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  response.status(httpCodes.CREATED).json({ success: true, data: { baseRecommendation }, error: null });
+  const fileTypes = request.files ? Object.keys(request.files) : [];
+  const requiredTypes = ['thumbnail'];
+
+  if (fileTypes.length !== 1) {
+    await baseRecommendation.remove();
+    next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  for (const fileType of fileTypes) {
+    if (!requiredTypes.includes(fileType)) {
+      await baseRecommendation.remove();
+      next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+      return;
+    }
+  }
+
+  const fileResults = await fileResult(baseRecommendation._id, userId, request, fileTypes);
+  for (let key in fileResults) {
+    const fileUploadResult = fileResults[key];
+    if (fileUploadResult && !fileUploadResult.success) {
+      await baseRecommendation.remove();
+      next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+      return;
+    }
+  }
+
+  const updatedBaseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendation._id, isDeleted: false });
+  if (!updatedBaseRecommendation) {
+    next(new ApiError('Base Recommendation after file upload not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  response.status(200).json({ success: true, data: { updatedBaseRecommendation }, error: null });
   return;
 });
 
@@ -152,6 +189,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     energySource,
     hasChildren,
     hasChildrenDisease,
+    toBeDeleted,
   } = request.body;
 
   const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false });
@@ -228,9 +266,70 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  // toBeDeleted array of values
+  const availableValues = ['thumbnail'];
+  const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
+
+  if (toBeDeletedinfo.length > 0) {
+    availableValues.forEach((value) => {
+      if (toBeDeletedinfo.includes(value)) editedBaseRecommendation[value] = null;
+    });
+
+    await editedBaseRecommendation.save();
+  }
+
+  if (request.files) {
+    const fileTypes = request.files ? Object.keys(request.files) : [];
+    const requiredTypes = ['thumbnail'];
+
+    if (fileTypes.length !== 1) {
+      next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
+      return;
+    }
+
+    for (const fileType of fileTypes) {
+      if (!requiredTypes.includes(fileType)) {
+        next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+        return;
+      }
+    }
+
+    // Check if the file name is same in recommendation Card
+    if (fileTypes) {
+      for (const fileType of fileTypes) {
+        if (
+          editedBaseRecommendation[fileType] &&
+          request.files[fileType].name === editedBaseRecommendation[fileType].name
+        ) {
+          next(new ApiError('BaseRecommendation file has same name!', httpCodes.BAD_REQUEST));
+          return;
+        }
+      }
+    }
+
+    const fileResults = await fileResult(editedBaseRecommendation._id, userId, request, fileTypes);
+
+    for (let key in fileResults) {
+      const fileUploadResult = fileResults[key];
+      if (fileUploadResult && !fileUploadResult.success) {
+        next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+        return;
+      }
+    }
+  }
+
+  const editedFileBaseRecommendation = await BaseRecommendation.findOne({
+    _id: editedBaseRecommendation._id,
+    isDeleted: false,
+  });
+  if (!editedFileBaseRecommendation) {
+    next(new ApiError('Edited File RecommendationCard not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
   response
     .status(httpCodes.OK)
-    .json({ success: true, data: { baseRecommendation: editedBaseRecommendation }, error: null });
+    .json({ success: true, data: { baseRecommendation: editedFileBaseRecommendation }, error: null });
   return;
 });
 
@@ -302,6 +401,101 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     .json({ success: true, data: { baseRecommendation: deletedBaseRecommendation }, error: null });
   return;
 });
+
+// Helpers for this controller.
+async function fileResult(recommendationCard, userId, req, fileTypes) {
+  if (req.files && Object.keys(req.files).length) {
+    const resultObj = {};
+
+    for (const fileType of fileTypes) {
+      resultObj[`${fileType}Result`] = null;
+    }
+
+    for (const fileType of fileTypes) {
+      if (req.files[fileType]) {
+        const fileUploadResult = await uploadFile(recommendationCard, userId, req, fileType);
+        resultObj[`${fileType}Result`] = fileUploadResult;
+      }
+    }
+
+    return resultObj;
+  }
+}
+
+const uploadFile = async (baseRecommendationId, userId, request, fileType) => {
+  // if (!request.files[fileType]) {
+  //   return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
+  // }
+
+  // const allowedFileTypes = ['photo', 'thumbnail'];
+
+  // if (!allowedFileTypes.includes(fileType)) {
+  //   return {
+  //     success: false,
+  //     data: null,
+  //     error: `File Type ${fileType} must be of ${allowedFileTypes}`,
+  //     code: httpCodes.BAD_REQUEST,
+  //   };
+  // }
+
+  const { data, mimetype, name, size } = request.files[fileType];
+
+  const type = mimetype.split('/').pop();
+
+  let allowedTypes = ['jpeg', 'jpg', 'png'];
+
+  if (!allowedTypes.includes(type)) {
+    return { success: false, data: null, error: `Wrong ${fileType} type!`, code: httpCodes.BAD_REQUEST };
+  }
+
+  const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId });
+  if (!baseRecommendation) {
+    return {
+      success: false,
+      data: null,
+      error: 'BaseRecommendation not found!',
+      code: httpCodes.INTERNAL_ERROR,
+    };
+  }
+
+  if (baseRecommendation[fileType] && baseRecommendation[fileType].name === name) {
+    return { success: true, data: { updatedBaseRecommendation: baseRecommendation }, error: null, code: null };
+  }
+
+  const fileName = `${baseRecommendation._id}_${fileType}_${Date.now()}.${type}`;
+  const filePath = path.join(__dirname, `../../public/baserecommendations/${fileName}`);
+
+  try {
+    fs.writeFileSync(filePath, data, { encoding: 'utf-8' });
+  } catch (error) {
+    return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
+  }
+
+  const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
+  const fileURL = `${publicURL}/baserecommendations/${fileName}`;
+
+  const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
+    { _id: baseRecommendation._id },
+    {
+      $set: {
+        [fileType]: {
+          url: fileURL,
+          name: name,
+          mimetype: mimetype,
+          size: size,
+        },
+        updatedBy: userId,
+        updatedAt: new Date(Date.now()),
+      },
+    },
+    { new: true }
+  );
+  if (!updatedBaseRecommendation) {
+    return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
+  }
+
+  return { success: true, data: { updatedBaseRecommendation }, error: null, code: null };
+};
 
 // Exports of this file.
 module.exports = { getAll, getOne, create, deleteOne, updateOne };

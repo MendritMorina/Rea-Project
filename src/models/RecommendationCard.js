@@ -11,9 +11,6 @@ const RecommendationCardSchema = new mongoose.Schema({
   photo: {
     ...File,
   },
-  thumbnail: {
-    ...File,
-  },
   viewCounter: {
     type: Number,
     required: true,

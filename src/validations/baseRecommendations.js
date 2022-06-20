@@ -46,6 +46,7 @@ const validator = {
       isPregnant: Joi.boolean().optional(),
       hasChildren: Joi.boolean().optional().default(false),
       hasChildrenDisease: Joi.array().optional().items(Joi.string().required()).default(null),
+      toBeDeleted: Joi.array().optional().items(Joi.string().optional()),
     }),
   },
   validateBaseRecommendationId: {
