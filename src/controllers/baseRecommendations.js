@@ -173,14 +173,13 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { baseRecommendationId } = request.params;
-  const { name, description, isPregnant, airQuality, hasChildren } = request.body;
+  const { name, description, isPregnant, airQuality, hasChildren, toBeDeleted } = request.body;
 
   const age = JSON.parse(request.body.age);
   const gender = JSON.parse(request.body.gender);
   const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
   const energySource = JSON.parse(request.body.energySource);
   const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
-  const toBeDeleted = JSON.parse(request.body.toBeDeleted);
 
   const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false });
   if (!baseRecommendation) {
