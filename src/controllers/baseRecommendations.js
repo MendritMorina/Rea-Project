@@ -85,6 +85,16 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  if (haveDiseaseDiagnosis.includes('Asnjёra') && haveDiseaseDiagnosis.length >= 2) {
+    next(new ApiError('You cannot include Asnjёra with other  in have disease diagnos!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  if (hasChildrenDisease.includes('Asnjёra') && hasChildrenDisease.length >= 2) {
+    next(new ApiError('You cannot include Asnjёra with other values in has children disease!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
   if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0 && !hasChildrenDisease.includes('Asnjёra')) {
     next(
       new ApiError(
