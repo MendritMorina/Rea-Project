@@ -63,7 +63,9 @@ const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { name, description, isGeneric } = request.body;
 
-  const baseRecommendationsId = JSON.parse(request.body.baseRecommendationsId);
+  const baseRecommendationsId = request.body.baseRecommendationsId
+    ? JSON.parse(request.body.baseRecommendationsId)
+    : null;
 
   const informativeRecommendationExists =
     (await InformativeRecommendation.countDocuments({ name, isDeleted: false })) > 0;
@@ -86,29 +88,31 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  for (const baseRecommendationId of baseRecommendationsId) {
-    const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
-      { _id: baseRecommendationId },
-      {
-        $push: { informativeRecommendations: informativeRecommendation._id },
+  if (baseRecommendationsId) {
+    for (const baseRecommendationId of baseRecommendationsId) {
+      const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
+        { _id: baseRecommendationId },
+        {
+          $push: { informativeRecommendations: informativeRecommendation._id },
+        }
+      );
+
+      if (!updatedBaseRecommendation) {
+        next(new ApiError('Failed to update Base Recommendation!', httpCodes.INTERNAL_ERROR));
+        return;
       }
-    );
 
-    if (!updatedBaseRecommendation) {
-      next(new ApiError('Failed to update Base Recommendation!', httpCodes.INTERNAL_ERROR));
-      return;
-    }
+      const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
+        { _id: informativeRecommendation._id },
+        {
+          $push: { baseRecommendations: updatedBaseRecommendation._id },
+        }
+      );
 
-    const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
-      { _id: informativeRecommendation._id },
-      {
-        $push: { baseRecommendations: updatedBaseRecommendation._id },
+      if (!updatedInformativeRecommendation) {
+        next(new ApiError('Failed to update Informative Recommendation!', httpCodes.INTERNAL_ERROR));
+        return;
       }
-    );
-
-    if (!updatedInformativeRecommendation) {
-      next(new ApiError('Failed to update Informative Recommendation!', httpCodes.INTERNAL_ERROR));
-      return;
     }
   }
 

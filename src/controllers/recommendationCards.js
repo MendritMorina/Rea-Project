@@ -514,9 +514,7 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
 
   const baseRecommendationCards = baseRecommendation.recommendationCards;
 
-  response
-    .status(httpCodes.OK)
-    .json({ success: true, data: { baseRecommendation, baseRecommendationCards }, error: null });
+  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendation }, error: null });
   return;
 });
 
@@ -570,21 +568,70 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
   const randomInformativeRecommendation =
     informativeRecommendations[parseInt(Math.random() * informativeRecommendations.length)];
 
-  const randomInformativeRecommendationCards = randomInformativeRecommendation.recommendationCards;
+  // console.log(randomInformativeRecommendation._id);
 
-  const genericInformativeRecommendations = await InformativeRecommendation.find({ isDeleted: false, isGeneric: true });
+  const randInfoRec = await InformativeRecommendation.findOne({
+    isDeleted: false,
+    _id: randomInformativeRecommendation._id,
+  }).populate('recommendationCards');
 
-  for (const genericInformativeRecommendation of genericInformativeRecommendations) {
-    const genericInformativeRecommendationRecommendationCards = genericInformativeRecommendation.recommendationCards;
+  if (!randInfoRec) {
+    next(new ApiError('Failed to find the random informative recommendation in database!', httpCodes.NOT_FOUND));
+    return;
+  }
 
-    for (const genericCard of genericInformativeRecommendationRecommendationCards) {
-      if (!randomInformativeRecommendationCards.includes(genericCard)) {
-        randomInformativeRecommendationCards.push(genericCard);
-      }
+  // const genericInfoRec = await InformativeRecommendation.findOne({
+  //   isDeleted: false,
+  //   isGeneric: true,
+  // }).populate('recommendationCards');
+
+  // if (!genericInfoRec) {
+  //   next(new ApiError('Failed to find the generic informative recommendation in database!', httpCodes.NOT_FOUND));
+  //   return;
+  // }
+
+  // const allCards = randInfoRec.recommendationCards.concat(genericInfoRec.recommendationCards);
+
+  const genericInfoReccs = await InformativeRecommendation.find({
+    isDeleted: false,
+    isGeneric: true,
+  }).populate('recommendationCards');
+
+  const allCards = [];
+
+  for (const card of randInfoRec.recommendationCards) {
+    allCards.push(card);
+  }
+
+  for (const genericInfoRecc of genericInfoReccs) {
+    const genericInfoReccCards = genericInfoRecc.recommendationCards;
+
+    for (const card of genericInfoReccCards) {
+      allCards.push(card);
     }
   }
 
-  response.status(httpCodes.OK).json({ success: true, data: { randomInformativeRecommendationCards }, error: null });
+  // const randomInformativeRecommendationCards = randInfoRec.recommendationCards;
+
+  // const randomInformativeRecommendationCards = randomInformativeRecommendation.recommendationCards;
+
+  // const genericInformativeRecommendations = await InformativeRecommendation.find({ isDeleted: false, isGeneric: true });
+
+  // for (const genericInformativeRecommendation of genericInformativeRecommendations) {
+  //   const genericInformativeRecommendationRecommendationCards = genericInformativeRecommendation.recommendationCards;
+
+  //   for (const genericCard of genericInformativeRecommendationRecommendationCards) {
+  //     if (!randomInformativeRecommendationCards.includes(genericCard)) {
+  //       randomInformativeRecommendationCards.push(genericCard);
+  //     }
+  //   }
+  // }
+
+  response.status(httpCodes.OK).json({
+    success: true,
+    data: { thumbnail: randInfoRec.thumbnail, allCards },
+    error: null,
+  });
   return;
 });
 

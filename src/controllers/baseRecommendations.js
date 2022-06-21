@@ -86,7 +86,7 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   if (haveDiseaseDiagnosis.includes('Asnjёra') && haveDiseaseDiagnosis.length >= 2) {
-    next(new ApiError('You cannot include Asnjёra with other  in have disease diagnos!', httpCodes.BAD_REQUEST));
+    next(new ApiError('You cannot include Asnjёra with other in have disease diagnos!', httpCodes.BAD_REQUEST));
     return;
   }
 
