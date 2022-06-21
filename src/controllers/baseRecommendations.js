@@ -85,6 +85,16 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0 && !hasChildrenDisease.includes('Asnjёra')) {
+    next(
+      new ApiError(
+        'You cannot create a base recommendation where it has children disease and has no children!',
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
   if (airQuality && !staticValues.airQuality.includes(airQuality)) {
     next(
       new ApiError(
@@ -197,7 +207,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0) {
+  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0 && !hasChildrenDisease.includes('Asnjёra')) {
     next(
       new ApiError(
         'You cannot create a base recommendation where it has children disease and has no children!',
