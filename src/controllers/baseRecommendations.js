@@ -99,7 +99,7 @@ const create = asyncHandler(async (request, response, next) => {
 
   for (const type of types) {
     if (request.body[type]) {
-      const result = checkValidValues(type, request.body[type]);
+      const result = checkValidValues(type, JSON.parse(request.body[type]));
       if (result && result.error) {
         next(new ApiError(result.error, result.code));
         return;
@@ -221,8 +221,8 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
 
   for (const type of types) {
-    if (request.body[type]) {
-      const result = checkValidValues(type, request.body[type]);
+    if (JSON.parse(request.body[type])) {
+      const result = checkValidValues(type, JSON.parse(request.body[type]));
       if (result && result.error) {
         next(new ApiError(result.error, result.code));
         return;
