@@ -61,18 +61,13 @@ const getOne = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
 
-  const {
-    name,
-    description,
-    age,
-    airQuality,
-    gender,
-    isPregnant,
-    haveDiseaseDiagnosis,
-    energySource,
-    hasChildren,
-    hasChildrenDisease,
-  } = request.body;
+  const { name, description, airQuality, isPregnant, hasChildren } = request.body;
+
+  const age = JSON.parse(request.body.age);
+  const gender = JSON.parse(request.body.gender);
+  const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
+  const energySource = JSON.parse(request.body.energySource);
+  const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
 
   const baseRecommendationExists = (await BaseRecommendation.countDocuments({ name, isDeleted: false })) > 0;
   if (baseRecommendationExists) {
@@ -178,40 +173,20 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { baseRecommendationId } = request.params;
-  const {
-    name,
-    description,
-    age,
-    gender,
-    isPregnant,
-    airQuality,
-    haveDiseaseDiagnosis,
-    energySource,
-    hasChildren,
-    hasChildrenDisease,
-    toBeDeleted,
-  } = request.body;
+  const { name, description, isPregnant, airQuality, hasChildren } = request.body;
+
+  const age = JSON.parse(request.body.age);
+  const gender = JSON.parse(request.body.gender);
+  const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
+  const energySource = JSON.parse(request.body.energySource);
+  const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
+  const toBeDeleted = JSON.parse(request.body.toBeDeleted);
 
   const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false });
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found!', httpCodes.NOT_FOUND));
     return;
   }
-
-  const payload = {
-    name,
-    description,
-    haveDiseaseDiagnosis,
-    energySource,
-    age,
-    gender,
-    airQuality,
-    isPregnant,
-    hasChildren,
-    hasChildrenDisease,
-    updatedBy: userId,
-    updatedAt: new Date(Date.now()),
-  };
 
   if (isPregnant && !gender.includes('Femër')) {
     next(
@@ -255,6 +230,21 @@ const updateOne = asyncHandler(async (request, response, next) => {
     }
   }
 
+  const payload = {
+    name,
+    description,
+    haveDiseaseDiagnosis,
+    energySource,
+    age,
+    gender,
+    airQuality,
+    isPregnant,
+    hasChildren,
+    hasChildrenDisease,
+    updatedBy: userId,
+    updatedAt: new Date(Date.now()),
+  };
+
   const editedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
     { _id: baseRecommendation._id },
     { $set: payload },
@@ -268,7 +258,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   // toBeDeleted array of values
   const availableValues = ['thumbnail'];
-  const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
+  const toBeDeletedinfo = JSON.parse(toBeDeleted) && JSON.parse(toBeDeleted).length ? JSON.parse(toBeDeleted) : [];
 
   if (toBeDeletedinfo.length > 0) {
     availableValues.forEach((value) => {

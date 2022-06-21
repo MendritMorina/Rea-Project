@@ -61,7 +61,9 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
-  const { name, description, baseRecommendationsId, isGeneric } = request.body;
+  const { name, description, isGeneric } = request.body;
+
+  const baseRecommendationsId = JSON.parse(request.body.baseRecommendationsId);
 
   const informativeRecommendationExists =
     (await InformativeRecommendation.countDocuments({ name, isDeleted: false })) > 0;

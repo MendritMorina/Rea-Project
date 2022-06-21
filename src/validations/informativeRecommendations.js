@@ -19,14 +19,15 @@ const validator = {
     body: Joi.object({
       name: Joi.string().required(),
       description: Joi.string().required(),
-      baseRecommendationsId: Joi.array()
-        .optional()
-        .items(
-          Joi.string()
-            .regex(/^[0-9a-fA-F]{24}$/)
-            .required()
-        )
-        .default(null),
+      // baseRecommendationsId: Joi.array()
+      //   .optional()
+      //   .items(
+      //     Joi.string()
+      //       .regex(/^[0-9a-fA-F]{24}$/)
+      //       .required()
+      //   )
+      //   .default(null),
+      baseRecommendationsId: Joi.string().optional().default(''),
       isGeneric: Joi.boolean().optional().default(false),
     }),
   },
