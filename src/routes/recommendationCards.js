@@ -44,7 +44,9 @@ const routes = [
     method: httpVerbs.POST,
     middlewares: [
       authorizeAdmin,
-      validate(recommendationCardValidator.createRecommendationCard),
+      validate(recommendationCardValidator.createRecommendationCard, {
+        joiOptions: { allowUnknown: true, abortEarly: false },
+      }),
       recommendationCardController.create,
     ],
   },
@@ -53,7 +55,9 @@ const routes = [
     method: httpVerbs.PUT,
     middlewares: [
       authorizeAdmin,
-      validate(recommendationCardValidator.updateRecommendationCard),
+      validate(recommendationCardValidator.updateRecommendationCard, {
+        joiOptions: { allowUnknown: true, abortEarly: false },
+      }),
       recommendationCardController.updateOne,
     ],
   },

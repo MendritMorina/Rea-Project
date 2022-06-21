@@ -33,7 +33,9 @@ const routes = [
     method: httpVerbs.POST,
     middlewares: [
       authorizeAdmin,
-      validate(informativeRecommendationValidator.createInformativeRecommendation),
+      validate(informativeRecommendationValidator.createInformativeRecommendation, {
+        joiOptions: { allowUnknown: true, abortEarly: false },
+      }),
       informativeRecommendationController.create,
     ],
   },
@@ -42,7 +44,9 @@ const routes = [
     method: httpVerbs.PUT,
     middlewares: [
       authorizeAdmin,
-      validate(informativeRecommendationValidator.updateInformativeRecommendation),
+      validate(informativeRecommendationValidator.updateInformativeRecommendation, {
+        joiOptions: { allowUnknown: true, abortEarly: false },
+      }),
       informativeRecommendationController.updateOne,
     ],
   },

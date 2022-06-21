@@ -30,7 +30,9 @@ const routes = [
     method: httpVerbs.POST,
     middlewares: [
       authorizeAdmin,
-      validate(baseRecommendationValidator.createBaseRecommendation),
+      validate(baseRecommendationValidator.createBaseRecommendation, {
+        joiOptions: { allowUnknown: true, abortEarly: false },
+      }),
       baseRecommendationController.create,
     ],
   },
@@ -39,7 +41,9 @@ const routes = [
     method: httpVerbs.PUT,
     middlewares: [
       authorizeAdmin,
-      validate(baseRecommendationValidator.updateBaseRecommendation),
+      validate(baseRecommendationValidator.updateBaseRecommendation, {
+        joiOptions: { allowUnknown: true, abortEarly: false },
+      }),
       baseRecommendationController.updateOne,
     ],
   },
