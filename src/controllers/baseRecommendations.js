@@ -258,7 +258,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   // toBeDeleted array of values
   const availableValues = ['thumbnail'];
-  const toBeDeletedinfo = JSON.parse(toBeDeleted) && JSON.parse(toBeDeleted).length ? JSON.parse(toBeDeleted) : [];
+  const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
 
   if (toBeDeletedinfo.length > 0) {
     availableValues.forEach((value) => {
