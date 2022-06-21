@@ -494,7 +494,9 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
 
   const baseRecommendationCards = baseRecommendation.recommendationCards;
 
-  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendationCards }, error: null });
+  response
+    .status(httpCodes.OK)
+    .json({ success: true, data: { baseRecommendation, baseRecommendationCards }, error: null });
   return;
 });
 
@@ -520,7 +522,9 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     ],
   };
 
-  const baseRecommendation = await BaseRecommendation.findOne(query).populate('informativeRecommendations');
+  const baseRecommendation = await BaseRecommendation.findOne(query)
+    .populate('informativeRecommendations')
+    .populate('recommendationCards');
 
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
@@ -533,6 +537,18 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     informativeRecommendations[parseInt(Math.random() * informativeRecommendations.length)];
 
   const randomInformativeRecommendationCards = randomInformativeRecommendation.recommendationCards;
+
+  const genericInformativeRecommendations = await InformativeRecommendation.find({ isDeleted: false, isGeneric: true });
+
+  for (const genericInformativeRecommendation of genericInformativeRecommendations) {
+    const genericInformativeRecommendationRecommendationCards = genericInformativeRecommendation.recommendationCards;
+
+    for (const genericCard of genericInformativeRecommendationRecommendationCards) {
+      if (!randomInformativeRecommendationCards.includes(genericCard)) {
+        randomInformativeRecommendationCards.push(genericCard);
+      }
+    }
+  }
 
   response.status(httpCodes.OK).json({ success: true, data: { randomInformativeRecommendationCards }, error: null });
   return;
