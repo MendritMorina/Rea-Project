@@ -47,6 +47,11 @@ const validator = {
       hasChildren: Joi.boolean().optional().default(false),
       hasChildrenDisease: Joi.array().optional().items(Joi.string().required()).default(null),
       toBeDeleted: Joi.array().optional().items(Joi.string().optional()),
+      // age: Joi.string().optional().default(''),
+      // gender: Joi.string().optional().default(''),
+      // haveDiseaseDiagnosis: Joi.string().optional().default(''),
+      // energySource: Joi.string().optional().default(''),
+      // hasChildrenDisease: Joi.string().optional().default(''),
     }),
   },
   validateBaseRecommendationId: {

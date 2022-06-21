@@ -3,7 +3,13 @@ const fs = require('fs');
 const path = require('path');
 
 // Imports: local files.
-const { RecommendationCard, Recommendation, BaseRecommendation, InformativeRecommendation } = require('../models');
+const {
+  RecommendationCard,
+  Recommendation,
+  BaseRecommendation,
+  InformativeRecommendation,
+  User,
+} = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { filterValues, getMode } = require('../utils/functions');
@@ -464,15 +470,29 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 });
 
 const getBaseRecommendationCards = asyncHandler(async (request, response, next) => {
+  // const userInfo = {
+  //   age: '20-30',
+  //   gender: 'male',
+  //   haveDiseaseDiagnosis: ['Sëmundje të frymëmarrjes/mushkërive', 'Sëmundje të zemrës (kardiovaskulare)'],
+  //   energySource: ['Qymyr', 'Gas'],
+  //   hasChildren: true,
+  //   hasChildrenDisease: ['Diabetin', 'Sëmundje neurologjike'],
+  //   aqi: 250,
+  //   city: 'prishtina',
+  // };
+
+  const { _id: userId } = request.user;
+
+  const user = await User.findOne({ _id: userId, isDeleted: false });
+  if (!user) {
+    next(new ApiError('User not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
   const userInfo = {
-    age: '20-30',
-    gender: 'male',
-    haveDiseaseDiagnosis: ['Sëmundje të frymëmarrjes/mushkërive', 'Sëmundje të zemrës (kardiovaskulare)'],
-    energySource: ['Qymyr', 'Gas'],
-    hasChildren: true,
-    hasChildrenDisease: ['Diabetin', 'Sëmundje neurologjike'],
-    aqi: 250,
-    city: 'prishtina',
+    haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
+    energySource: user.energySource,
+    hasChildrenDisease: user.hasChildrenDisease,
   };
 
   const airQuery = airQueryFromAqi(userInfo.aqi);
