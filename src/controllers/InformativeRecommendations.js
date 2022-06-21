@@ -21,7 +21,7 @@ const getAll = asyncHandler(async (request, response) => {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
     pagination: pagination,
-    select: select ? filterValues(select, []) : 'name description baseRecommendations isGeneric',
+    select: select ? filterValues(select, []) : 'name description thumbnail baseRecommendations isGeneric',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
     populate: 'baseRecommendations recommendationCards',
   };

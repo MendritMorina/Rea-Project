@@ -23,7 +23,7 @@ const getAll = asyncHandler(async (request, response) => {
     pagination: pagination,
     select: select
       ? filterValues(select, [])
-      : 'name description airQuality gender age haveDiseaseDiagnosis energySource isPregnant hasChildren hasChildrenDisease',
+      : 'name description thumbnail airQuality gender age haveDiseaseDiagnosis energySource isPregnant hasChildren hasChildrenDisease',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
     populate: 'informativeRecommendations recommendationCards',
   };
