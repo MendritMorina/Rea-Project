@@ -7,7 +7,7 @@ const { recommendationCardController } = require('../controllers');
 const { recommendationCardValidator } = require('../validations');
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
-const { authorizeAdmin } = require('../middlewares');
+const { authorize, authorizeAdmin } = require('../middlewares');
 
 // Define routes here.
 const routes = [
@@ -19,17 +19,17 @@ const routes = [
   {
     path: '/randomInformativeRecommendationCards',
     method: httpVerbs.GET,
-    middlewares: [recommendationCardController.getRandomInformativeRecommendationCards],
+    middlewares: [authorize, recommendationCardController.getRandomInformativeRecommendationCards],
   },
   {
     path: '/baseRecommendationCards',
     method: httpVerbs.GET,
-    middlewares: [recommendationCardController.getBaseRecommendationCards],
+    middlewares: [authorize, recommendationCardController.getBaseRecommendationCards],
   },
   {
     path: '/view/:recommendationCardId',
     method: httpVerbs.GET,
-    middlewares: [recommendationCardController.viewCardCounter],
+    middlewares: [authorize, recommendationCardController.viewCardCounter],
   },
   {
     path: '/:recommendationCardId',
