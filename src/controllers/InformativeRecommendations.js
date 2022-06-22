@@ -44,7 +44,7 @@ const getOne = asyncHandler(async (request, response, next) => {
   const informativeRecommendation = await InformativeRecommendation.findOne({
     _id: informativeRecommendationId,
     isDeleted: false,
-  });
+  }).populate('recommendationCards', 'baseRecommendations');
   if (!informativeRecommendation) {
     next(new ApiError('Informative Recommendation with given id not found!', httpCodes.NOT_FOUND));
     return;

@@ -43,7 +43,9 @@ const getAll = asyncHandler(async (request, response) => {
 const getOne = asyncHandler(async (request, response, next) => {
   const { baseRecommendationId } = request.params;
 
-  const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false });
+  const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false }).populate(
+    'recommendationCards'
+  );
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation with given id not found!', httpCodes.NOT_FOUND));
     return;
