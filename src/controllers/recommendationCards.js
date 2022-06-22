@@ -565,20 +565,20 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
 
   const informativeRecommendations = baseRecommendation.informativeRecommendations;
 
-  const randomInformativeRecommendation =
-    informativeRecommendations[parseInt(Math.random() * informativeRecommendations.length)];
+  // const randomInformativeRecommendation =
+  //   informativeRecommendations[parseInt(Math.random() * informativeRecommendations.length)];
 
-  // console.log(randomInformativeRecommendation._id);
+  // // console.log(randomInformativeRecommendation._id);
 
-  const randInfoRec = await InformativeRecommendation.findOne({
-    isDeleted: false,
-    _id: randomInformativeRecommendation._id,
-  }).populate('recommendationCards');
+  // const randInfoRec = await InformativeRecommendation.findOne({
+  //   isDeleted: false,
+  //   _id: randomInformativeRecommendation._id,
+  // }).populate('recommendationCards');
 
-  if (!randInfoRec) {
-    next(new ApiError('Failed to find the random informative recommendation in database!', httpCodes.NOT_FOUND));
-    return;
-  }
+  // if (!randInfoRec) {
+  //   next(new ApiError('Failed to find the random informative recommendation in database!', httpCodes.NOT_FOUND));
+  //   return;
+  // }
 
   // const genericInfoRec = await InformativeRecommendation.findOne({
   //   isDeleted: false,
@@ -611,6 +611,23 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     }
   }
 
+  //-------------------------------------------------------------------------------------------
+  const randoms = [genericInfoReccs, informativeRecommendations];
+
+  const random = randoms[parseInt(Math.random() * randoms.length)];
+
+  const randomm = await InformativeRecommendation.findOne({
+    isDeleted: false,
+    _id: random._id,
+  }).populate('recommendationCards');
+
+  if (!randomm) {
+    next(new ApiError('Failed to find the random informative recommendation in database!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  //-------------------------------------------------------------------------------------------
+
   // const randomInformativeRecommendationCards = randInfoRec.recommendationCards;
 
   // const randomInformativeRecommendationCards = randomInformativeRecommendation.recommendationCards;
@@ -629,7 +646,7 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
 
   response.status(httpCodes.OK).json({
     success: true,
-    data: { thumbnail: randInfoRec.thumbnail, allCards },
+    data: { thumbnail: randomm.thumbnail, allCards },
     error: null,
   });
   return;
