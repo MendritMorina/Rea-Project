@@ -21,9 +21,11 @@ const getAll = asyncHandler(async (request, response, next) => {
   if (couponId) query['coupon._id'] = new mongoose.Types.ObjectId(couponId);
   if (type) query['coupon.type'] = type;
   if (company) query['company._id'] = new mongoose.Types.ObjectId(company);
-  if (user) query['user._id'] = user;
+  if (user) query['user._id'] = new mongoose.Types.ObjectId(user);
   if (isUsed === 1) query['isUsed'] = true;
   else if (isUsed === 0) query['isUsed'] = false;
+
+  //console.log(query);
 
   const usedCouponsAggregate = UsedCoupon.aggregate([
     {
@@ -60,11 +62,15 @@ const getAll = asyncHandler(async (request, response, next) => {
       $project: {
         isUsed: 1,
         usedAt: 1,
+        'company.name': 1,
+        'company.log': 1,
+        'company.email': 1,
+        'company.number': 1,
+        'coupon.discount': 1,
         'coupon.description': 1,
         'coupon.startDate': 1,
         'coupon.expirationDate': 1,
         'coupon.type': 1,
-        'coupon.company': 1,
         'user.name': 1,
         'user.surname': 1,
         'user.email': 1,
