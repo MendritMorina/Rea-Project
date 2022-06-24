@@ -526,12 +526,14 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     next(new ApiError('User not found!', httpCodes.NOT_FOUND));
     return;
   }
+  console.log(user);
 
   const userInfo = {
     haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
     energySource: user.energySource,
     hasChildrenDisease: user.hasChildrenDisease,
   };
+  console.log(userInfo);
 
   const airQuery = airQueryFromAqi(userInfo.aqi);
   const query = {
@@ -542,13 +544,16 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     ],
   };
 
-  const baseRecommendation = await BaseRecommendation.findOne(query)
-    .populate('informativeRecommendations')
-    .populate('recommendationCards');
+  const baseRecommendation = await BaseRecommendation.findOne(query).populate({
+    path: 'informativeRecommendations',
+    populate: [{ path: 'recommendationCards' }],
+  });
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
     return;
   }
+
+  console.log(baseRecommendation);
 
   const informativeRecommendations = baseRecommendation.informativeRecommendations;
   const genericInfoRecs = await InformativeRecommendation.find({
