@@ -1,6 +1,6 @@
 // Imports: local files.
 const app = require('./app');
-const { env, db, startup } = require('./utils/functions');
+const { env, db, startup, initJobs } = require('./utils/functions');
 
 // Check if .env is correctly setup.
 const isEnvSetup = env.validateEnv();
@@ -25,6 +25,9 @@ console.log('===================================================================
     }
     console.log(`Successfully connected to the database!`);
     console.log('===================================================================');
+
+    // Initialize cron jobs.
+    initJobs();
 
     // Run startup code. (ORDER MATTERS)
     await startup.initAdmins();

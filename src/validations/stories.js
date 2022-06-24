@@ -28,8 +28,7 @@ const validator = {
       authorSurname: Joi.string().required(),
       narratorName: Joi.string().required(),
       narratorSurname: Joi.string().required(),
-      category: Joi.string(),
-      length: Joi.number().required(),
+      category: Joi.string().required(),
     }),
   },
   updateStory: {
@@ -47,7 +46,6 @@ const validator = {
       narratorName: Joi.string().optional(),
       narratorSurname: Joi.string().optional(),
       category: Joi.string().optional(),
-      length: Joi.number().optional(),
     }),
   },
   validateStoryId: {
