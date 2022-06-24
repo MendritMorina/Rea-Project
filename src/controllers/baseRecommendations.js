@@ -28,8 +28,41 @@ const getAll = asyncHandler(async (request, response) => {
     populate: 'informativeRecommendations recommendationCards',
   };
 
-  const query = { isDeleted: false };
-  const baseRecommendations = await BaseRecommendation.paginate(query, options);
+  const query = BaseRecommendation.aggregate([
+    { $match: { isDeleted: false } },
+    {
+      $lookup: {
+        from: 'recommendationcards',
+        localField: 'recommendationCards',
+        foreignField: '_id',
+        as: 'recommendationCards',
+      },
+    },
+    { $unwind: '$recommendationCards' },
+    { $sort: { 'recommendationCards.order': 1 } },
+    {
+      $group: {
+        _id: '$_id',
+        name: { $first: '$name' },
+        description: { $first: '$description' },
+        thumbnail: { $first: '$thumbnail' },
+        airQuality: { $first: '$airQuality' },
+        gender: { $first: '$gender' },
+        age: { $first: '$age' },
+        energySource: { $first: '$energySource' },
+        haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
+        isPregnant: { $first: '$isPregnant' },
+        hasChildren: { $first: '$hasChildren' },
+        hasChildrenDisease: { $first: '$hasChildrenDisease' },
+        informativeRecommendations: { $first: '$informativeRecommendations' },
+        recommendationCards: { $push: '$recommendationCards' },
+      },
+    },
+  ]);
+
+  // const query = { isDeleted: false };
+  // const baseRecommendations = await BaseRecommendation.paginate(query, options);
+  const baseRecommendations = await BaseRecommendation.aggregatePaginate(query, options);
 
   response.status(httpCodes.OK).json({ success: true, data: { baseRecommendations }, error: null });
   return;
@@ -342,7 +375,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const editedFileBaseRecommendation = await BaseRecommendation.findOne({
     _id: editedBaseRecommendation._id,
     isDeleted: false,
-  });
+  }).populate('recommendationCards');
   if (!editedFileBaseRecommendation) {
     next(new ApiError('Edited File RecommendationCard not found!', httpCodes.NOT_FOUND));
     return;

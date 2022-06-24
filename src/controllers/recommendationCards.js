@@ -80,8 +80,7 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
-  const { recommendationId, type } = request.body;
-
+  const { recommendationId, type, order, reorderId } = request.body;
   let recommendationCard = null;
 
   if (type === 'base') {
@@ -94,6 +93,8 @@ const create = asyncHandler(async (request, response, next) => {
     const payload = {
       type,
       recommendation: baseRecommendation._id,
+      order,
+      reorderId,
       createdBy: userId,
       createdAt: new Date(Date.now()),
     };
@@ -128,10 +129,11 @@ const create = asyncHandler(async (request, response, next) => {
     const payload = {
       type,
       recommendation: informativeRecommendation._id,
+      order,
+      reorderId,
       createdBy: userId,
       createdAt: new Date(Date.now()),
     };
-
     recommendationCard = await RecommendationCard.create(payload);
     if (!recommendationCard) {
       next(new ApiError('RecommendationCard was not created', httpCodes.NOT_FOUND));
@@ -200,7 +202,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { recommendationCardId } = request.params;
   //const { name, description, recommendationId, type, toBeDeleted } = request.body;
-  const { recommendationId: recommendation, toBeDeleted } = request.body;
+  const { recommendationId: recommendation, toBeDeleted, order } = request.body;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false });
 
@@ -232,6 +234,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   const payload = {
     recommendation,
+    order,
     //recommendation: recommendationId ? recommendationId : recommendationCard.recommendation,
     updatedBy: userId,
     updatedAt: new Date(Date.now()),
@@ -245,6 +248,56 @@ const updateOne = asyncHandler(async (request, response, next) => {
   if (!editedRecommendationCard) {
     next(new ApiError('Failed to update RecommendationCard!', httpCodes.INTERNAL_ERROR));
     return;
+  }
+
+  // if (recommendationCard.order !== editedRecommendationCard.order) {
+  //   const recommendationCards = await RecommendationCard.find({ recommendation: recommendationCard.recommendation });
+  //   if (!recommendationCards || !recommendationCards.length) {
+  //     return;
+  //   }
+
+  //   for (const oldRecommendationCardOrder of recommendationCards) {
+  //     if (
+  //       oldRecommendationCardOrder.order >= recommendationCard.order &&
+  //       oldRecommendationCardOrder.order <= editedRecommendationCard.order &&
+  //       oldRecommendationCardOrder.reorderId !== recommendationCard.reorderId
+  //     ) {
+  //       oldRecommendationCardOrder.order = oldRecommendationCardOrder.order - 1;
+  //     } else if (
+  //       oldRecommendationCardOrder.order <= recommendationCard.order &&
+  //       oldRecommendationCardOrder.order >= editedRecommendationCard.order &&
+  //       oldRecommendationCardOrder.reorderId !== recommendationCard.reorderId
+  //     ) {
+  //       oldRecommendationCardOrder.order = oldRecommendationCardOrder.order + 1;
+  //     }
+
+  //     await oldRecommendationCardOrder.save();
+  //   }
+  // }
+
+  if (recommendationCard.order !== editedRecommendationCard.order) {
+    const recommendationCards = await RecommendationCard.find({ recommendation: recommendationCard.recommendation });
+    if (!recommendationCards || !recommendationCards.length) {
+      return;
+    }
+
+    for (const oldRecommendationCardOrder of recommendationCards) {
+      if (
+        oldRecommendationCardOrder.order >= recommendationCard.order &&
+        oldRecommendationCardOrder.order <= order &&
+        oldRecommendationCardOrder.reorderId !== recommendationCard.reorderId
+      ) {
+        oldRecommendationCardOrder.order = oldRecommendationCardOrder.order - 1;
+      } else if (
+        oldRecommendationCardOrder.order <= recommendationCard.order &&
+        oldRecommendationCardOrder.order >= order &&
+        oldRecommendationCardOrder.reorderId !== recommendationCard.reorderId
+      ) {
+        oldRecommendationCardOrder.order = oldRecommendationCardOrder.order + 1;
+      }
+
+      await oldRecommendationCardOrder.save();
+    }
   }
 
   if (recommendation !== recommendationCard.recommendation && recommendation !== null) {
@@ -414,6 +467,8 @@ const deleteOne = asyncHandler(async (request, response, next) => {
       return;
     }
 
+    reorderRecommnedationCardsAfterDelete(recommendationCard);
+
     const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
       { _id: baseRecommendation._id },
       { $pull: { recommendationCards: recommendationCard._id } }
@@ -433,6 +488,8 @@ const deleteOne = asyncHandler(async (request, response, next) => {
       next(new ApiError('Informative Recommendation not found!', httpCodes.NOT_FOUND));
       return;
     }
+
+    reorderRecommnedationCardsAfterDelete(recommendationCard);
 
     const deletedRecommendationCard = await RecommendationCard.findOneAndUpdate(
       { _id: recommendationCard._id },
@@ -567,8 +624,6 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
 
   const randomInformativeRecommendation =
     informativeRecommendations[parseInt(Math.random() * informativeRecommendations.length)];
-
-  // console.log(randomInformativeRecommendation._id);
 
   const randInfoRec = await InformativeRecommendation.findOne({
     isDeleted: false,
@@ -787,4 +842,20 @@ const uploadFile = async (recommendationCardId, userId, request, fileType) => {
   }
 
   return { success: true, data: { updatedRecommendationCard }, error: null, code: null };
+};
+
+const reorderRecommnedationCardsAfterDelete = async (recommendationCard) => {
+  const recommendationCards = await RecommendationCard.find({ recommendation: recommendationCard.recommendation });
+  if (!recommendationCards || !recommendationCards.length) {
+    return;
+  }
+
+  for (const oldRecommendationCardOrder of recommendationCards) {
+    if (oldRecommendationCardOrder.order < recommendationCard.order) {
+      oldRecommendationCardOrder.order = oldRecommendationCardOrder.order;
+    } else if (oldRecommendationCardOrder.order > recommendationCard.order) {
+      oldRecommendationCardOrder.order = oldRecommendationCardOrder.order - 1;
+    }
+    await oldRecommendationCardOrder.save();
+  }
 };
