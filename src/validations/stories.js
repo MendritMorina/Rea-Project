@@ -8,6 +8,7 @@ const validator = {
       page: Joi.number().optional().default(1),
       limit: Joi.number().optional().default(10),
       pagination: Joi.boolean().optional().default(true),
+      category: Joi.string().optional().default(null).allow(null, 'Child', 'Adult'),
     }),
   },
   getAllAdmin: {
@@ -15,6 +16,7 @@ const validator = {
       page: Joi.number().optional().default(1),
       limit: Joi.number().optional().default(10),
       pagination: Joi.boolean().optional().default(true),
+      category: Joi.string().optional().default(null).allow(null, 'Child', 'Adult'),
     }),
   },
   createStory: {
@@ -26,8 +28,7 @@ const validator = {
       authorSurname: Joi.string().required(),
       narratorName: Joi.string().required(),
       narratorSurname: Joi.string().required(),
-      category: Joi.string(),
-      length: Joi.number().required(),
+      category: Joi.string().required(),
     }),
   },
   updateStory: {
@@ -45,7 +46,6 @@ const validator = {
       narratorName: Joi.string().optional(),
       narratorSurname: Joi.string().optional(),
       category: Joi.string().optional(),
-      length: Joi.number().optional(),
     }),
   },
   validateStoryId: {

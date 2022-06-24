@@ -15,7 +15,7 @@ const { asyncHandler } = require('../middlewares');
  * @access      Public
  */
 const getAllAdmin = asyncHandler(async (request, response) => {
-  const { page, limit, pagination } = request.query;
+  const { page, limit, pagination, category } = request.query;
 
   const options = {
     page: parseInt(page, 10),
@@ -24,6 +24,7 @@ const getAllAdmin = asyncHandler(async (request, response) => {
   };
 
   const query = { isDeleted: false };
+  if (category) query['category'] = category;
   const stories = await Story.paginate(query, options);
 
   response.status(200).json({ success: true, data: { stories }, error: null });
@@ -37,7 +38,7 @@ const getAllAdmin = asyncHandler(async (request, response) => {
  */
 const getAllMobile = asyncHandler(async (request, response) => {
   const user = request.user;
-  const { page, limit, pagination } = request.query;
+  const { page, limit, pagination, category } = request.query;
 
   const options = {
     page: parseInt(page, 10),
@@ -51,6 +52,7 @@ const getAllMobile = asyncHandler(async (request, response) => {
   }
 
   const query = { isDeleted: false };
+  if (category) query['category'] = category;
   const stories = await Story.paginate(query, options);
 
   response.status(200).json({ success: true, data: { stories }, error: null });
@@ -82,8 +84,7 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const { _id: adminId } = request.admin;
-  const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category, length } =
-    request.body;
+  const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category } = request.body;
 
   const payload = {
     name,
@@ -94,7 +95,6 @@ const create = asyncHandler(async (request, response, next) => {
     narratorName,
     narratorSurname,
     category,
-    length,
     createdBy: adminId,
     createdAt: new Date(Date.now()),
   };
@@ -105,17 +105,16 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
-  const requiredTypes = ['thumbnail', 'audio', 'backgroundImage'];
+  const types = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
 
-  if (fileTypes.length !== 3) {
-    await story.remove();
-    next(new ApiError('You must input all 3 file Types!', httpCodes.BAD_REQUEST));
+  if (!fileTypes[0] || !fileTypes[1] || !fileTypes[2]) {
+    next(new ApiError(`One of these is missing thumbnail,audio,backgroundImage`, httpCodes.BAD_REQUEST));
     return;
   }
 
   for (const fileType of fileTypes) {
-    if (!requiredTypes.includes(fileType)) {
-      next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+    if (!types.includes(fileType)) {
+      next(new ApiError(`File Type ${fileType} must be of ${types} File Types!`, httpCodes.BAD_REQUEST));
       return;
     }
   }
@@ -149,18 +148,8 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const { _id: adminId } = request.admin;
   const { storyId } = request.params;
-  const {
-    name,
-    title,
-    description,
-    authorName,
-    authorSurname,
-    narratorName,
-    narratorSurname,
-    category,
-    length,
-    toBeDeleted,
-  } = request.body;
+  const { name, title, description, authorName, authorSurname, narratorName, narratorSurname, category, toBeDeleted } =
+    request.body;
 
   const story = await Story.findOne({ _id: storyId, isDeleted: false });
   if (!story) {
@@ -177,7 +166,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     narratorName,
     narratorSurname,
     category,
-    length,
     updatedBy: adminId,
     updatedAt: new Date(Date.now()),
   };
@@ -188,7 +176,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const availableValues = ['thumbnail', 'audio', 'backgroundImage'];
+  const availableValues = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
   const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
 
   if (toBeDeletedinfo.length > 0) {
@@ -202,7 +190,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   if (request.files) {
     const fileTypes = request.files ? Object.keys(request.files) : [];
 
-    const requiredTypes = ['thumbnail', 'audio', 'backgroundImage'];
+    const requiredTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
 
     for (const fileType of fileTypes) {
       if (!requiredTypes.includes(fileType)) {
@@ -305,7 +293,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
     return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
   }
 
-  const allowedFileTypes = ['thumbnail', 'audio', 'backgroundImage'];
+  const allowedFileTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
 
   if (!allowedFileTypes.includes(fileType)) {
     return {
@@ -320,7 +308,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
 
   const type = mimetype.split('/').pop();
 
-  let allowedTypes = ['jpeg', 'jpg', 'png', 'mp4'];
+  let allowedTypes = ['jpeg', 'jpg', 'png', 'svg', 'mpeg'];
 
   if (!allowedTypes.includes(type)) {
     return { success: false, data: null, error: `Wrong ${fileType} type!`, code: httpCodes.BAD_REQUEST };

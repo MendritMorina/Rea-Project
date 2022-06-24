@@ -1,6 +1,7 @@
 // Imports: third-party packages.
 const mongoose = require('mongoose');
 const { v4 } = require('uuid');
+const axios = require('axios').default;
 
 // Imports: local files.
 const { UsedCoupon, Coupon } = require('../models');
@@ -20,9 +21,11 @@ const getAll = asyncHandler(async (request, response, next) => {
   if (couponId) query['coupon._id'] = new mongoose.Types.ObjectId(couponId);
   if (type) query['coupon.type'] = type;
   if (company) query['company._id'] = new mongoose.Types.ObjectId(company);
-  if (user) query['user._id'] = user;
+  if (user) query['user._id'] = new mongoose.Types.ObjectId(user);
   if (isUsed === 1) query['isUsed'] = true;
   else if (isUsed === 0) query['isUsed'] = false;
+
+  //console.log(query);
 
   const usedCouponsAggregate = UsedCoupon.aggregate([
     {
@@ -59,11 +62,15 @@ const getAll = asyncHandler(async (request, response, next) => {
       $project: {
         isUsed: 1,
         usedAt: 1,
+        'company.name': 1,
+        'company.log': 1,
+        'company.email': 1,
+        'company.number': 1,
+        'coupon.discount': 1,
         'coupon.description': 1,
         'coupon.startDate': 1,
         'coupon.expirationDate': 1,
         'coupon.type': 1,
-        'coupon.company': 1,
         'user.name': 1,
         'user.surname': 1,
         'user.email': 1,
@@ -116,7 +123,7 @@ const getNumberOfUses = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
   const { couponId } = request.body;
-
+  
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
     next(new ApiError('Coupon with given id not found', httpCodes.NOT_FOUND));
