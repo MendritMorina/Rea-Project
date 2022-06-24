@@ -3,7 +3,13 @@ const fs = require('fs');
 const path = require('path');
 
 // Imports: local files.
-const { RecommendationCard, Recommendation, BaseRecommendation, InformativeRecommendation } = require('../models');
+const {
+  RecommendationCard,
+  Recommendation,
+  BaseRecommendation,
+  InformativeRecommendation,
+  User,
+} = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { filterValues, getMode } = require('../utils/functions');
@@ -13,6 +19,8 @@ const { httpCodes } = require('../configs');
  * @description Get all recommendationCards.
  * @route       GET /api/recommendationcards.
  * @route       GET /api/recommendations/:recommendationId/recommendationcards.
+ * @route       GET /api/baserecommendations/:baseRecommendationId/recommendationcards.
+ * @route       GET /api/informativerecommendations/:informativeRecommendationId/recommendationcards.
  * @access      Public.
  */
 const getAll = asyncHandler(async (request, response) => {
@@ -22,24 +30,24 @@ const getAll = asyncHandler(async (request, response) => {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
     pagination: pagination,
-    select: select ? filterValues(select, ['name']) : 'name description',
+    select: select ? filterValues(select, []) : 'name description photo thumbnail viewCounter recommendation type',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
-    populate: 'recommendation',
   };
+
+  let paramsQuery = {};
+
+  if (request.params.baseRecommendationId) {
+    paramsQuery = { recommendation: request.params.baseRecommendationId, type: 'base' };
+  } else if (request.params.informativeRecommendationId) {
+    paramsQuery = { recommendation: request.params.informativeRecommendationId, type: 'informative' };
+  }
 
   const query = {
     isDeleted: false,
+    ...paramsQuery,
   };
 
-  let recommendationCards = null;
-  if (request.params.recommendationId) {
-    recommendationCards = await RecommendationCard.paginate(
-      { ...query, recommendation: request.params.recommendationId },
-      options
-    );
-  } else {
-    recommendationCards = await RecommendationCard.paginate(query, options);
-  }
+  const recommendationCards = await RecommendationCard.paginate(query, options);
 
   response.status(200).json({ success: true, data: { recommendationCards }, error: null });
   return;
@@ -72,7 +80,7 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
-  const { name, description, recommendationId, type } = request.body;
+  const { recommendationId, type } = request.body;
 
   let recommendationCard = null;
 
@@ -84,8 +92,6 @@ const create = asyncHandler(async (request, response, next) => {
     }
 
     const payload = {
-      name,
-      description,
       type,
       recommendation: baseRecommendation._id,
       createdBy: userId,
@@ -120,8 +126,6 @@ const create = asyncHandler(async (request, response, next) => {
     }
 
     const payload = {
-      name,
-      description,
       type,
       recommendation: informativeRecommendation._id,
       createdBy: userId,
@@ -151,11 +155,11 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
-  const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
+  const requiredTypes = ['photo'];
 
-  if (fileTypes.length !== 4) {
+  if (fileTypes.length !== 1) {
     await recommendationCard.remove();
-    next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
+    next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
     return;
   }
 
@@ -196,7 +200,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { recommendationCardId } = request.params;
   //const { name, description, recommendationId, type, toBeDeleted } = request.body;
-  const { name, description, recommendationId: recommendation, toBeDeleted } = request.body;
+  const { recommendationId: recommendation, toBeDeleted } = request.body;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false });
 
@@ -205,18 +209,28 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (name !== recommendationCard.name) {
-    const recommendationExists =
-      (await RecommendationCard.countDocuments({ _id: { $ne: recommendationCardId }, name, isDeleted: false })) > 0;
-    if (recommendationExists) {
-      next(new ApiError('RecommendationCard with given name already exists!', httpCodes.BAD_REQUEST));
+  const type = recommendationCard.type;
+
+  if (recommendation && type === 'base') {
+    const findBaseRecommendation = await BaseRecommendation.findOne({ _id: recommendation, isDeleted: false });
+
+    if (!findBaseRecommendation) {
+      next(new ApiError('Failed to find base recommendation by given id!', httpCodes.NOT_FOUND));
+      return;
+    }
+  } else if (recommendation && type === 'informative') {
+    const findInformativeRecommendation = await InformativeRecommendation.findOne({
+      _id: recommendation,
+      isDeleted: false,
+    });
+
+    if (!findInformativeRecommendation) {
+      next(new ApiError('Failed to find informative recommendation by given id!', httpCodes.NOT_FOUND));
       return;
     }
   }
 
   const payload = {
-    name,
-    description,
     recommendation,
     //recommendation: recommendationId ? recommendationId : recommendationCard.recommendation,
     updatedBy: userId,
@@ -234,28 +248,53 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   if (recommendation !== recommendationCard.recommendation && recommendation !== null) {
-    const type = recommendationCard.type;
-
     if (type === 'base') {
-      await BaseRecommendation.findOneAndUpdate(
+      const updatedPullOldBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
         { _id: recommendationCard.recommendation },
         { $pull: { recommendationCards: recommendationCard._id } }
       );
 
-      await BaseRecommendation.findOneAndUpdate(
+      if (!updatedPullOldBaseRecommendation) {
+        next(new ApiError('Failed to pull RecommendationCard from old BaseRecommendation!', httpCodes.INTERNAL_ERROR));
+        return;
+      }
+
+      const updatedPushNewBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
         { _id: editedRecommendationCard.recommendation },
         { $push: { recommendationCards: editedRecommendationCard._id } }
       );
+
+      if (!updatedPushNewBaseRecommendation) {
+        next(new ApiError('Failed to push RecommendationCard to new BaseRecommendation!', httpCodes.INTERNAL_ERROR));
+        return;
+      }
     } else if (type === 'informative') {
-      await InformativeRecommendation.findOneAndUpdate(
+      const updatedPullOldInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
         { _id: recommendationCard.recommendation },
         { $pull: { recommendationCards: recommendationCard._id } }
       );
 
-      await InformativeRecommendation.findOneAndUpdate(
+      if (!updatedPullOldInformativeRecommendation) {
+        next(
+          new ApiError(
+            'Failed to pull RecommendationCard from old InformativeRecommendation!',
+            httpCodes.INTERNAL_ERROR
+          )
+        );
+        return;
+      }
+
+      const updatedPushNewInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
         { _id: editedRecommendationCard.recommendation },
         { $push: { recommendationCards: editedRecommendationCard._id } }
       );
+
+      if (!updatedPushNewInformativeRecommendation) {
+        next(
+          new ApiError('Failed to push RecommendationCard to new InformativeRecommendation!', httpCodes.INTERNAL_ERROR)
+        );
+        return;
+      }
     } else {
       next(new ApiError('Recommendation Card has illegal type!', httpCodes.NOT_FOUND));
       return;
@@ -263,7 +302,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   // toBeDeleted array of values
-  const availableValues = ['small', 'medium', 'large', 'thumbnail'];
+  const availableValues = ['photo'];
   const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
 
   if (toBeDeletedinfo.length > 0) {
@@ -276,10 +315,10 @@ const updateOne = asyncHandler(async (request, response, next) => {
 
   if (request.files) {
     const fileTypes = request.files ? Object.keys(request.files) : [];
-    const requiredTypes = ['small', 'medium', 'large', 'thumbnail'];
+    const requiredTypes = ['photo'];
 
-    if (fileTypes.length !== 4) {
-      next(new ApiError('You must input all 4 file Types!', httpCodes.BAD_REQUEST));
+    if (fileTypes.length !== 1) {
+      next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
       return;
     }
 
@@ -431,15 +470,29 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 });
 
 const getBaseRecommendationCards = asyncHandler(async (request, response, next) => {
+  // const userInfo = {
+  //   age: '20-30',
+  //   gender: 'male',
+  //   haveDiseaseDiagnosis: ['Sëmundje të frymëmarrjes/mushkërive', 'Sëmundje të zemrës (kardiovaskulare)'],
+  //   energySource: ['Qymyr', 'Gas'],
+  //   hasChildren: true,
+  //   hasChildrenDisease: ['Diabetin', 'Sëmundje neurologjike'],
+  //   aqi: 250,
+  //   city: 'prishtina',
+  // };
+
+  const { _id: userId } = request.user;
+
+  const user = await User.findOne({ _id: userId, isDeleted: false });
+  if (!user) {
+    next(new ApiError('User not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
   const userInfo = {
-    age: '20-30',
-    gender: 'male',
-    haveDiseaseDiagnosis: ['Sëmundje të frymëmarrjes/mushkërive', 'Sëmundje të zemrës (kardiovaskulare)'],
-    energySource: ['Qymyr', 'Gas'],
-    hasChildren: true,
-    hasChildrenDisease: ['Diabetin', 'Sëmundje neurologjike'],
-    aqi: 250,
-    city: 'prishtina',
+    haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
+    energySource: user.energySource,
+    hasChildrenDisease: user.hasChildrenDisease,
   };
 
   const airQuery = airQueryFromAqi(userInfo.aqi);
@@ -461,24 +514,28 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
 
   const baseRecommendationCards = baseRecommendation.recommendationCards;
 
-  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendationCards }, error: null });
+  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendation }, error: null });
   return;
 });
 
 const getRandomInformativeRecommendationCards = asyncHandler(async (request, response, next) => {
+  const { _id: userId } = request.user;
+
+  const user = await User.findOne({ _id: userId, isDeleted: false });
+  if (!user) {
+    next(new ApiError('User not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+  console.log(user);
+
   const userInfo = {
-    age: '20-30',
-    gender: 'male',
-    haveDiseaseDiagnosis: ['Sëmundje të frymëmarrjes/mushkërive', 'Sëmundje të zemrës (kardiovaskulare)'],
-    energySource: ['Qymyr', 'Gas'],
-    hasChildren: true,
-    hasChildrenDisease: ['Diabetin', 'Sëmundje neurologjike'],
-    aqi: 250,
-    city: 'prishtina',
+    haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
+    energySource: user.energySource,
+    hasChildrenDisease: user.hasChildrenDisease,
   };
+  console.log(userInfo);
 
   const airQuery = airQueryFromAqi(userInfo.aqi);
-
   const query = {
     $and: [
       { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
@@ -487,21 +544,35 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     ],
   };
 
-  const baseRecommendation = await BaseRecommendation.findOne(query).populate('informativeRecommendations');
-
+  const baseRecommendation = await BaseRecommendation.findOne(query).populate({
+    path: 'informativeRecommendations',
+    populate: [{ path: 'recommendationCards' }],
+  });
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
     return;
   }
 
+  console.log(baseRecommendation);
+
   const informativeRecommendations = baseRecommendation.informativeRecommendations;
+  const genericInfoRecs = await InformativeRecommendation.find({
+    isDeleted: false,
+    isGeneric: true,
+  }).populate('recommendationCards');
 
-  const randomInformativeRecommendation =
-    informativeRecommendations[parseInt(Math.random() * informativeRecommendations.length)];
+  const randoms = [...genericInfoRecs, ...informativeRecommendations];
+  const random = randoms[parseInt(Math.random() * randoms.length)];
+  if (!random) {
+    next(new ApiError('Failed to find the random !', httpCodes.NOT_FOUND));
+    return;
+  }
 
-  const randomInformativeRecommendationCards = randomInformativeRecommendation.recommendationCards;
-
-  response.status(httpCodes.OK).json({ success: true, data: { randomInformativeRecommendationCards }, error: null });
+  response.status(httpCodes.OK).json({
+    success: true,
+    data: { random },
+    error: null,
+  });
   return;
 });
 
@@ -585,20 +656,20 @@ async function fileResult(recommendationCard, userId, req, fileTypes) {
 }
 
 const uploadFile = async (recommendationCardId, userId, request, fileType) => {
-  if (!request.files[fileType]) {
-    return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
-  }
+  // if (!request.files[fileType]) {
+  //   return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
+  // }
 
-  const allowedFileTypes = ['small', 'medium', 'large', 'thumbnail'];
+  // const allowedFileTypes = ['photo', 'thumbnail'];
 
-  if (!allowedFileTypes.includes(fileType)) {
-    return {
-      success: false,
-      data: null,
-      error: `File Type ${fileType} must be of ${allowedFileTypes}`,
-      code: httpCodes.BAD_REQUEST,
-    };
-  }
+  // if (!allowedFileTypes.includes(fileType)) {
+  //   return {
+  //     success: false,
+  //     data: null,
+  //     error: `File Type ${fileType} must be of ${allowedFileTypes}`,
+  //     code: httpCodes.BAD_REQUEST,
+  //   };
+  // }
 
   const { data, mimetype, name, size } = request.files[fileType];
 

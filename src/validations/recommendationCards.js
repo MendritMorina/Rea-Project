@@ -8,6 +8,12 @@ const validator = {
       recommendationId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .optional(),
+      baseRecommendationId: Joi.string()
+        .regex(/^[0-9a-fA-F]{24}$/)
+        .optional(),
+      informativeRecommendationId: Joi.string()
+        .regex(/^[0-9a-fA-F]{24}$/)
+        .optional(),
     }),
     query: Joi.object({
       page: Joi.number().optional().default(1),
@@ -16,7 +22,7 @@ const validator = {
       name: Joi.string().optional().default(null),
       active: Joi.number().optional().default(null).allow(null, 0, 1),
       deleted: Joi.number().optional().default(null).allow(null, 0, 1),
-      select: Joi.string().optional().default('name,description'),
+      select: Joi.string().optional(),
       sort: Joi.string().optional().default('name'),
       recommendation: Joi.array()
         .optional()
@@ -30,11 +36,10 @@ const validator = {
   },
   createRecommendationCard: {
     body: Joi.object({
-      name: Joi.string().required(),
-      description: Joi.string().required(),
       recommendationId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
+      type: Joi.string().required(),
     }),
   },
   updateRecommendationCard: {
@@ -44,11 +49,9 @@ const validator = {
         .required(),
     }),
     body: Joi.object({
-      name: Joi.string().required(),
-      description: Joi.string().required(),
       recommendationId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
-        .required(),
+        .optional(),
       toBeDeleted: Joi.array().optional().items(Joi.string().optional()),
     }),
   },

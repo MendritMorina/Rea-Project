@@ -4,8 +4,9 @@ const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
 
 // Imports: local files.
 const Base = require('./Base');
+const File = require('./File');
 
-// Recommendation Schema that is used to represent single Recommendation in our API.
+// Base Recommendation Schema that is used to represent single Base Recommendation in our API.
 const BaseRecommendationSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -14,6 +15,9 @@ const BaseRecommendationSchema = new mongoose.Schema({
   description: {
     type: String,
     required: false,
+  },
+  thumbnail: {
+    ...File,
   },
   airQuality: {
     type: String,

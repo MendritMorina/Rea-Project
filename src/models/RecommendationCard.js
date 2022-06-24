@@ -8,31 +8,9 @@ const File = require('./File');
 
 // RecommendationCard Schema that is used to represent single RecommendationCard in our API.
 const RecommendationCardSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: false,
-  },
-  small: {
+  photo: {
     ...File,
   },
-  medium: {
-    ...File,
-  },
-  large: {
-    ...File,
-  },
-  thumbnail: {
-    ...File,
-  },
-  // recommendation: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: 'Recommendation',
-  //   required: false,
-  // },
   viewCounter: {
     type: Number,
     required: true,

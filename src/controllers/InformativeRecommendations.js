@@ -1,13 +1,17 @@
+// Imports: core node modules.
+const fs = require('fs');
+const path = require('path');
+
 // Imports: local files.
 const { InformativeRecommendation, BaseRecommendation, RecommendationCard } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
-const { filterValues } = require('../utils/functions');
+const { filterValues, getMode } = require('../utils/functions');
 const { httpCodes } = require('../configs');
 
 /**
- * @description Get all recommendations.
- * @route       GET /api/recommendations.
+ * @description Get all informative recommendations.
+ * @route       GET /api/informativerecommendations.
  * @access      Public.
  */
 const getAll = asyncHandler(async (request, response) => {
@@ -17,9 +21,9 @@ const getAll = asyncHandler(async (request, response) => {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
     pagination: pagination,
-    select: select ? filterValues(select, []) : 'name description',
+    select: select ? filterValues(select, []) : 'name description thumbnail baseRecommendations isGeneric',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
-    populate: 'recommendationCards',
+    populate: 'baseRecommendations recommendationCards',
   };
 
   const query = { isDeleted: false };
@@ -40,7 +44,9 @@ const getOne = asyncHandler(async (request, response, next) => {
   const informativeRecommendation = await InformativeRecommendation.findOne({
     _id: informativeRecommendationId,
     isDeleted: false,
-  });
+  })
+    .populate('recommendationCards')
+    .populate('baseRecommendations');
   if (!informativeRecommendation) {
     next(new ApiError('Informative Recommendation with given id not found!', httpCodes.NOT_FOUND));
     return;
@@ -57,7 +63,11 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
-  const { name, description, baseRecommendationsId, isGeneric } = request.body;
+  const { name, description, isGeneric } = request.body;
+
+  const baseRecommendationsId = request.body.baseRecommendationsId
+    ? JSON.parse(request.body.baseRecommendationsId)
+    : null;
 
   const informativeRecommendationExists =
     (await InformativeRecommendation.countDocuments({ name, isDeleted: false })) > 0;
@@ -80,29 +90,31 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  for (const baseRecommendationId of baseRecommendationsId) {
-    const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
-      { _id: baseRecommendationId },
-      {
-        $push: { informativeRecommendations: informativeRecommendation._id },
+  if (baseRecommendationsId) {
+    for (const baseRecommendationId of baseRecommendationsId) {
+      const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
+        { _id: baseRecommendationId },
+        {
+          $push: { informativeRecommendations: informativeRecommendation._id },
+        }
+      );
+
+      if (!updatedBaseRecommendation) {
+        next(new ApiError('Failed to update Base Recommendation!', httpCodes.INTERNAL_ERROR));
+        return;
       }
-    );
 
-    if (!updatedBaseRecommendation) {
-      next(new ApiError('Failed to update Base Recommendation!', httpCodes.INTERNAL_ERROR));
-      return;
-    }
+      const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
+        { _id: informativeRecommendation._id },
+        {
+          $push: { baseRecommendations: updatedBaseRecommendation._id },
+        }
+      );
 
-    const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
-      { _id: informativeRecommendation._id },
-      {
-        $push: { baseRecommendations: updatedBaseRecommendation._id },
+      if (!updatedInformativeRecommendation) {
+        next(new ApiError('Failed to update Informative Recommendation!', httpCodes.INTERNAL_ERROR));
+        return;
       }
-    );
-
-    if (!updatedInformativeRecommendation) {
-      next(new ApiError('Failed to update Informative Recommendation!', httpCodes.INTERNAL_ERROR));
-      return;
     }
   }
 
@@ -115,9 +127,45 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  const fileTypes = request.files ? Object.keys(request.files) : [];
+  const requiredTypes = ['thumbnail'];
+
+  if (fileTypes.length !== 1) {
+    await latestUpdatedInformativeRecommendation.remove();
+    next(new ApiError('You must input the file Type!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  for (const fileType of fileTypes) {
+    if (!requiredTypes.includes(fileType)) {
+      await latestUpdatedInformativeRecommendation.remove();
+      next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+      return;
+    }
+  }
+
+  const fileResults = await fileResult(latestUpdatedInformativeRecommendation._id, userId, request, fileTypes);
+  for (let key in fileResults) {
+    const fileUploadResult = fileResults[key];
+    if (fileUploadResult && !fileUploadResult.success) {
+      await latestUpdatedInformativeRecommendation.remove();
+      next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+      return;
+    }
+  }
+
+  const updatedLatestUpdatedInformativeRecommendation = await InformativeRecommendation.findOne({
+    _id: latestUpdatedInformativeRecommendation._id,
+    isDeleted: false,
+  });
+  if (!updatedLatestUpdatedInformativeRecommendation) {
+    next(new ApiError('Informative Recommendation after file upload not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
   response
     .status(httpCodes.CREATED)
-    .json({ success: true, data: { latestUpdatedInformativeRecommendation }, error: null });
+    .json({ success: true, data: { updatedLatestUpdatedInformativeRecommendation }, error: null });
   return;
 });
 
@@ -129,7 +177,7 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { informativeRecommendationId } = request.params;
-  const { name, description, isGeneric, pullFromId, pushToId } = request.body;
+  const { name, description, isGeneric, pullFromId, pushToId, toBeDeleted } = request.body;
 
   const informativeRecommendation = await InformativeRecommendation.findOne({
     _id: informativeRecommendationId,
@@ -159,8 +207,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
   }
 
   if (pullFromId) {
-    // && informativeRecommendation.baseRecommendations.includes(pullFromId)
-
     const baseRecommendation = await BaseRecommendation.findOne({ _id: pullFromId, isDeleted: false });
 
     if (!baseRecommendation) {
@@ -256,9 +302,79 @@ const updateOne = asyncHandler(async (request, response, next) => {
     }
   }
 
+  const latestUpdatedInformativeRecommendation = await InformativeRecommendation.findOne({
+    _id: informativeRecommendation._id,
+    isDeleted: false,
+  });
+  if (!latestUpdatedInformativeRecommendation) {
+    next(new ApiError('Informative Recommendation with given id not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  // toBeDeleted array of values
+  const availableValues = ['thumbnail'];
+  const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
+
+  if (toBeDeletedinfo.length > 0) {
+    availableValues.forEach((value) => {
+      if (toBeDeletedinfo.includes(value)) latestUpdatedInformativeRecommendation[value] = null;
+    });
+
+    await latestUpdatedInformativeRecommendation.save();
+  }
+
+  if (request.files) {
+    const fileTypes = request.files ? Object.keys(request.files) : [];
+    const requiredTypes = ['thumbnail'];
+
+    if (fileTypes.length !== 1) {
+      next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
+      return;
+    }
+
+    for (const fileType of fileTypes) {
+      if (!requiredTypes.includes(fileType)) {
+        next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
+        return;
+      }
+    }
+
+    // Check if the file name is same in recommendation Card
+    if (fileTypes) {
+      for (const fileType of fileTypes) {
+        if (
+          latestUpdatedInformativeRecommendation[fileType] &&
+          request.files[fileType].name === latestUpdatedInformativeRecommendation[fileType].name
+        ) {
+          next(new ApiError('Informative Recommendation file has same name!', httpCodes.BAD_REQUEST));
+          return;
+        }
+      }
+    }
+
+    const fileResults = await fileResult(latestUpdatedInformativeRecommendation._id, userId, request, fileTypes);
+
+    for (let key in fileResults) {
+      const fileUploadResult = fileResults[key];
+      if (fileUploadResult && !fileUploadResult.success) {
+        next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
+        return;
+      }
+    }
+  }
+
+  const editedFileInformativeRecommendation = await InformativeRecommendation.findOne({
+    _id: latestUpdatedInformativeRecommendation._id,
+    isDeleted: false,
+  });
+  if (!editedFileInformativeRecommendation) {
+    next(new ApiError('Edited File RecommendationCard not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
   response
     .status(httpCodes.OK)
-    .json({ success: true, data: { informativeRecommendation: editedInformativeRecommendation }, error: null });
+    .json({ success: true, data: { informativeRecommendation: editedFileInformativeRecommendation }, error: null });
   return;
 });
 
@@ -327,6 +443,106 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   response.status(httpCodes.OK).json({ success: true, data: { deletedInformativeRecommendation }, error: null });
   return;
 });
+
+// Helpers for this controller.
+async function fileResult(recommendationCard, userId, req, fileTypes) {
+  if (req.files && Object.keys(req.files).length) {
+    const resultObj = {};
+
+    for (const fileType of fileTypes) {
+      resultObj[`${fileType}Result`] = null;
+    }
+
+    for (const fileType of fileTypes) {
+      if (req.files[fileType]) {
+        const fileUploadResult = await uploadFile(recommendationCard, userId, req, fileType);
+        resultObj[`${fileType}Result`] = fileUploadResult;
+      }
+    }
+
+    return resultObj;
+  }
+}
+
+const uploadFile = async (informativeRecommendationId, userId, request, fileType) => {
+  // if (!request.files[fileType]) {
+  //   return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
+  // }
+
+  // const allowedFileTypes = ['thumbnail'];
+
+  // if (!allowedFileTypes.includes(fileType)) {
+  //   return {
+  //     success: false,
+  //     data: null,
+  //     error: `File Type ${fileType} must be of ${allowedFileTypes}`,
+  //     code: httpCodes.BAD_REQUEST,
+  //   };
+  // }
+
+  const { data, mimetype, name, size } = request.files[fileType];
+
+  const type = mimetype.split('/').pop();
+
+  let allowedTypes = ['jpeg', 'jpg', 'png'];
+
+  if (!allowedTypes.includes(type)) {
+    return { success: false, data: null, error: `Wrong ${fileType} type!`, code: httpCodes.BAD_REQUEST };
+  }
+
+  const informativeRecommendation = await InformativeRecommendation.findOne({ _id: informativeRecommendationId });
+  if (!informativeRecommendation) {
+    return {
+      success: false,
+      data: null,
+      error: 'InformativeRecommendation not found!',
+      code: httpCodes.INTERNAL_ERROR,
+    };
+  }
+
+  if (informativeRecommendation[fileType] && informativeRecommendation[fileType].name === name) {
+    return {
+      success: true,
+      data: { updatedInformativeRecommendation: informativeRecommendation },
+      error: null,
+      code: null,
+    };
+  }
+
+  const fileName = `${informativeRecommendation._id}_${fileType}_${Date.now()}.${type}`;
+  const filePath = path.join(__dirname, `../../public/informativerecommendations/${fileName}`);
+
+  try {
+    fs.writeFileSync(filePath, data, { encoding: 'utf-8' });
+  } catch (error) {
+    return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
+  }
+
+  const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
+  const fileURL = `${publicURL}/informativerecommendations/${fileName}`;
+
+  const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
+    { _id: informativeRecommendation._id },
+    {
+      $set: {
+        [fileType]: {
+          url: fileURL,
+          name: name,
+          mimetype: mimetype,
+          size: size,
+        },
+        updatedBy: userId,
+        updatedAt: new Date(Date.now()),
+      },
+    },
+    { new: true }
+  );
+  if (!updatedInformativeRecommendation) {
+    return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
+  }
+
+  return { success: true, data: { updatedInformativeRecommendation }, error: null, code: null };
+};
 
 // Exports of this file.
 module.exports = { getAll, getOne, create, deleteOne, updateOne };

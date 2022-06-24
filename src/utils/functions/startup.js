@@ -29,7 +29,14 @@ const initPublicFolder = async () => {
   const publicFolderExists = fs.existsSync(pathToPublicFolder);
   if (!publicFolderExists) fs.mkdirSync(pathToPublicFolder);
 
-  const childFolders = ['recommendationcards', 'advertisements', 'companies', 'stories'];
+  const childFolders = [
+    'baserecommendations',
+    'informativerecommendations',
+    'recommendationcards',
+    'advertisements',
+    'companies',
+    'stories',
+  ];
   for (const childFolder of childFolders) {
     const pathToChildFolder = path.join(__dirname, `../../../public/${childFolder}`);
 
