@@ -1,6 +1,8 @@
 // Imports: local files.
 const User = require('./User');
 const Recommendation = require('./Recommendation');
+const BaseRecommendation = require('./BaseRecommendation');
+const InformativeRecommendation = require('./InformativeRecommendation');
 const RecommendationCard = require('./RecommendationCard');
 const Subscription = require('./Subscription');
 const SubscriptionType = require('./SubscriptionType');
@@ -15,6 +17,8 @@ const Advertisement = require('./Advertisement');
 const bundler = {
   User,
   Recommendation,
+  BaseRecommendation,
+  InformativeRecommendation,
   RecommendationCard,
   Subscription,
   SubscriptionType,

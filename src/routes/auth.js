@@ -7,6 +7,7 @@ const { authController } = require('../controllers');
 const { authValidator } = require('../validations');
 const { validate } = require('../utils/functions');
 const { httpVerbs } = require('../configs');
+const { authorize } = require('../middlewares');
 
 // Define routes here.
 const routes = [
@@ -16,9 +17,14 @@ const routes = [
     middlewares: [authController.authenticate],
   },
   {
+    path: '/getMe',
+    method: httpVerbs.GET,
+    middlewares: [authorize, authController.getMe],
+  },
+  {
     path: '/update',
     method: httpVerbs.PUT,
-    middlewares: [validate(authValidator.login), authController.update],
+    middlewares: [authorize, validate(authValidator.update), authController.update],
   },
   {
     path: '/forgot',

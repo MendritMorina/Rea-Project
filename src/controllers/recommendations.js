@@ -2,8 +2,8 @@
 const { Recommendation, RecommendationCard } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
-const { filterValues } = require('../utils/functions');
-const { httpCodes } = require('../configs');
+const { filterValues, checkValidValues } = require('../utils/functions');
+const { httpCodes, staticValues } = require('../configs');
 
 /**
  * @description Get all recommendations.
@@ -111,11 +111,19 @@ const getRandomOne = asyncHandler(async (request, response, next) => {
     airQuery = 'Shume e dobet';
   }
 
+  // const query1A = {
+  //   $and: [
+  //     { haveDiseaseDiagnosis: { $size: 1, $all: userInfo.haveDiseaseDiagnosis } },
+  //     { energySource: { $size: 2, $all: userInfo.energySource } },
+  //     { hasChildrenDisease: { $size: 1, $all: userInfo.hasChildrenDisease } },
+  //   ],
+  // };
+
   const query1A = {
     $and: [
-      { haveDiseaseDiagnosis: { $size: 1, $all: userInfo.haveDiseaseDiagnosis } },
-      { energySource: { $size: 2, $all: userInfo.energySource } },
-      { hasChildrenDisease: { $size: 1, $all: userInfo.hasChildrenDisease } },
+      { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
+      { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
+      { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
     ],
   };
 
@@ -235,8 +243,12 @@ const create = asyncHandler(async (request, response, next) => {
   const {
     name,
     description,
-    weather,
     aqi,
+    age,
+    airQuality,
+    gender,
+    type,
+    isPregnant,
     haveDiseaseDiagnosis,
     energySource,
     hasChildren,
@@ -250,13 +262,49 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  if (isPregnant && !gender.includes('Femër')) {
+    next(
+      new ApiError(
+        "You cannot create a recommendation where is pregnant is equal to true and gender doesn't incude female!",
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
+    next(
+      new ApiError(
+        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+
+  for (const type of types) {
+    if (request.body[type]) {
+      const result = checkValidValues(type, request.body[type]);
+      if (result && result.error) {
+        next(new ApiError(result.error, result.code));
+        return;
+      }
+    }
+  }
+
   const payload = {
     name,
     description,
-    weather,
     aqi,
+    age,
+    gender,
+    type,
+    airQuality,
     haveDiseaseDiagnosis,
     energySource,
+    isPregnant,
     hasChildren,
     hasChildrenDisease,
     category,
@@ -285,8 +333,12 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const {
     name,
     description,
-    weather,
     aqi,
+    age,
+    type,
+    gender,
+    isPregnant,
+    airQuality,
     haveDiseaseDiagnosis,
     energySource,
     hasChildren,
@@ -303,16 +355,62 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const payload = {
     name,
     description,
-    weather,
     haveDiseaseDiagnosis,
     energySource,
     aqi,
+    age,
+    type,
+    gender,
+    airQuality,
+    isPregnant,
     hasChildren,
     hasChildrenDisease,
     category,
     updatedBy: userId,
     updatedAt: new Date(Date.now()),
   };
+
+  if (isPregnant && !gender.includes('Femër')) {
+    next(
+      new ApiError(
+        "You cannot create a recommendation where is pregnant is equal to true and gender doesn't incude female!",
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0) {
+    next(
+      new ApiError(
+        'You cannot create a recommendation where it has children disease and has no children!',
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
+    next(
+      new ApiError(
+        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+
+  for (const type of types) {
+    if (request.body[type]) {
+      const result = checkValidValues(type, request.body[type]);
+      if (result && result.error) {
+        next(new ApiError(result.error, result.code));
+        return;
+      }
+    }
+  }
 
   const editedRecommendation = await Recommendation.findOneAndUpdate(
     { _id: recommendation._id },

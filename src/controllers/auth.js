@@ -5,8 +5,8 @@ const { getAuth } = require('firebase-admin/auth');
 const { Admin, User } = require('../models');
 const { ApiError } = require('../utils/classes');
 const { asyncHandler } = require('../middlewares');
-const { httpCodes } = require('../configs');
-const { jwt } = require('../utils/functions');
+const { httpCodes, staticValues } = require('../configs');
+const { jwt, checkValidValues } = require('../utils/functions');
 
 /**
  * @description Authenticate an user .
@@ -14,7 +14,19 @@ const { jwt } = require('../utils/functions');
  * @access      Public.
  */
 const authenticate = asyncHandler(async (request, response, next) => {
-  const { name, surname, token } = request.body;
+  const { name, surname } = request.body;
+  const { authorization } = request.headers;
+
+  if (!authorization) {
+    next(new ApiError('Missing auth header!', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  const [bearer, token] = authorization.split(' ');
+  if (!bearer || bearer !== 'Bearer' || !token) {
+    next(new ApiError('Wrong auth header!', httpCodes.UNAUTHORIZED));
+    return;
+  }
 
   const decodedToken = await getAuth().verifyIdToken(token);
   if (!decodedToken) {
@@ -61,14 +73,15 @@ const authenticate = asyncHandler(async (request, response, next) => {
  */
 const update = asyncHandler(async (request, response, next) => {
   const userId = request.user._id;
+  // const userId = '628253c7a69fe7319f35261e';
   const {
     name,
     surname,
     email,
     age,
     gender,
-    weather,
     aqi,
+    isPregnant,
     haveDiseaseDiagnosis,
     energySource,
     hasChildren,
@@ -87,13 +100,49 @@ const update = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  if (age && !staticValues.age.includes(age)) {
+    next(new ApiError(`The value of ${age} is not in allowed values : ${staticValues.age} !`, httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  if (gender && !staticValues.gender.includes(gender)) {
+    next(
+      new ApiError(`The value of ${gender} is not in allowed values : ${staticValues.gender} !`, httpCodes.BAD_REQUEST)
+    );
+    return;
+  }
+
+  if (isPregnant && gender !== 'Femër') {
+    next(new ApiError('You cannot create a user where is pregnant and is not female!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0) {
+    next(
+      new ApiError('You cannot create a user where it has children disease and has no children!', httpCodes.BAD_REQUEST)
+    );
+    return;
+  }
+
+  const types = ['haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+
+  for (const type of types) {
+    if (request.body[type]) {
+      const result = checkValidValues(type, request.body[type]);
+      if (result && result.error) {
+        next(new ApiError(result.error, result.code));
+        return;
+      }
+    }
+  }
+
   const payload = {
     name,
     surname,
     email,
     age,
     gender,
-    weather,
+    isPregnant,
     haveDiseaseDiagnosis,
     energySource,
     aqi,
@@ -102,6 +151,7 @@ const update = asyncHandler(async (request, response, next) => {
     updatedBy: userId,
     updatedAt: new Date(Date.now()),
   };
+
   const editedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: payload }, { new: true });
   if (!editedUser) {
     next(new ApiError('Failed to update user!', httpCodes.INTERNAL_ERROR));
@@ -156,6 +206,30 @@ const adminLogin = asyncHandler(async (request, response, next) => {
 });
 
 /**
+ * @description Get current logged in user
+ * @route       POST /api/auth/getMe.
+ * @access      Private.
+ */
+const getMe = asyncHandler(async (request, response, next) => {
+  const { _id: userId } = request.user;
+
+  const user = await User.findOne({ _id: userId, isDeleted: false });
+  if (!user) {
+    next(new ApiError('User is not registred in database!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const firebaseUser = await getAuth().getUser(user.firebaseUid);
+
+  if (!firebaseUser) {
+    next(new ApiError('User is not registred in firebase!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  response.status(httpCodes.OK).json({ success: true, data: { user }, error: null });
+});
+
+/**
  * @description Forgot password.
  * @route       POST /api/auth/forgot.
  * @access      Public.
@@ -174,4 +248,4 @@ const reset = asyncHandler(async (request, response, next) => {
 });
 
 // Exports of this file.
-module.exports = { authenticate, update, adminLogin, forgot, reset };
+module.exports = { authenticate, update, adminLogin, forgot, reset, getMe };

@@ -42,7 +42,7 @@ const authorize = asyncHandler(async (request, response, next) => {
 
   const user = await User.findOne({ isDeleted: false, firebaseUid: uid });
   if (!user) {
-    next(new ApiError('Unauthorized!', httpCodes.UNAUTHORIZED));
+    next(new ApiError('User is not registred in database!', httpCodes.UNAUTHORIZED));
     return;
   }
 

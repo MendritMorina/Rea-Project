@@ -28,10 +28,24 @@ const RecommendationCardSchema = new mongoose.Schema({
   thumbnail: {
     ...File,
   },
+  // recommendation: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Recommendation',
+  //   required: false,
+  // },
+  viewCounter: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   recommendation: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Recommendation',
     required: false,
+  },
+  type: {
+    type: String,
+    required: false,
+    enum: ['base', 'informative'],
   },
   ...Base,
 });

@@ -8,6 +8,7 @@ const validator = {
       page: Joi.number().optional().default(1),
       limit: Joi.number().optional().default(10),
       pagination: Joi.boolean().optional().default(true),
+      category: Joi.string().optional().default(null).allow(null, 'Child', 'Adult'),
     }),
   },
   getAllAdmin: {
@@ -15,6 +16,7 @@ const validator = {
       page: Joi.number().optional().default(1),
       limit: Joi.number().optional().default(10),
       pagination: Joi.boolean().optional().default(true),
+      category: Joi.string().optional().default(null).allow(null, 'Child', 'Adult'),
     }),
   },
   createStory: {
