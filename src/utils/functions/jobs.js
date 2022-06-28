@@ -3,18 +3,15 @@ const schedule = require('node-schedule');
 const axios = require('axios');
 
 // Imports: local files.
-//const AQI = require('../../models/AQI');
+const AQI = require('../../models/AQI');
+
+const removeDataDB = async () => {
+  await AQI.deleteMany({});
+};
+removeDataDB();
 
 const getAPI = async () => {
-  try {
-    const res = await axios.get(
-      'https://airqualitykosova.rks-gov.net/dataservices/open/ForecastDataJSON?offsetHour=-5'
-    );
-    //console.log(res.data);
-    return res.data;
-  } catch (err) {
-    //console.log(err);
-  }
+  await axios.get('https://airqualitykosova.rks-gov.net/dataservices/open/ForecastDataJSON?offsetHour=0');
 };
 
 // Function that is used to init all jobs.
@@ -23,7 +20,7 @@ const initJobs = () => {
   //   await getAPI();
   // });
   schedule.scheduleJob('* * * * *', async () => {
-    await getAPI();
+    // await getAPI();
   });
 };
 // Exports of this file.

@@ -328,7 +328,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
     return { success: true, data: { updatedStory: story }, error: null, code: null };
   }
 
-  const fileName = `${story._id}_${fileType}_${Date.now()}.${type}`;
+  const fileName = `${story._id}_${fileType}_${Date.now()}.${type === 'mpeg' ? 'mp3' : type}`;
   const filePath = path.join(__dirname, `../../public/stories/${fileName}`);
 
   try {
