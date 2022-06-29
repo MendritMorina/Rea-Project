@@ -25,6 +25,16 @@ const RecommendationCardSchema = new mongoose.Schema({
     required: false,
     enum: ['base', 'informative'],
   },
+  order: {
+    type: Number,
+    required: false,
+    default: null,
+  },
+  reorderId: {
+    type: String,
+    required: false,
+    default: null,
+  },
   ...Base,
 });
 

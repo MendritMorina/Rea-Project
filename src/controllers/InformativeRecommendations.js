@@ -26,8 +26,42 @@ const getAll = asyncHandler(async (request, response) => {
     populate: 'baseRecommendations recommendationCards',
   };
 
-  const query = { isDeleted: false };
-  const informativeRecommendations = await InformativeRecommendation.paginate(query, options);
+  const query = InformativeRecommendation.aggregate([
+    { $match: { isDeleted: false } },
+    {
+      $lookup: {
+        from: 'recommendationcards',
+        localField: 'recommendationCards',
+        foreignField: '_id',
+        as: 'recommendationCards',
+      },
+    },
+    {
+      $lookup: {
+        from: 'baserecommendations',
+        localField: 'baseRecommendations',
+        foreignField: '_id',
+        as: 'baseRecommendations',
+      },
+    },
+    { $unwind: '$recommendationCards' },
+    { $sort: { 'recommendationCards.order': 1 } },
+    {
+      $group: {
+        _id: '$_id',
+        name: { $first: '$name' },
+        description: { $first: '$description' },
+        thumbnail: { $first: '$thumbnail' },
+        isGeneric: { $first: '$isGeneric' },
+        baseRecommendations: { $first: '$baseRecommendations' },
+        recommendationCards: { $push: '$recommendationCards' },
+      },
+    },
+  ]);
+
+  // const query = { isDeleted: false };
+  // const informativeRecommendations = await InformativeRecommendation.paginate(query, options);
+  const informativeRecommendations = await InformativeRecommendation.aggregatePaginate(query, options);
 
   response.status(httpCodes.OK).json({ success: true, data: { informativeRecommendations }, error: null });
   return;
@@ -366,7 +400,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const editedFileInformativeRecommendation = await InformativeRecommendation.findOne({
     _id: latestUpdatedInformativeRecommendation._id,
     isDeleted: false,
-  });
+  }).populate('recommendationCards');
   if (!editedFileInformativeRecommendation) {
     next(new ApiError('Edited File RecommendationCard not found!', httpCodes.NOT_FOUND));
     return;
