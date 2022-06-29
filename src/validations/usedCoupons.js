@@ -29,7 +29,7 @@ const validator = {
         .regex(/^[0-9a-fA-F]{24}$/)
         .optional()
         .default(null),
-      isUsed: Joi.number().optional().default(1).allow(null, 0, 1),
+      isUsed: Joi.number().optional().default(null).allow(null, 0, 1),
       couponId: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .optional()

@@ -7,9 +7,10 @@ const validate = require('./validate');
 const filterValues = require('./filterValues');
 const checkValidValues = require('./checkValidValues');
 const startup = require('./startup');
+const initJobs = require('./jobs');
 
 // Bundler object that is used to export all functions inside ./src/utils/functions.
-const bundler = { env, getMode, db, jwt, validate, startup, filterValues, checkValidValues };
+const bundler = { env, getMode, db, jwt, validate, startup, filterValues, initJobs, checkValidValues };
 
 // Exports of this file.
 module.exports = bundler;

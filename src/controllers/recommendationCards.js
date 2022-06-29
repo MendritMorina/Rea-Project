@@ -526,17 +526,6 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
 });
 
 const getRandomInformativeRecommendationCards = asyncHandler(async (request, response, next) => {
-  // const userInfo = {
-  //   age: '20-30',
-  //   gender: 'male',
-  //   haveDiseaseDiagnosis: ['Sëmundje të frymëmarrjes/mushkërive', 'Sëmundje të zemrës (kardiovaskulare)'],
-  //   energySource: ['Qymyr', 'Gas'],
-  //   hasChildren: true,
-  //   hasChildrenDisease: ['Diabetin', 'Sëmundje neurologjike'],
-  //   aqi: 250,
-  //   city: 'prishtina',
-  // };
-
   const { _id: userId } = request.user;
 
   const user = await User.findOne({ _id: userId, isDeleted: false });
@@ -544,15 +533,16 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     next(new ApiError('User not found!', httpCodes.NOT_FOUND));
     return;
   }
+  console.log(user);
 
   const userInfo = {
     haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
     energySource: user.energySource,
     hasChildrenDisease: user.hasChildrenDisease,
   };
+  console.log(userInfo);
 
   const airQuery = airQueryFromAqi(userInfo.aqi);
-
   const query = {
     $and: [
       { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
@@ -561,80 +551,33 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     ],
   };
 
-  const baseRecommendation = await BaseRecommendation.findOne(query)
-    .populate('informativeRecommendations')
-    .populate('recommendationCards');
-
+  const baseRecommendation = await BaseRecommendation.findOne(query).populate({
+    path: 'informativeRecommendations',
+    populate: [{ path: 'recommendationCards' }],
+  });
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
     return;
   }
 
+  console.log(baseRecommendation);
+
   const informativeRecommendations = baseRecommendation.informativeRecommendations;
-
-  const randomInformativeRecommendation =
-    informativeRecommendations[parseInt(Math.random() * informativeRecommendations.length)];
-
-  const randInfoRec = await InformativeRecommendation.findOne({
-    isDeleted: false,
-    _id: randomInformativeRecommendation._id,
-  }).populate('recommendationCards');
-
-  if (!randInfoRec) {
-    next(new ApiError('Failed to find the random informative recommendation in database!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  // const genericInfoRec = await InformativeRecommendation.findOne({
-  //   isDeleted: false,
-  //   isGeneric: true,
-  // }).populate('recommendationCards');
-
-  // if (!genericInfoRec) {
-  //   next(new ApiError('Failed to find the generic informative recommendation in database!', httpCodes.NOT_FOUND));
-  //   return;
-  // }
-
-  // const allCards = randInfoRec.recommendationCards.concat(genericInfoRec.recommendationCards);
-
-  const genericInfoReccs = await InformativeRecommendation.find({
+  const genericInfoRecs = await InformativeRecommendation.find({
     isDeleted: false,
     isGeneric: true,
   }).populate('recommendationCards');
 
-  const allCards = [];
-
-  for (const card of randInfoRec.recommendationCards) {
-    allCards.push(card);
+  const randoms = [...genericInfoRecs, ...informativeRecommendations];
+  const random = randoms[parseInt(Math.random() * randoms.length)];
+  if (!random) {
+    next(new ApiError('Failed to find the random !', httpCodes.NOT_FOUND));
+    return;
   }
-
-  for (const genericInfoRecc of genericInfoReccs) {
-    const genericInfoReccCards = genericInfoRecc.recommendationCards;
-
-    for (const card of genericInfoReccCards) {
-      allCards.push(card);
-    }
-  }
-
-  // const randomInformativeRecommendationCards = randInfoRec.recommendationCards;
-
-  // const randomInformativeRecommendationCards = randomInformativeRecommendation.recommendationCards;
-
-  // const genericInformativeRecommendations = await InformativeRecommendation.find({ isDeleted: false, isGeneric: true });
-
-  // for (const genericInformativeRecommendation of genericInformativeRecommendations) {
-  //   const genericInformativeRecommendationRecommendationCards = genericInformativeRecommendation.recommendationCards;
-
-  //   for (const genericCard of genericInformativeRecommendationRecommendationCards) {
-  //     if (!randomInformativeRecommendationCards.includes(genericCard)) {
-  //       randomInformativeRecommendationCards.push(genericCard);
-  //     }
-  //   }
-  // }
 
   response.status(httpCodes.OK).json({
     success: true,
-    data: { thumbnail: randInfoRec.thumbnail, allCards },
+    data: { random },
     error: null,
   });
   return;

@@ -46,14 +46,13 @@ const StorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  narratorPhoto: {
+    ...File,
+  },
   category: {
     type: String,
     enum: ['Child', 'Adult'],
     required: false,
-  },
-  length: {
-    type: Number,
-    required: true,
   },
   ...Base,
 });
