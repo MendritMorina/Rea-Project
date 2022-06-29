@@ -250,56 +250,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // if (recommendationCard.order !== editedRecommendationCard.order) {
-  //   const recommendationCards = await RecommendationCard.find({ recommendation: recommendationCard.recommendation });
-  //   if (!recommendationCards || !recommendationCards.length) {
-  //     return;
-  //   }
-
-  //   for (const oldRecommendationCardOrder of recommendationCards) {
-  //     if (
-  //       oldRecommendationCardOrder.order >= recommendationCard.order &&
-  //       oldRecommendationCardOrder.order <= editedRecommendationCard.order &&
-  //       oldRecommendationCardOrder.reorderId !== recommendationCard.reorderId
-  //     ) {
-  //       oldRecommendationCardOrder.order = oldRecommendationCardOrder.order - 1;
-  //     } else if (
-  //       oldRecommendationCardOrder.order <= recommendationCard.order &&
-  //       oldRecommendationCardOrder.order >= editedRecommendationCard.order &&
-  //       oldRecommendationCardOrder.reorderId !== recommendationCard.reorderId
-  //     ) {
-  //       oldRecommendationCardOrder.order = oldRecommendationCardOrder.order + 1;
-  //     }
-
-  //     await oldRecommendationCardOrder.save();
-  //   }
-  // }
-
-  if (recommendationCard.order !== editedRecommendationCard.order) {
-    const recommendationCards = await RecommendationCard.find({ recommendation: recommendationCard.recommendation });
-    if (!recommendationCards || !recommendationCards.length) {
-      return;
-    }
-
-    for (const oldRecommendationCardOrder of recommendationCards) {
-      if (
-        oldRecommendationCardOrder.order >= recommendationCard.order &&
-        oldRecommendationCardOrder.order <= order &&
-        oldRecommendationCardOrder.reorderId !== recommendationCard.reorderId
-      ) {
-        oldRecommendationCardOrder.order = oldRecommendationCardOrder.order - 1;
-      } else if (
-        oldRecommendationCardOrder.order <= recommendationCard.order &&
-        oldRecommendationCardOrder.order >= order &&
-        oldRecommendationCardOrder.reorderId !== recommendationCard.reorderId
-      ) {
-        oldRecommendationCardOrder.order = oldRecommendationCardOrder.order + 1;
-      }
-
-      await oldRecommendationCardOrder.save();
-    }
-  }
-
   if (recommendation !== recommendationCard.recommendation && recommendation !== null) {
     if (type === 'base') {
       const updatedPullOldBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
