@@ -63,7 +63,7 @@ const getAll = asyncHandler(async (request, response, next) => {
         isUsed: 1,
         usedAt: 1,
         'company.name': 1,
-        'company.log': 1,
+        'company.logo': 1,
         'company.email': 1,
         'company.number': 1,
         'coupon.discount': 1,
@@ -123,7 +123,7 @@ const getNumberOfUses = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
   const { couponId } = request.body;
-  
+
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
     next(new ApiError('Coupon with given id not found', httpCodes.NOT_FOUND));
