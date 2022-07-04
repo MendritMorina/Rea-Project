@@ -174,7 +174,6 @@ const create = asyncHandler(async (request, response, next) => {
 const use = asyncHandler(async (request, response, next) => {
   const { couponId, couponCode } = request.body;
 
-  console.log(couponId, 'couponId');
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
     next(new ApiError('Coupon with given id not found', httpCodes.NOT_FOUND));
