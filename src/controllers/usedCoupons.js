@@ -25,8 +25,6 @@ const getAll = asyncHandler(async (request, response, next) => {
   if (isUsed === 1) query['isUsed'] = true;
   else if (isUsed === 0) query['isUsed'] = false;
 
-  //console.log(query);
-
   const usedCouponsAggregate = UsedCoupon.aggregate([
     {
       $lookup: {
@@ -90,6 +88,8 @@ const getAll = asyncHandler(async (request, response, next) => {
  */
 const getOne = asyncHandler(async (request, response, next) => {
   const { couponCode } = request.params;
+
+  console.log('couponCode', couponCode);
 
   const usedCoupon = await UsedCoupon.findOne({ couponCode, isDeleted: false }).populate('coupon').populate('userId');
   if (!usedCoupon) {
