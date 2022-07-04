@@ -1,6 +1,7 @@
 // Imports: core node modules.
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 
 // Imports: local files.
 const { InformativeRecommendation, BaseRecommendation, RecommendationCard } = require('../models');
@@ -75,18 +76,48 @@ const getAll = asyncHandler(async (request, response) => {
 const getOne = asyncHandler(async (request, response, next) => {
   const { informativeRecommendationId } = request.params;
 
-  const informativeRecommendation = await InformativeRecommendation.findOne({
-    _id: informativeRecommendationId,
-    isDeleted: false,
-  })
-    .populate('recommendationCards')
-    .populate('baseRecommendations');
-  if (!informativeRecommendation) {
-    next(new ApiError('Informative Recommendation with given id not found!', httpCodes.NOT_FOUND));
+  const query = InformativeRecommendation.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(informativeRecommendationId), isDeleted: false } },
+    {
+      $lookup: {
+        from: 'recommendationcards',
+        localField: 'recommendationCards',
+        foreignField: '_id',
+        as: 'recommendationCards',
+      },
+    },
+    {
+      $lookup: {
+        from: 'baserecommendations',
+        localField: 'baseRecommendations',
+        foreignField: '_id',
+        as: 'baseRecommendations',
+      },
+    },
+    { $unwind: '$recommendationCards' },
+    { $sort: { 'recommendationCards.order': 1 } },
+    {
+      $group: {
+        _id: '$_id',
+        name: { $first: '$name' },
+        description: { $first: '$description' },
+        thumbnail: { $first: '$thumbnail' },
+        isGeneric: { $first: '$isGeneric' },
+        baseRecommendations: { $first: '$baseRecommendations' },
+        recommendationCards: { $push: '$recommendationCards' },
+      },
+    },
+  ]);
+  const informativeRecommendation = await InformativeRecommendation.aggregatePaginate(query, { pagination: false });
+
+  if (!informativeRecommendation && !informativeRecommendation.docs) {
+    next(new ApiError('Base Recommendation with given id not found!', httpCodes.NOT_FOUND));
     return;
   }
 
-  response.status(httpCodes.OK).json({ success: true, data: { informativeRecommendation }, error: null });
+  response
+    .status(httpCodes.OK)
+    .json({ success: true, data: { informativeRecommendation: informativeRecommendation.docs[0] }, error: null });
   return;
 });
 
