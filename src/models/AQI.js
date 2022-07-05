@@ -9,19 +9,25 @@ const AQISchema = new mongoose.Schema({
     required: true,
     default: Date.now,
   },
-  x: {
-    type: Number,
-    required: true,
-  },
-  y: {
-    type: Number,
-    required: true,
+  geometry: {
+    type: {
+      type: String,
+      required: true,
+    },
+    coordinates: {
+      type: Array,
+      default: [],
+    },
   },
   pm10: {
     type: Number,
     required: true,
   },
   pm25: {
+    type: Number,
+    required: true,
+  },
+  so2: {
     type: Number,
     required: true,
   },
@@ -43,7 +49,7 @@ const AQISchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    required: false,
+    required: true,
     default: Date.now,
   },
 });

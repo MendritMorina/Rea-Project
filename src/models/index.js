@@ -12,7 +12,8 @@ const Coupon = require('./Coupon');
 const Story = require('./Story');
 const UsedCoupon = require('./UsedCoupon');
 const Advertisement = require('./Advertisement');
-
+const AQI = require('./AQI');
+const Cronjob = require('./Cronjob');
 // Bundler object that is used to export all models inside ./src/models.
 const bundler = {
   User,
@@ -28,6 +29,8 @@ const bundler = {
   Story,
   UsedCoupon,
   Advertisement,
+  AQI,
+  Cronjob,
 };
 
 // Exports of this file.

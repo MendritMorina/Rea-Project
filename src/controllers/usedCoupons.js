@@ -91,7 +91,10 @@ const getAll = asyncHandler(async (request, response, next) => {
 const getOne = asyncHandler(async (request, response, next) => {
   const { couponCode } = request.params;
 
-  const usedCoupon = await UsedCoupon.findOne({ couponCode, isDeleted: false }).populate('coupon').populate('userId');
+  const usedCoupon = await UsedCoupon.findOne({ couponCode, isDeleted: false })
+    .populate('coupon')
+    .populate('user')
+    .populate('company');
   if (!usedCoupon) {
     next(new ApiError('Used Coupon with given code was not found!', httpCodes.NOT_FOUND));
     return;
@@ -123,7 +126,7 @@ const getNumberOfUses = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
   const { couponId } = request.body;
-  
+
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
     next(new ApiError('Coupon with given id not found', httpCodes.NOT_FOUND));

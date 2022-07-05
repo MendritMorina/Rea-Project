@@ -30,6 +30,7 @@ const {
   companyRouter,
   storyRouter,
   usedCouponRouter,
+  aqiRouter,
 } = require('./routes');
 
 // Use general middleware.
@@ -49,6 +50,7 @@ app.use('/api/coupons', couponRouter);
 app.use('/api/companies', companyRouter);
 app.use('/api/stories', storyRouter);
 app.use('/api/usedCoupons', usedCouponRouter);
+app.use('/api/links', aqiRouter);
 
 // Use error handling middleware.
 app.use(errorHandler);

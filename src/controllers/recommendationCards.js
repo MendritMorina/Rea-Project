@@ -1,6 +1,7 @@
 // Imports: core node modules.
 const fs = require('fs');
 const path = require('path');
+const aqiCalculator = require('aqi-calculator');
 
 // Imports: local files.
 const {
@@ -9,6 +10,7 @@ const {
   BaseRecommendation,
   InformativeRecommendation,
   User,
+  AQI,
 } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
@@ -526,24 +528,53 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     next(new ApiError('User not found!', httpCodes.NOT_FOUND));
     return;
   }
-  console.log(user);
 
   const userInfo = {
     haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
     energySource: user.energySource,
     hasChildrenDisease: user.hasChildrenDisease,
   };
-  console.log(userInfo);
 
   const airQuery = airQueryFromAqi(userInfo.aqi);
   const query = {
     $and: [
+      { airQuality: airQuery },
       { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
       { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
       { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
     ],
   };
+  //------------------------------------------------------------------
+  const newestToOldest = await AQI.find().sort({ createdAt: -1 }); //   1: 2020,2021,2022...  , -1:2022,2021,2020
 
+  const nearestPoint = await AQI.find({
+    location: {
+      $near: {
+        $geometry: {
+          type: 'Point',
+          coordinates: [request.body.longitude, request.body.latitude],
+        },
+      },
+    },
+  });
+
+  const DATA = [
+    {
+      datetime: Date.now(),
+      pm25: 5,
+      pm10: 10,
+      so2: 50,
+      //no: ,
+      //nox: ,
+      no2: 30,
+      o3: 20,
+      //co: ,
+    },
+  ];
+
+  const AQI = aqiCalculator(DATA);
+
+  //-------------------------------------------------------------------
   const baseRecommendation = await BaseRecommendation.findOne(query).populate({
     path: 'informativeRecommendations',
     populate: [{ path: 'recommendationCards' }],
@@ -552,8 +583,6 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
     return;
   }
-
-  console.log(baseRecommendation);
 
   const informativeRecommendations = baseRecommendation.informativeRecommendations;
   const genericInfoRecs = await InformativeRecommendation.find({
@@ -617,16 +646,16 @@ module.exports = {
   viewCardCounter,
 };
 
-function airQueryFromAqi(aqi) {
+function airQueryFromAqi(AQI) {
   let airQuery = '';
 
-  if (aqi >= 1 && aqi <= 50) {
+  if (AQI >= 1 && AQI <= 50) {
     airQuery = 'E mire';
-  } else if (aqi > 50 && aqi <= 100) {
+  } else if (AQI > 50 && AQI <= 100) {
     airQuery = 'E pranueshme';
-  } else if (aqi > 100 && aqi <= 150) {
+  } else if (AQI > 100 && AQI <= 150) {
     airQuery = 'Mesatare';
-  } else if (aqi > 150 && aqi <= 200) {
+  } else if (AQI > 150 && AQI <= 200) {
     airQuery = 'E dobet';
   } else {
     airQuery = 'Shume e dobet';
