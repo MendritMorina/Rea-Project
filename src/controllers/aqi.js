@@ -11,6 +11,7 @@ const getAqiLinks = asyncHandler(async (request, response) => {
   const todayDate = new Date();
   todayDate.setMinutes(0);
   todayDate.setSeconds(0);
+  todayDate.setMilliseconds(0);
   const today = todayDate.toISOString();
 
   const tomorrowDate = new Date(today);

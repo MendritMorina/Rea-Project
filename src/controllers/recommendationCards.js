@@ -529,21 +529,6 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     return;
   }
 
-  const userInfo = {
-    haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
-    energySource: user.energySource,
-    hasChildrenDisease: user.hasChildrenDisease,
-  };
-
-  const airQuery = airQueryFromAqi(userInfo.aqi);
-  const query = {
-    $and: [
-      { airQuality: airQuery },
-      { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
-      { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
-      { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
-    ],
-  };
   //------------------------------------------------------------------
   const newestToOldest = await AQI.find().sort({ createdAt: -1 }); //   1: 2020,2021,2022...  , -1:2022,2021,2020
 
@@ -575,6 +560,23 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
   const AQI = aqiCalculator(DATA);
 
   //-------------------------------------------------------------------
+
+  const userInfo = {
+    haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
+    energySource: user.energySource,
+    hasChildrenDisease: user.hasChildrenDisease,
+  };
+
+  const airQuery = airQueryFromAqi(userInfo.AQI);
+  const query = {
+    $and: [
+      { airQuality: airQuery },
+      { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
+      { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
+      { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
+    ],
+  };
+
   const baseRecommendation = await BaseRecommendation.findOne(query).populate({
     path: 'informativeRecommendations',
     populate: [{ path: 'recommendationCards' }],
