@@ -2,6 +2,9 @@
 const { httpCodes } = require('../configs');
 const { asyncHandler } = require('../middlewares');
 
+const { AQI } = require('../models');
+const geocoder = require('../utils/functions/jobs');
+
 /**
  * @description Get Aqilinks.
  * @route       GET /api/links.
@@ -21,10 +24,6 @@ const getAqiLinks = asyncHandler(async (request, response) => {
   const aftertomorrowDate = new Date(today);
   aftertomorrowDate.setDate(aftertomorrowDate.getDate() + 2);
   const afterTomorrow = aftertomorrowDate.toISOString();
-
-  console.log(today);
-  console.log(tomorrow);
-  console.log(afterTomorrow);
 
   const prishtinaBaseLink = `https://airqualitykosova.rks-gov.net/cgeoserver/kosovo/wms?format=image/png&layers=kosovo:regionstat_view_municipalities&transparent=true&version=1.1.1&tiled=true&srs=EPSG:3857&exceptions=application/vnd.ogc.se_xml&styles=&feature_count=101&service=WMS&request=GetFeatureInfo&bbox=2348145.5089206137,5165920.119625352,2504688.542848654,5322463.153553393&width=256&height=256&query_layers=regionstat_view_municipalities&x=21&y=82&info_format=application/json`;
 
@@ -68,5 +67,33 @@ const getAqiLinks = asyncHandler(async (request, response) => {
   return;
 });
 
+// @desc      Get aqi within a radius
+// @route     GET /api/v1/aqi/radius/:zipcode/:distance
+// @access    Private
+const getaqiInRadius = asyncHandler(async (req, res, next) => {
+  const { zipcode, distance } = req.params;
+
+  // Get lat/lng from geocoder
+  const loc = await geocoder.geocode(zipcode);
+  const lat = loc[0].latitude;
+  const lng = loc[0].longitude;
+
+  // Calc radius using radians
+  // Divide dist by radius of Earth
+  // Earth Radius = 3,963 mi / 6,378 km
+  const radius = distance / 3963;
+
+  const aqi = await AQI.find({
+    location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+  console.log(aqi);
+
+  res.status(200).json({
+    success: true,
+    count: aqi.length,
+    data: aqi,
+  });
+});
+
 // Exports of this file.
-module.exports = { getAqiLinks };
+module.exports = { getAqiLinks, getaqiInRadius };
