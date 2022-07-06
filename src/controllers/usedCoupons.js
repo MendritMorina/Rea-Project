@@ -88,6 +88,7 @@ const getAll = asyncHandler(async (request, response, next) => {
  */
 const getOne = asyncHandler(async (request, response, next) => {
   const { couponCode } = request.params;
+  const { userId } = request.query;
 
   const usedCoupon = await UsedCoupon.findOne({ couponCode, isDeleted: false })
     .populate('coupon')
@@ -96,6 +97,25 @@ const getOne = asyncHandler(async (request, response, next) => {
   if (!usedCoupon) {
     next(new ApiError('Used Coupon with given code was not found!', httpCodes.NOT_FOUND));
     return;
+  }
+
+  const targetCoupon = await Coupon.findOne({ _id: usedCoupon.coupon._id, isDeleted: false });
+  if (!targetCoupon) {
+    next(new ApiError('Coupon not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  if (targetCoupon.type === 'singular') {
+    const usedCoupon = await UsedCoupon.findOne({
+      coupon: targetCoupon._id,
+      user: userId,
+      isUsed: true,
+      isDeleted: false,
+    });
+    if (usedCoupon) {
+      response.status(httpCodes.OK).json({ success: true, data: { usedCoupon }, error: null });
+      return;
+    }
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { usedCoupon }, error: null });
@@ -205,7 +225,6 @@ const use = asyncHandler(async (request, response, next) => {
     { $set: { isUsed: true, usedAt: new Date(Date.now()) } },
     { new: true }
   );
-  console.log('updatedUsedCoupon', updatedUsedCoupon);
   if (!updatedUsedCoupon) {
     next(new ApiError('Failed to use coupon!', httpCodes.INTERNAL_ERROR));
     return;
