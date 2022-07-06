@@ -205,6 +205,7 @@ const use = asyncHandler(async (request, response, next) => {
     { $set: { isUsed: true, usedAt: new Date(Date.now()) } },
     { new: true }
   );
+  console.log('updatedUsedCoupon', updatedUsedCoupon);
   if (!updatedUsedCoupon) {
     next(new ApiError('Failed to use coupon!', httpCodes.INTERNAL_ERROR));
     return;
