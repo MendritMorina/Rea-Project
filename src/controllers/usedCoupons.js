@@ -131,26 +131,6 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const today = new Date(Date.now());
-  const startDate = new Date(coupon.startDate);
-  const expirationDate = new Date(coupon.expirationDate);
-
-  if (!(today >= startDate && today <= expirationDate)) {
-    next(new ApiError('Coupon already expired', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  const usedNumber = await UsedCoupon.countDocuments({
-    user: userId,
-    coupon: coupon._id,
-    isUsed: true,
-    isDeleted: false,
-  });
-  if (coupon.type === 'singular' && usedNumber === 1) {
-    next(new ApiError('Coupon already used', httpCodes.BAD_REQUEST));
-    return;
-  }
-
   const usedCoupon = await UsedCoupon.create({
     user: userId,
     coupon: coupon._id,
@@ -186,6 +166,17 @@ const use = asyncHandler(async (request, response, next) => {
 
   if (!(today >= startDate && today <= expirationDate)) {
     next(new ApiError('Coupon already expired', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  const usedNumber = await UsedCoupon.countDocuments({
+    user: userId,
+    coupon: coupon._id,
+    isUsed: true,
+    isDeleted: false,
+  });
+  if (coupon.type === 'singular' && usedNumber === 1) {
+    next(new ApiError('Coupon already used', httpCodes.BAD_REQUEST));
     return;
   }
 
