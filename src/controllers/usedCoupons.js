@@ -111,7 +111,10 @@ const getOne = asyncHandler(async (request, response, next) => {
       user: userId,
       isUsed: true,
       isDeleted: false,
-    });
+    })
+      .populate('coupon')
+      .populate('user')
+      .populate('company');
     if (usedCoupon) {
       response.status(httpCodes.OK).json({ success: true, data: { usedCoupon }, error: null });
       return;
