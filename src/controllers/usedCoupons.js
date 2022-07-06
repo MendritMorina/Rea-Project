@@ -218,11 +218,6 @@ const use = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (usedCoupon.isUsed) {
-    next(new ApiError('Already used this coupon!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
   const updatedUsedCoupon = await UsedCoupon.findByIdAndUpdate(
     usedCoupon._id,
     { $set: { isUsed: true, usedAt: new Date(Date.now()) } },
