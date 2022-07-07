@@ -2,9 +2,6 @@
 const { httpCodes } = require('../configs');
 const { asyncHandler } = require('../middlewares');
 
-const { AQI } = require('../models');
-const geocoder = require('../utils/functions/jobs');
-
 /**
  * @description Get Aqilinks.
  * @route       GET /api/links.
@@ -67,33 +64,5 @@ const getAqiLinks = asyncHandler(async (request, response) => {
   return;
 });
 
-// @desc      Get aqi within a radius
-// @route     GET /api/v1/aqi/radius/:zipcode/:distance
-// @access    Private
-const getaqiInRadius = asyncHandler(async (req, res, next) => {
-  const { zipcode, distance } = req.params;
-
-  // Get lat/lng from geocoder
-  const loc = await geocoder.geocode(zipcode);
-  const lat = loc[0].latitude;
-  const lng = loc[0].longitude;
-
-  // Calc radius using radians
-  // Divide dist by radius of Earth
-  // Earth Radius = 3,963 mi / 6,378 km
-  const radius = distance / 3963;
-
-  const aqi = await AQI.find({
-    location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
-  });
-  console.log(aqi);
-
-  res.status(200).json({
-    success: true,
-    count: aqi.length,
-    data: aqi,
-  });
-});
-
 // Exports of this file.
-module.exports = { getAqiLinks, getaqiInRadius };
+module.exports = { getAqiLinks };

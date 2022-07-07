@@ -13,11 +13,6 @@ const routes = [
     method: httpVerbs.GET,
     middlewares: [aqiController.getAqiLinks],
   },
-  {
-    path: '/radius',
-    method: httpVerbs.GET,
-    middlewares: [aqiController.getaqiInRadius],
-  },
 ];
 
 // Mount routes accordingly.

@@ -520,27 +520,40 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
   return;
 });
 
+/**
+ * @description Get Random InformativeRecommendationCards.
+ * @route       GET /api/recommendationcards/randomInformativeRecommendationCards
+ * @access      Private.
+ */
 const getRandomInformativeRecommendationCards = asyncHandler(async (request, response, next) => {
+  const { longitude, latitude } = request.body;
   const { _id: userId } = request.user;
-
   const user = await User.findOne({ _id: userId, isDeleted: false });
   if (!user) {
     next(new ApiError('User not found!', httpCodes.NOT_FOUND));
     return;
   }
 
-  //------------------------------------------------------------------
-  const newestToOldest = await AQI.find().sort({ createdAt: -1 }); //   1: 2020,2021,2022...  , -1:2022,2021,2020
-
-  const nearestPoint = await AQI.find({
+  const newestToOldest = await AQI.find({
     location: {
       $near: {
         $geometry: {
           type: 'Point',
-          coordinates: [request.body.longitude, request.body.latitude],
+          coordinates: [longitude, latitude],
         },
       },
     },
+  }).sort({ createdAt: -1 }); //   1: 2020,2021,2022...  , -1:2022,2021,2020
+
+  console.log(newestToOldest);
+
+  const DATA1 = await AQI.find({
+    localtime: localtime,
+    pm25: pm25,
+    pm10: pm10,
+    so2: so2,
+    no2: no2,
+    o3: o3,
   });
 
   const DATA = [
@@ -557,9 +570,25 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     },
   ];
 
-  const AQI = aqiCalculator(DATA);
+  const aqi = aqiCalculator(DATA);
 
-  //-------------------------------------------------------------------
+  function airQueryFromAqi(aqi) {
+    let airQuery = '';
+
+    if (aqi >= 1 && aqi <= 50) {
+      airQuery = 'E mire';
+    } else if (aqi > 50 && aqi <= 100) {
+      airQuery = 'E pranueshme';
+    } else if (aqi > 100 && aqi <= 150) {
+      airQuery = 'Mesatare';
+    } else if (aqi > 150 && aqi <= 200) {
+      airQuery = 'E dobet';
+    } else {
+      airQuery = 'Shume e dobet';
+    }
+
+    return airQuery;
+  }
 
   const userInfo = {
     haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
@@ -567,7 +596,7 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     hasChildrenDisease: user.hasChildrenDisease,
   };
 
-  const airQuery = airQueryFromAqi(userInfo.AQI);
+  const airQuery = airQueryFromAqi(userInfo.aqi);
   const query = {
     $and: [
       { airQuality: airQuery },
@@ -647,24 +676,6 @@ module.exports = {
   getRandomInformativeRecommendationCards,
   viewCardCounter,
 };
-
-function airQueryFromAqi(AQI) {
-  let airQuery = '';
-
-  if (AQI >= 1 && AQI <= 50) {
-    airQuery = 'E mire';
-  } else if (AQI > 50 && AQI <= 100) {
-    airQuery = 'E pranueshme';
-  } else if (AQI > 100 && AQI <= 150) {
-    airQuery = 'Mesatare';
-  } else if (AQI > 150 && AQI <= 200) {
-    airQuery = 'E dobet';
-  } else {
-    airQuery = 'Shume e dobet';
-  }
-
-  return airQuery;
-}
 
 // Helpers for this controller.
 async function fileResult(recommendationCard, userId, req, fileTypes) {

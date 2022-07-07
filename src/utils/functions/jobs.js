@@ -1,7 +1,6 @@
 // Imports: third-party packages.
 const schedule = require('node-schedule');
 const axios = require('axios');
-const NodeGeocoder = require('node-geocoder');
 
 // Imports: local files.
 const AQI = require('../../models/AQI');
@@ -60,14 +59,5 @@ const initJobs = () => {
   });
 };
 
-const options = {
-  provider: process.env.GEOCODER_PROVIDER,
-  httpAdapter: 'https',
-  apiKey: process.env.GEOCODER_API_KEY,
-  formatter: null,
-};
-
-const geocoder = NodeGeocoder(options);
-module.exports = geocoder;
 // Exports of this file.
 module.exports = initJobs;

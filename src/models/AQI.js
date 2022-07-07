@@ -14,30 +14,14 @@ const AQISchema = new mongoose.Schema({
     geometry: {
       type: {
         type: String,
-        enum: ['Point'],
+        required: true,
       },
       coordinates: {
         type: Array,
-        index: '2dsphere',
+        default: [],
       },
     },
-    formattedAddress: String,
-    street: String,
-    city: String,
-    state: String,
-    zipcode: String,
-    country: String,
   },
-  // geometry: {
-  //   type: {
-  //     type: String,
-  //     required: true,
-  //   },
-  //   coordinates: {
-  //     type: Array,
-  //     default: [],
-  //   },
-  // },
   pm10: {
     type: Number,
     required: true,

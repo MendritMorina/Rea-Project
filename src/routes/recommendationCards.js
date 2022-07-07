@@ -19,7 +19,7 @@ const routes = [
   {
     path: '/randomInformativeRecommendationCards',
     method: httpVerbs.GET,
-    middlewares: [authorize, recommendationCardController.getRandomInformativeRecommendationCards],
+    middlewares: [recommendationCardController.getRandomInformativeRecommendationCards],
   },
   {
     path: '/baseRecommendationCards',
