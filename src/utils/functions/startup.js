@@ -3,7 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Imports: local files.
-const { Admin } = require('../../models');
+const { Admin, SubscriptionType } = require('../../models');
+const { subscriptions } = require('../../configs');
 
 // Function that is used to initalize admins located in a json file inside ./src/utils/data/admins.json.
 const initAdmins = async () => {
@@ -45,5 +46,17 @@ const initPublicFolder = async () => {
   }
 };
 
+// Function that is used to add inital subscription types in oru API.
+const addAppleSubscriptionTypes = async () => {
+  for (const key in subscriptions) {
+    const currentSubscription = subscriptions[key];
+
+    const typeExists = (await SubscriptionType.countDocuments({ appleId: currentSubscription.appleId })) > 0;
+    if (typeExists) continue;
+
+    await SubscriptionType.create({ ...currentSubscription, platform: 'APPLE', createdBy: null });
+  }
+};
+
 // Exports of this file.
-module.exports = { initAdmins, initPublicFolder };
+module.exports = { initAdmins, initPublicFolder, addAppleSubscriptionTypes };

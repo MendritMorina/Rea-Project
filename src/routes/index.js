@@ -11,6 +11,7 @@ const usedCouponRouter = require('./usedCoupons');
 const baseRecommendionRouter = require('./baseRecommendations');
 const informativeRecommendionRouter = require('./informativeRecommendations');
 const aqiRouter = require('./aqi');
+const subscriptionsRouter = require('./subscriptions');
 
 // Bundler object that is used to export all routes inside ./src/routes.
 const bundler = {
@@ -26,6 +27,7 @@ const bundler = {
   advertisementsRouter,
   usersRouter,
   aqiRouter,
+  subscriptionsRouter,
 };
 
 // Exports of this file.

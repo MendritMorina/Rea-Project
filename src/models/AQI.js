@@ -60,5 +60,8 @@ const AQISchema = new mongoose.Schema({
 AQISchema.plugin(mongoosePaginate);
 AQISchema.plugin(mongooseAggregatePaginate);
 
+// Indexes.
+AQISchema.index({ location: '2dsphere' });
+
 // Exports of this file.
 module.exports = mongoose.model('AQISchema', AQISchema);

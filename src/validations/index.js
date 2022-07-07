@@ -9,6 +9,7 @@ const storyValidator = require('./stories');
 const usedCouponValidator = require('./usedCoupons');
 const informativeRecommendationValidator = require('./informativeRecommendations');
 const baseRecommendationValidator = require('./baseRecommendations');
+const subscriptionsValidator = require('./subscriptions');
 
 // Bundler object that is used to export all validations inside ./src/validations.
 const bundler = {
@@ -22,6 +23,7 @@ const bundler = {
   advertisementsValidator,
   informativeRecommendationValidator,
   baseRecommendationValidator,
+  subscriptionsValidator,
 };
 // Exports of this file.
 module.exports = bundler;
