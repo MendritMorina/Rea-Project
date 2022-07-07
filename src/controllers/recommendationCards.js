@@ -560,6 +560,8 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     return;
   }
 
+  console.log(nearestAQIPoints);
+
   const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
   const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
   const aqiValue = aqiCalculator(aqiData);
@@ -611,6 +613,51 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
 });
 
 /**
+ * @description Create current AQI.
+ * @route       POST /api/recommendationcards/currentAQI
+ * @access      Private.
+ */
+const createCurrentAQI = asyncHandler(async (request, response, next) => {
+  const { _id: userId } = request.user;
+  const { longitude, latitude } = request.body;
+
+  const user = await User.findOne({ _id: userId, isDeleted: false });
+  if (!user) {
+    next(new ApiError('User not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const nearestAQIPoints = await AQI.find({
+    location: {
+      $near: {
+        $geometry: {
+          type: 'Point',
+          coordinates: [longitude, latitude],
+        },
+      },
+    },
+  }).sort({ createdAt: -1 });
+  const nearestAQIPoint = nearestAQIPoints[0];
+  if (!nearestAQIPoint) {
+    next(new ApiError('Failed to find nearest point!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  console.log(nearestAQIPoints);
+
+  const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
+  const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
+
+  const aqiValue = aqiCalculator(aqiData);
+
+  response.status(httpCodes.OK).json({
+    success: true,
+    data: { aqiValue },
+    error: null,
+  });
+  return;
+});
+/**
  * @description Get recommandationCard by id and increment its view couter.
  * @route       GET /api/recommendationcards/view/:recommendationCardId.
  * @access      Public.
@@ -648,6 +695,7 @@ module.exports = {
   updateOne,
   getBaseRecommendationCards,
   getRandomInformativeRecommendationCards,
+  createCurrentAQI,
   viewCardCounter,
 };
 

@@ -36,8 +36,14 @@ const validator = {
   },
   coordinatesValidation: {
     query: Joi.object({
-      longitude: Joi.string().required(),
-      latitude: Joi.string().required(),
+      longitude: Joi.number().required(),
+      latitude: Joi.number().required(),
+    }),
+  },
+  coordinatessValidation: {
+    body: Joi.object({
+      longitude: Joi.number().required(),
+      latitude: Joi.number().required(),
     }),
   },
   createRecommendationCard: {

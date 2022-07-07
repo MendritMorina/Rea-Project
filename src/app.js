@@ -51,7 +51,7 @@ app.use('/api/coupons', couponRouter);
 app.use('/api/companies', companyRouter);
 app.use('/api/stories', storyRouter);
 app.use('/api/usedCoupons', usedCouponRouter);
-app.use('/api/links', aqiRouter);
+app.use('/api/aqi', aqiRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
 
 // Use error handling middleware.

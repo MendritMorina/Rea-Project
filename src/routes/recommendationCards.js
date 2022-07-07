@@ -26,6 +26,15 @@ const routes = [
     ],
   },
   {
+    path: '/currentAQI',
+    method: httpVerbs.POST,
+    middlewares: [
+      authorize,
+      validate(recommendationCardValidator.coordinatessValidation),
+      recommendationCardController.createCurrentAQI,
+    ],
+  },
+  {
     path: '/baseRecommendationCards',
     method: httpVerbs.GET,
     middlewares: [

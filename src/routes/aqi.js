@@ -9,7 +9,7 @@ const { httpVerbs } = require('../configs');
 // Define routes here.
 const routes = [
   {
-    path: '/',
+    path: '/links',
     method: httpVerbs.GET,
     middlewares: [aqiController.getAqiLinks],
   },
