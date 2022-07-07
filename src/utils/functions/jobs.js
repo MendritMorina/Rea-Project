@@ -6,27 +6,17 @@ const axios = require('axios');
 const AQI = require('../../models/AQI');
 const Cronjob = require('../../models/Cronjob');
 
-const getAPI = async () => {
+const getAQI = async () => {
   try {
     const aqi = await axios.get('https://airqualitykosova.rks-gov.net/dataservices/open/ForecastDataJSON?offsetHour=0');
     const aqiData = aqi.data;
 
     for (let i = 0; i < aqiData.length; i++) {
+      if (!aqiData[i]) continue;
+
       const { localtime, x, y, pm10, pm25, no2, so2, o3, index, name } = aqiData[i];
-      const geoJSON = {
-        localtime: localtime,
-        geometry: {
-          type: 'Point',
-          coordinates: [x, y],
-        },
-        pm10: pm10,
-        pm25: pm25,
-        no2: no2,
-        so2: so2,
-        o3: o3,
-        index: index,
-        name: name,
-      };
+      const geometry = { type: 'Point', coordinates: [x, y] };
+      const geoJSON = { localtime, location: { geometry }, pm10, pm25, no2, so2, o3, index, name };
 
       await AQI.create(geoJSON);
     }
@@ -47,15 +37,14 @@ const getAPI = async () => {
     });
   }
 };
-getAPI();
 
 // Function that is used to init all jobs.
 const initJobs = () => {
-  // schedule.scheduleJob('0 */1 * * *', async () => {
-  //   await getAPI();
+  // schedule.scheduleJob('0 * * * *', async () => {
+  //   await getAQI();
   // });
   schedule.scheduleJob('* * * * *', async () => {
-    //   await getAPI();
+    await getAQI();
   });
 };
 

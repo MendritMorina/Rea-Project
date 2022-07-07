@@ -22,7 +22,6 @@
     "trailingComma": "es5"
   },
   "dependencies": {
-    "aqi-calculator": "^1.1.3",
     "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.7",

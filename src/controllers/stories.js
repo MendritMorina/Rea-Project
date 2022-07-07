@@ -1,7 +1,6 @@
 // Imports: core node modules.
 const path = require('path');
 const fs = require('fs');
-const aqiCalculator = require('aqi-calculator');
 
 // Imports: local files.
 const { Story } = require('../models');

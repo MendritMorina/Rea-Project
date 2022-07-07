@@ -1,7 +1,6 @@
 // Imports: core node modules.
 const fs = require('fs');
 const path = require('path');
-const aqiCalculator = require('aqi-calculator');
 
 // Imports: local files.
 const {
@@ -15,6 +14,7 @@ const {
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { filterValues, getMode } = require('../utils/functions');
+const aqiCalculator = require('../utils/functions/aqi/aqi-calculator');
 const { httpCodes } = require('../configs');
 
 /**
@@ -472,18 +472,8 @@ const deleteOne = asyncHandler(async (request, response, next) => {
 });
 
 const getBaseRecommendationCards = asyncHandler(async (request, response, next) => {
-  // const userInfo = {
-  //   age: '20-30',
-  //   gender: 'male',
-  //   haveDiseaseDiagnosis: ['Sëmundje të frymëmarrjes/mushkërive', 'Sëmundje të zemrës (kardiovaskulare)'],
-  //   energySource: ['Qymyr', 'Gas'],
-  //   hasChildren: true,
-  //   hasChildrenDisease: ['Diabetin', 'Sëmundje neurologjike'],
-  //   aqi: 250,
-  //   city: 'prishtina',
-  // };
-
   const { _id: userId } = request.user;
+  const { longitude, latitude } = request.query;
 
   const user = await User.findOne({ _id: userId, isDeleted: false });
   if (!user) {
@@ -491,16 +481,36 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
     return;
   }
 
+  const nearestAQIPoints = await AQI.find({
+    location: {
+      $near: {
+        $geometry: {
+          type: 'Point',
+          coordinates: [longitude, latitude],
+        },
+      },
+    },
+  }).sort({ createdAt: -1 });
+  const nearestAQIPoint = nearestAQIPoints[0];
+  if (!nearestAQIPoint) {
+    next(new ApiError('Failed to find nearest point!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
+  const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
+  const aqiValue = aqiCalculator(aqiData);
+  const airQuality = airQualityFromAQI(aqiValue);
+
   const userInfo = {
     haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
     energySource: user.energySource,
     hasChildrenDisease: user.hasChildrenDisease,
   };
 
-  const airQuery = airQueryFromAqi(userInfo.aqi);
-
   const query = {
     $and: [
+      { airQuality: airQuality },
       { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
       { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
       { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
@@ -508,7 +518,6 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
   };
 
   const baseRecommendation = await BaseRecommendation.findOne(query).populate('recommendationCards');
-
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
     return;
@@ -526,15 +535,16 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
  * @access      Private.
  */
 const getRandomInformativeRecommendationCards = asyncHandler(async (request, response, next) => {
-  const { longitude, latitude } = request.body;
   const { _id: userId } = request.user;
+  const { longitude, latitude } = request.query;
+
   const user = await User.findOne({ _id: userId, isDeleted: false });
   if (!user) {
     next(new ApiError('User not found!', httpCodes.NOT_FOUND));
     return;
   }
 
-  const newestToOldest = await AQI.find({
+  const nearestAQIPoints = await AQI.find({
     location: {
       $near: {
         $geometry: {
@@ -543,52 +553,17 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
         },
       },
     },
-  }).sort({ createdAt: -1 }); //   1: 2020,2021,2022...  , -1:2022,2021,2020
-
-  console.log(newestToOldest);
-
-  const DATA1 = await AQI.find({
-    localtime: localtime,
-    pm25: pm25,
-    pm10: pm10,
-    so2: so2,
-    no2: no2,
-    o3: o3,
-  });
-
-  const DATA = [
-    {
-      datetime: Date.now(),
-      pm25: 5,
-      pm10: 10,
-      so2: 50,
-      //no: ,
-      //nox: ,
-      no2: 30,
-      o3: 20,
-      //co: ,
-    },
-  ];
-
-  const aqi = aqiCalculator(DATA);
-
-  function airQueryFromAqi(aqi) {
-    let airQuery = '';
-
-    if (aqi >= 1 && aqi <= 50) {
-      airQuery = 'E mire';
-    } else if (aqi > 50 && aqi <= 100) {
-      airQuery = 'E pranueshme';
-    } else if (aqi > 100 && aqi <= 150) {
-      airQuery = 'Mesatare';
-    } else if (aqi > 150 && aqi <= 200) {
-      airQuery = 'E dobet';
-    } else {
-      airQuery = 'Shume e dobet';
-    }
-
-    return airQuery;
+  }).sort({ createdAt: -1 });
+  const nearestAQIPoint = nearestAQIPoints[0];
+  if (!nearestAQIPoint) {
+    next(new ApiError('Failed to find nearest point!', httpCodes.NOT_FOUND));
+    return;
   }
+
+  const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
+  const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
+  const aqiValue = aqiCalculator(aqiData);
+  const airQuality = airQualityFromAQI(aqiValue);
 
   const userInfo = {
     haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
@@ -596,10 +571,9 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     hasChildrenDisease: user.hasChildrenDisease,
   };
 
-  const airQuery = airQueryFromAqi(userInfo.aqi);
   const query = {
     $and: [
-      { airQuality: airQuery },
+      { airQuality: airQuality },
       { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
       { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
       { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
@@ -678,6 +652,27 @@ module.exports = {
 };
 
 // Helpers for this controller.
+
+function airQualityFromAQI(aqi) {
+  let airQuality = '';
+
+  if (aqi < 51) {
+    airQuality = 'E mire';
+  } else if (aqi >= 51 && aqi < 100) {
+    airQuality = 'E pranueshme';
+  } else if (aqi >= 101 && aqi < 150) {
+    airQuality = 'Mesatare';
+  } else if (aqi >= 151 && aqi < 200) {
+    airQuality = 'E dobet';
+  } else if (aqi >= 200 && aqi < 300) {
+    airQuality = 'Shume e dobet';
+  } else {
+    airQuality = 'Jashtëzakonisht e dobët';
+  }
+
+  return airQuality;
+}
+
 async function fileResult(recommendationCard, userId, req, fileTypes) {
   if (req.files && Object.keys(req.files).length) {
     const resultObj = {};
