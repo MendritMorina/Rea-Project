@@ -10,48 +10,46 @@ const AQISchema = new mongoose.Schema({
     default: Date.now,
   },
   location: {
-    geometry: {
-      type: {
-        type: String,
-        required: true,
-      },
-      coordinates: {
-        type: Array,
-        default: [],
-      },
+    type: {
+      type: String,
+      required: true,
+    },
+    coordinates: {
+      type: Array,
+      default: [],
     },
   },
   pm10: {
     type: Number,
-    required: true,
+    required: false,
   },
   pm25: {
     type: Number,
-    required: true,
+    required: false,
   },
   so2: {
     type: Number,
-    required: true,
+    required: false,
   },
   no2: {
     type: Number,
-    required: true,
+    required: false,
   },
   o3: {
     type: Number,
-    required: true,
+    required: false,
   },
   index: {
     type: Number,
-    required: true,
+    required: false,
   },
   name: {
     type: String,
-    required: true,
+    required: false,
   },
   createdAt: {
     type: Date,
-    required: true,
+    required: false,
     default: Date.now,
   },
 });

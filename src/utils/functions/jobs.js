@@ -18,7 +18,7 @@ const getAQI = async () => {
 
       const { localtime, x, y, pm10, pm25, no2, so2, o3, index, name } = aqiData[i];
       const geometry = { type: 'Point', coordinates: [x, y] };
-      const geoJSON = { localtime, location: { geometry }, pm10, pm25, no2, so2, o3, index, name };
+      const geoJSON = { localtime, location: { ...geometry }, pm10, pm25, no2, so2, o3, index, name };
 
       await AQI.create(geoJSON);
     }
@@ -32,6 +32,7 @@ const getAQI = async () => {
       information: {},
     });
   } catch (error) {
+    console.log(error);
     await Cronjob.create({
       type: 'GET_AQI',
       success: false,
