@@ -71,7 +71,7 @@ const UserSchema = new mongoose.Schema({
     ref: 'Subscription',
     required: false,
   },
-  pastSubscriptions: {
+  subscriptionsHistory: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subscription' }],
     required: false,
     default: [],

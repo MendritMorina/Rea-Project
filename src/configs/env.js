@@ -21,6 +21,8 @@ const config = {
     smtpPort: process.env.SMTP_PORT,
     smtpUser: process.env.SMTP_USER,
     smtpPass: process.env.SMTP_PASS,
+    appIbi: process.env.APP_IBI,
+    appSubSecret: process.env.APP_SUB_SECRET,
   },
   staging: {
     nodeEnv: process.env.NODE_ENV,
@@ -34,6 +36,8 @@ const config = {
     smtpPort: process.env.SMTP_PORT,
     smtpUser: process.env.SMTP_USER,
     smtpPass: process.env.SMTP_PASS,
+    appIbi: process.env.APP_IBI,
+    appSubSecret: process.env.APP_SUB_SECRET,
   },
   production: {
     nodeEnv: process.env.NODE_ENV,
@@ -47,6 +51,8 @@ const config = {
     smtpPort: process.env.SMTP_PORT,
     smtpUser: process.env.SMTP_USER,
     smtpPass: process.env.SMTP_PASS,
+    appIbi: process.env.APP_IBI,
+    appSubSecret: process.env.APP_SUB_SECRET,
   },
   requiredKeys: [
     'NODE_ENV',
@@ -60,6 +66,8 @@ const config = {
     'SMTP_PORT',
     'SMTP_USER',
     'SMTP_PASS',
+    'APP_IBI',
+    'APP_SUB_SECRET',
   ],
 };
 

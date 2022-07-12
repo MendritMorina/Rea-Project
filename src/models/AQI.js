@@ -9,37 +9,43 @@ const AQISchema = new mongoose.Schema({
     required: true,
     default: Date.now,
   },
-  x: {
-    type: Number,
-    required: true,
-  },
-  y: {
-    type: Number,
-    required: true,
+  location: {
+    type: {
+      type: String,
+      required: true,
+    },
+    coordinates: {
+      type: Array,
+      default: [],
+    },
   },
   pm10: {
     type: Number,
-    required: true,
+    required: false,
   },
   pm25: {
     type: Number,
-    required: true,
+    required: false,
+  },
+  so2: {
+    type: Number,
+    required: false,
   },
   no2: {
     type: Number,
-    required: true,
+    required: false,
   },
   o3: {
     type: Number,
-    required: true,
+    required: false,
   },
   index: {
     type: Number,
-    required: true,
+    required: false,
   },
   name: {
     type: String,
-    required: true,
+    required: false,
   },
   createdAt: {
     type: Date,
@@ -51,6 +57,9 @@ const AQISchema = new mongoose.Schema({
 // Plugins.
 AQISchema.plugin(mongoosePaginate);
 AQISchema.plugin(mongooseAggregatePaginate);
+
+// Indexes.
+AQISchema.index({ location: '2dsphere' });
 
 // Exports of this file.
 module.exports = mongoose.model('AQISchema', AQISchema);

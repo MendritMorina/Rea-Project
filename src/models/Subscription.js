@@ -1,3 +1,4 @@
+// Imports: third-party packages.
 const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
 const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
@@ -7,16 +8,9 @@ const Base = require('./Base');
 
 // Subscription Schema that is used to represent single Subscription in our API.
 const SubscriptionSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: false,
-  },
-  expiresAt: {
-    type: Date,
+  type: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SubscriptionType',
     required: true,
   },
   user: {
@@ -24,10 +18,40 @@ const SubscriptionSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  type: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'SubscriptionType',
-    required: true,
+  productId: {
+    type: String,
+    required: false,
+    default: null,
+  },
+  transactionId: {
+    type: String,
+    required: false,
+    default: null,
+  },
+  originalTransactionId: {
+    type: String,
+    required: false,
+    default: null,
+  },
+  purchaseDate: {
+    type: Date,
+    required: false,
+    default: null,
+  },
+  expirationDate: {
+    type: Date,
+    required: false,
+    default: null,
+  },
+  receipt: {
+    type: String,
+    required: false,
+    default: null,
+  },
+  markedExpiredAt: {
+    type: Date,
+    required: false,
+    default: null,
   },
   ...Base,
 });

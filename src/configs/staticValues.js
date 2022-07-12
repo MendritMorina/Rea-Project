@@ -18,7 +18,7 @@ const staticValues = {
     'Asnjёra',
   ],
   energySource: ['Qymyr', 'Gas', 'Rrymë elektrike', 'Zjarr/Dru'],
-  airQuality: ['E mire', 'E pranueshme', 'Mesatare', 'E dobet', 'Shume e dobet'],
+  airQuality: ['E mire', 'E pranueshme', 'Mesatare', 'E dobet', 'Shume e dobet', 'Jashtëzakonisht e dobët'],
   gender: ['Mashkull', 'Femër'],
 };
 
