@@ -11,6 +11,11 @@ const validator = {
     }),
   },
   getOne: {
+    query: Joi.object({
+      userId: Joi.string()
+        .regex(/^[0-9a-fA-F]{24}$/)
+        .required(),
+    }),
     params: Joi.object({
       couponCode: Joi.string().required(),
     }),
@@ -42,6 +47,9 @@ const validator = {
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
       couponCode: Joi.string().required(),
+      userId: Joi.string()
+        .regex(/^[0-9a-fA-F]{24}$/)
+        .required(),
     }),
   },
   validateCouponId: {

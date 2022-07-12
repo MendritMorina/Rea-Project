@@ -1,7 +1,6 @@
 // Imports: third-party packages.
 const mongoose = require('mongoose');
 const { v4 } = require('uuid');
-const axios = require('axios').default;
 
 // Imports: local files.
 const { UsedCoupon, Coupon } = require('../models');
@@ -24,8 +23,6 @@ const getAll = asyncHandler(async (request, response, next) => {
   if (user) query['user._id'] = new mongoose.Types.ObjectId(user);
   if (isUsed === 1) query['isUsed'] = true;
   else if (isUsed === 0) query['isUsed'] = false;
-
-  //console.log(query);
 
   const usedCouponsAggregate = UsedCoupon.aggregate([
     {
@@ -63,7 +60,7 @@ const getAll = asyncHandler(async (request, response, next) => {
         isUsed: 1,
         usedAt: 1,
         'company.name': 1,
-        'company.log': 1,
+        'company.logo': 1,
         'company.email': 1,
         'company.number': 1,
         'coupon.discount': 1,
@@ -90,6 +87,7 @@ const getAll = asyncHandler(async (request, response, next) => {
  */
 const getOne = asyncHandler(async (request, response, next) => {
   const { couponCode } = request.params;
+  const { userId } = request.query;
 
   const usedCoupon = await UsedCoupon.findOne({ couponCode, isDeleted: false })
     .populate('coupon')
@@ -98,6 +96,28 @@ const getOne = asyncHandler(async (request, response, next) => {
   if (!usedCoupon) {
     next(new ApiError('Used Coupon with given code was not found!', httpCodes.NOT_FOUND));
     return;
+  }
+
+  const targetCoupon = await Coupon.findOne({ _id: usedCoupon.coupon._id, isDeleted: false });
+  if (!targetCoupon) {
+    next(new ApiError('Coupon not found!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  if (targetCoupon.type === 'singular') {
+    const usedCoupon = await UsedCoupon.findOne({
+      coupon: targetCoupon._id,
+      user: userId,
+      isUsed: true,
+      isDeleted: false,
+    })
+      .populate('coupon')
+      .populate('user')
+      .populate('company');
+    if (usedCoupon) {
+      response.status(httpCodes.OK).json({ success: true, data: { usedCoupon }, error: null });
+      return;
+    }
   }
 
   response.status(httpCodes.OK).json({ success: true, data: { usedCoupon }, error: null });
@@ -142,17 +162,6 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const usedNumber = await UsedCoupon.countDocuments({
-    user: userId,
-    coupon: coupon._id,
-    isUsed: true,
-    isDeleted: false,
-  });
-  if (coupon.type === 'singular' && usedNumber === 1) {
-    next(new ApiError('Coupon already used', httpCodes.BAD_REQUEST));
-    return;
-  }
-
   const usedCoupon = await UsedCoupon.create({
     user: userId,
     coupon: coupon._id,
@@ -174,7 +183,7 @@ const create = asyncHandler(async (request, response, next) => {
  * @access      Private, only users.
  */
 const use = asyncHandler(async (request, response, next) => {
-  const { couponId, couponCode } = request.body;
+  const { couponId, couponCode, userId } = request.body;
 
   const coupon = await Coupon.findOne({ _id: couponId, isDeleted: false });
   if (!coupon) {
@@ -191,14 +200,20 @@ const use = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const usedCoupon = await UsedCoupon.findOne({ couponCode, isDeleted: false }).populate('coupon').populate('user');
-  if (!usedCoupon) {
-    next(new ApiError('Coupon with given code not found!', httpCodes.NOT_FOUND));
+  const usedNumber = await UsedCoupon.countDocuments({
+    user: userId,
+    coupon: coupon._id,
+    isUsed: true,
+    isDeleted: false,
+  });
+  if (coupon.type === 'singular' && usedNumber === 1) {
+    next(new ApiError('Coupon already used', httpCodes.BAD_REQUEST));
     return;
   }
 
-  if (usedCoupon.isUsed) {
-    next(new ApiError('Already used this coupon!', httpCodes.BAD_REQUEST));
+  const usedCoupon = await UsedCoupon.findOne({ couponCode, isDeleted: false }).populate('coupon').populate('user');
+  if (!usedCoupon) {
+    next(new ApiError('Coupon with given code not found!', httpCodes.NOT_FOUND));
     return;
   }
 

@@ -1,6 +1,7 @@
 // Imports: core node modules.
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 
 // Imports: local files.
 const { BaseRecommendation, RecommendationCard, InformativeRecommendation } = require('../models');
@@ -28,8 +29,41 @@ const getAll = asyncHandler(async (request, response) => {
     populate: 'informativeRecommendations recommendationCards',
   };
 
-  const query = { isDeleted: false };
-  const baseRecommendations = await BaseRecommendation.paginate(query, options);
+  const query = BaseRecommendation.aggregate([
+    { $match: { isDeleted: false } },
+    {
+      $lookup: {
+        from: 'recommendationcards',
+        localField: 'recommendationCards',
+        foreignField: '_id',
+        as: 'recommendationCards',
+      },
+    },
+    { $unwind: '$recommendationCards' },
+    { $sort: { 'recommendationCards.order': 1 } },
+    {
+      $group: {
+        _id: '$_id',
+        name: { $first: '$name' },
+        description: { $first: '$description' },
+        thumbnail: { $first: '$thumbnail' },
+        airQuality: { $first: '$airQuality' },
+        gender: { $first: '$gender' },
+        age: { $first: '$age' },
+        energySource: { $first: '$energySource' },
+        haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
+        isPregnant: { $first: '$isPregnant' },
+        hasChildren: { $first: '$hasChildren' },
+        hasChildrenDisease: { $first: '$hasChildrenDisease' },
+        informativeRecommendations: { $first: '$informativeRecommendations' },
+        recommendationCards: { $push: '$recommendationCards' },
+      },
+    },
+  ]);
+
+  // const query = { isDeleted: false };
+  // const baseRecommendations = await BaseRecommendation.paginate(query, options);
+  const baseRecommendations = await BaseRecommendation.aggregatePaginate(query, options);
 
   response.status(httpCodes.OK).json({ success: true, data: { baseRecommendations }, error: null });
   return;
@@ -43,15 +77,47 @@ const getAll = asyncHandler(async (request, response) => {
 const getOne = asyncHandler(async (request, response, next) => {
   const { baseRecommendationId } = request.params;
 
-  const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false }).populate(
-    'recommendationCards'
-  );
-  if (!baseRecommendation) {
+  const query = BaseRecommendation.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(baseRecommendationId), isDeleted: false } },
+    {
+      $lookup: {
+        from: 'recommendationcards',
+        localField: 'recommendationCards',
+        foreignField: '_id',
+        as: 'recommendationCards',
+      },
+    },
+    { $unwind: '$recommendationCards' },
+    { $sort: { 'recommendationCards.order': 1 } },
+    {
+      $group: {
+        _id: '$_id',
+        name: { $first: '$name' },
+        description: { $first: '$description' },
+        thumbnail: { $first: '$thumbnail' },
+        airQuality: { $first: '$airQuality' },
+        gender: { $first: '$gender' },
+        age: { $first: '$age' },
+        energySource: { $first: '$energySource' },
+        haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
+        isPregnant: { $first: '$isPregnant' },
+        hasChildren: { $first: '$hasChildren' },
+        hasChildrenDisease: { $first: '$hasChildrenDisease' },
+        informativeRecommendations: { $first: '$informativeRecommendations' },
+        recommendationCards: { $push: '$recommendationCards' },
+      },
+    },
+  ]);
+  const baseRecommendation = await BaseRecommendation.aggregatePaginate(query, { pagination: false });
+
+  if (!baseRecommendation && !baseRecommendation.docs) {
     next(new ApiError('Base Recommendation with given id not found!', httpCodes.NOT_FOUND));
     return;
   }
 
-  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendation }, error: null });
+  response
+    .status(httpCodes.OK)
+    .json({ success: true, data: { baseRecommendation: baseRecommendation.docs[0] }, error: null });
   return;
 });
 
@@ -342,7 +408,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const editedFileBaseRecommendation = await BaseRecommendation.findOne({
     _id: editedBaseRecommendation._id,
     isDeleted: false,
-  });
+  }).populate('recommendationCards');
   if (!editedFileBaseRecommendation) {
     next(new ApiError('Edited File RecommendationCard not found!', httpCodes.NOT_FOUND));
     return;

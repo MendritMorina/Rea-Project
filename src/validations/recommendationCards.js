@@ -52,6 +52,8 @@ const validator = {
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
       type: Joi.string().required(),
+      order: Joi.number().optional(),
+      reorderId: Joi.string().required(),
     }),
   },
   updateRecommendationCard: {
@@ -65,6 +67,7 @@ const validator = {
         .regex(/^[0-9a-fA-F]{24}$/)
         .optional(),
       toBeDeleted: Joi.array().optional().items(Joi.string().optional()),
+      order: Joi.number().optional(),
     }),
   },
   validateRecommendationCardId: {
