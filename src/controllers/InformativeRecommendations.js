@@ -27,6 +27,8 @@ const getAll = asyncHandler(async (request, response) => {
     populate: 'baseRecommendations recommendationCards',
   };
 
+  if (request.query.name) query['name'] = { $regex: request.query.name, $options: 'i' };
+
   const query = InformativeRecommendation.aggregate([
     { $match: { isDeleted: false } },
     {

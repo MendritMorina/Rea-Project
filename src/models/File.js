@@ -20,6 +20,10 @@ const File = {
     type: Number,
     required: true,
   },
+  duration: {
+    type: Number,
+    required: true,
+  },
   type: Object,
   required: false,
   default: null,

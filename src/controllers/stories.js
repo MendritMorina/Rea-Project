@@ -1,6 +1,7 @@
 // Imports: core node modules.
 const path = require('path');
 const fs = require('fs');
+const { getAudioDurationInSeconds } = require('get-audio-duration');
 
 // Imports: local files.
 const { Story } = require('../models');
@@ -105,10 +106,10 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
-  const types = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
+  const types = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
 
-  if (!fileTypes[0] || !fileTypes[1] || !fileTypes[2]) {
-    next(new ApiError(`One of these is missing thumbnail,audio,backgroundImage`, httpCodes.BAD_REQUEST));
+  if (!fileTypes[0] || !fileTypes[1] || !fileTypes[2] || !fileTypes[4]) {
+    next(new ApiError(`One of these is missing thumbnail, backgroundImage, audio, shortAudio`, httpCodes.BAD_REQUEST));
     return;
   }
 
@@ -176,7 +177,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const availableValues = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
+  const availableValues = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
   const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
 
   if (toBeDeletedinfo.length > 0) {
@@ -190,7 +191,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   if (request.files) {
     const fileTypes = request.files ? Object.keys(request.files) : [];
 
-    const requiredTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
+    const requiredTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
 
     for (const fileType of fileTypes) {
       if (!requiredTypes.includes(fileType)) {
@@ -293,7 +294,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
     return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
   }
 
-  const allowedFileTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
+  const allowedFileTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
 
   if (!allowedFileTypes.includes(fileType)) {
     return {
@@ -340,6 +341,14 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
   const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
   const fileURL = `${publicURL}/stories/${fileName}`;
 
+  // try {
+  //   let duration2 = await getAudioDurationInSeconds(fileURL);
+  // } catch (error) {
+  //   console.log(error, 'test');
+  // }
+
+  // const duration = await getAudioDurationInSeconds(fileURL);
+
   const updatedStory = await Story.findOneAndUpdate(
     { _id: story._id },
     {
@@ -349,6 +358,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
           name: name,
           mimetype: mimetype,
           size: size,
+          duration: fileType === 'audio' || fileType === 'shortAudio' ? 'duration' : null,
         },
         updatedBy: adminId,
         updatedAt: new Date(Date.now()),

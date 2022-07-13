@@ -23,6 +23,32 @@ const getAQI = async () => {
       await AQI.create(geoJSON);
     }
 
+    //---------------------------------
+    // function getDistanceFromLatLonInKm(latitude, longitude, latitude1, longitude1) {
+    //   const R = 6371; // Radius of the earth in km
+    //   var dLat = deg2rad(latitude1 - latitude); // deg2rad below
+    //   var dLon = deg2rad(longitude1 - longitude);
+    //   var a =
+    //     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    //     Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(latitude1)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    //   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    //   var d = R * c; // Distance in km
+    //   return d;
+    // }
+
+    // //to radian
+    // function deg2rad(deg) {
+    //   return deg * (Math.PI / 180);
+    // }
+
+    // let veryFarFromLocation;
+
+    // if (location > veryFarFromLocation) {
+    //   next(new ApiError('', httpCodes.NOT_FOUND));
+    //   return;
+    // }
+    //---------------------------------
+
     const before12hours = new Date(Date.now() - 1000 * 60 * 60 * 12);
     await AQI.deleteMany({ createdAt: { $lte: before12hours } });
 
