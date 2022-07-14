@@ -353,7 +353,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
         [fileType]: {
           url: fileURL,
           name: name,
-          mimetype: mimetype,
+          mimetype: mimetype === 'audio/mpeg' ? 'audio/mp3' : mimetype,
           size: size,
           duration: isAudio ? duration : null,
         },

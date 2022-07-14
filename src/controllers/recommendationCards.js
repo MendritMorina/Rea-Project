@@ -560,8 +560,6 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     return;
   }
 
-  console.log(nearestAQIPoints);
-
   const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
   const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
   const aqiValue = aqiCalculator(aqiData);
@@ -642,8 +640,6 @@ const createCurrentAQI = asyncHandler(async (request, response, next) => {
     next(new ApiError('Failed to find nearest point!', httpCodes.NOT_FOUND));
     return;
   }
-
-  console.log(nearestAQIPoints);
 
   const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
   const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
