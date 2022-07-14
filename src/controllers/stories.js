@@ -1,7 +1,7 @@
 // Imports: core node modules.
 const path = require('path');
 const fs = require('fs');
-const { getAudioDurationInSeconds } = require('get-audio-duration');
+const mm = require('music-metadata');
 
 // Imports: local files.
 const { Story } = require('../models');
@@ -108,10 +108,10 @@ const create = asyncHandler(async (request, response, next) => {
   const fileTypes = request.files ? Object.keys(request.files) : [];
   const types = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
 
-  if (!fileTypes[0] || !fileTypes[1] || !fileTypes[2] || !fileTypes[4]) {
-    next(new ApiError(`One of these is missing thumbnail, backgroundImage, audio, shortAudio`, httpCodes.BAD_REQUEST));
-    return;
-  }
+  // if (!fileTypes[0] || !fileTypes[1] || !fileTypes[2] || !fileTypes[4]) {
+  //   next(new ApiError(`One of these is missing thumbnail, backgroundImage, audio, shortAudio`, httpCodes.BAD_REQUEST));
+  //   return;
+  // }
 
   for (const fileType of fileTypes) {
     if (!types.includes(fileType)) {
@@ -310,7 +310,6 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
   const type = mimetype.split('/').pop();
 
   let allowedTypes = ['jpeg', 'jpg', 'png', 'svg', 'mpeg'];
-
   if (!allowedTypes.includes(type)) {
     return { success: false, data: null, error: `Wrong ${fileType} type!`, code: httpCodes.BAD_REQUEST };
   }
@@ -341,13 +340,13 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
   const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
   const fileURL = `${publicURL}/stories/${fileName}`;
 
-  // try {
-  //   let duration2 = await getAudioDurationInSeconds(fileURL);
-  // } catch (error) {
-  //   console.log(error, 'test');
-  // }
+  let duration = 0;
 
-  // const duration = await getAudioDurationInSeconds(fileURL);
+  const isAudio = fileType === 'audio' || fileType === 'shortAudio';
+  if (isAudio) {
+    const metadata = await mm.parseFile(filePath);
+    duration = metadata && metadata.format && metadata.format.duration ? metadata.format.duration : 0;
+  }
 
   const updatedStory = await Story.findOneAndUpdate(
     { _id: story._id },
@@ -358,7 +357,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
           name: name,
           mimetype: mimetype,
           size: size,
-          duration: fileType === 'audio' || fileType === 'shortAudio' ? 'duration' : null,
+          duration: isAudio ? duration : null,
         },
         updatedBy: adminId,
         updatedAt: new Date(Date.now()),
@@ -367,7 +366,12 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
     { new: true }
   );
   if (!updatedStory) {
-    return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
+    return {
+      success: false,
+      data: {},
+      error: `Failed to upload ${fileType}!`,
+      code: httpCodes.INTERNAL_ERROR,
+    };
   }
 
   return { success: true, data: { updatedStory }, error: null, code: null };
