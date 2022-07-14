@@ -47,10 +47,8 @@ const getAllMobile = asyncHandler(async (request, response) => {
     pagination: pagination,
   };
 
-  if (!user.currentSubscription || !user.currentSubscription.isActive) {
-    next(new ApiError('The Current Subscription not found', httpCodes.NOT_FOUND));
-    return;
-  }
+  const isSubscribed = user.currentSubscription && user.currentSubscription.isActive;
+  if (!isSubscribed) options['select'] = '-audio';
 
   const query = { isDeleted: false };
   if (category) query['category'] = category;
