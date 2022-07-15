@@ -30,6 +30,7 @@ const getAll = asyncHandler(async (request, response) => {
   const query = {};
   if (request.query.name) query['name'] = { $regex: request.query.name, $options: 'i' };
 
+  console.log(request.query.name);
   const informativeAggregate = InformativeRecommendation.aggregate([
     { $match: { isDeleted: false, ...query } },
     {
@@ -65,6 +66,7 @@ const getAll = asyncHandler(async (request, response) => {
 
   const informativeRecommendations = await InformativeRecommendation.aggregatePaginate(informativeAggregate, options);
 
+  console.log(informativeRecommendations);
   response.status(httpCodes.OK).json({ success: true, data: { informativeRecommendations }, error: null });
   return;
 });
