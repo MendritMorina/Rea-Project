@@ -16,7 +16,6 @@ const { httpCodes } = require('../configs');
  * @access      Public.
  */
 const getAll = asyncHandler(async (request, response) => {
-  console.log('test');
   const { page, limit, pagination, select, sort } = request.query;
 
   const options = {
