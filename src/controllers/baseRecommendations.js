@@ -29,10 +29,11 @@ const getAll = asyncHandler(async (request, response) => {
     populate: 'informativeRecommendations recommendationCards',
   };
 
+  const query = {};
   if (request.query.name) query['name'] = { $regex: request.query.name, $options: 'i' };
 
-  const query = BaseRecommendation.aggregate([
-    { $match: { isDeleted: false } },
+  const baseAggregate = BaseRecommendation.aggregate([
+    { $match: { isDeleted: false, ...query } },
     {
       $lookup: {
         from: 'recommendationcards',
@@ -63,9 +64,7 @@ const getAll = asyncHandler(async (request, response) => {
     },
   ]);
 
-  // const query = { isDeleted: false };
-  // const baseRecommendations = await BaseRecommendation.paginate(query, options);
-  const baseRecommendations = await BaseRecommendation.aggregatePaginate(query, options);
+  const baseRecommendations = await BaseRecommendation.aggregatePaginate(baseAggregate, options);
 
   response.status(httpCodes.OK).json({ success: true, data: { baseRecommendations }, error: null });
   return;
