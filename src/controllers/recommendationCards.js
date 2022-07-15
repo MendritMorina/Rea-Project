@@ -499,7 +499,7 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
 
   const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
 
-  const distanceInKm = distance.getDistanceFromCoordinates(latitude, longitude, nearestLat, nearestLon);
+  const distanceInKm = distance.getDistanceFromCoordinates(nearestLat, nearestLon, latitude, longitude);
   if (distanceInKm > 20) {
     next(new ApiError('Further than 20km!', httpCodes.BAD_REQUEST));
     return;
@@ -570,7 +570,7 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
 
   const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
 
-  const distanceInKm = distance.getDistanceFromCoordinates(latitude, longitude, nearestLat, nearestLon);
+  const distanceInKm = distance.getDistanceFromCoordinates(nearestLat, nearestLon, latitude, longitude);
   if (distanceInKm > 20) {
     response.status(httpCodes.OK).json({ success: true, data: { furtherThan20km: true }, error: null });
     return;
@@ -659,7 +659,7 @@ const createCurrentAQI = asyncHandler(async (request, response, next) => {
 
   const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
 
-  const distanceInKm = distance.getDistanceFromCoordinates(latitude, longitude, nearestLat, nearestLon);
+  const distanceInKm = distance.getDistanceFromCoordinates(nearestLat, nearestLon, latitude, longitude);
   if (distanceInKm > 20) {
     response.status(httpCodes.OK).json({ success: true, data: { furtherThan20km: true }, error: null });
     return;
