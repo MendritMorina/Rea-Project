@@ -33,7 +33,7 @@ const getAll = asyncHandler(async (request, response) => {
   if (request.query.name) query['name'] = { $regex: request.query.name, $options: 'i' };
 
   const baseAggregate = BaseRecommendation.aggregate([
-    { $match: { isDeleted: false } },
+    { $match: { isDeleted: false, ...query } },
     {
       $lookup: {
         from: 'recommendationcards',
