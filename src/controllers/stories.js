@@ -1,6 +1,7 @@
 // Imports: core node modules.
 const path = require('path');
 const fs = require('fs');
+const mm = require('music-metadata');
 
 // Imports: local files.
 const { Story } = require('../models');
@@ -46,10 +47,8 @@ const getAllMobile = asyncHandler(async (request, response) => {
     pagination: pagination,
   };
 
-  if (!user.currentSubscription || !user.currentSubscription.isActive) {
-    next(new ApiError('The Current Subscription not found', httpCodes.NOT_FOUND));
-    return;
-  }
+  const isSubscribed = user.currentSubscription && user.currentSubscription.isActive;
+  if (!isSubscribed) options['select'] = '-audio';
 
   const query = { isDeleted: false };
   if (category) query['category'] = category;
@@ -105,12 +104,12 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
-  const types = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
+  const types = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
 
-  if (!fileTypes[0] || !fileTypes[1] || !fileTypes[2]) {
-    next(new ApiError(`One of these is missing thumbnail,audio,backgroundImage`, httpCodes.BAD_REQUEST));
-    return;
-  }
+  // if (!fileTypes[0] || !fileTypes[1] || !fileTypes[2] || !fileTypes[4]) {
+  //   next(new ApiError(`One of these is missing thumbnail, backgroundImage, audio, shortAudio`, httpCodes.BAD_REQUEST));
+  //   return;
+  // }
 
   for (const fileType of fileTypes) {
     if (!types.includes(fileType)) {
@@ -176,7 +175,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const availableValues = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
+  const availableValues = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
   const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
 
   if (toBeDeletedinfo.length > 0) {
@@ -190,7 +189,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   if (request.files) {
     const fileTypes = request.files ? Object.keys(request.files) : [];
 
-    const requiredTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
+    const requiredTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
 
     for (const fileType of fileTypes) {
       if (!requiredTypes.includes(fileType)) {
@@ -293,7 +292,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
     return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
   }
 
-  const allowedFileTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto'];
+  const allowedFileTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
 
   if (!allowedFileTypes.includes(fileType)) {
     return {
@@ -309,7 +308,6 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
   const type = mimetype.split('/').pop();
 
   let allowedTypes = ['jpeg', 'jpg', 'png', 'svg', 'mpeg'];
-
   if (!allowedTypes.includes(type)) {
     return { success: false, data: null, error: `Wrong ${fileType} type!`, code: httpCodes.BAD_REQUEST };
   }
@@ -340,6 +338,14 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
   const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
   const fileURL = `${publicURL}/stories/${fileName}`;
 
+  let duration = 0;
+
+  const isAudio = fileType === 'audio' || fileType === 'shortAudio';
+  if (isAudio) {
+    const metadata = await mm.parseFile(filePath);
+    duration = metadata && metadata.format && metadata.format.duration ? metadata.format.duration : 0;
+  }
+
   const updatedStory = await Story.findOneAndUpdate(
     { _id: story._id },
     {
@@ -347,8 +353,9 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
         [fileType]: {
           url: fileURL,
           name: name,
-          mimetype: mimetype,
+          mimetype: mimetype === 'audio/mpeg' ? 'audio/mp3' : mimetype,
           size: size,
+          duration: isAudio ? duration : null,
         },
         updatedBy: adminId,
         updatedAt: new Date(Date.now()),
@@ -357,7 +364,12 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
     { new: true }
   );
   if (!updatedStory) {
-    return { success: false, data: null, error: `Failed to upload ${fileType}!`, code: httpCodes.INTERNAL_ERROR };
+    return {
+      success: false,
+      data: {},
+      error: `Failed to upload ${fileType}!`,
+      code: httpCodes.INTERNAL_ERROR,
+    };
   }
 
   return { success: true, data: { updatedStory }, error: null, code: null };

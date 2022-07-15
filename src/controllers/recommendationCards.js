@@ -13,7 +13,7 @@ const {
 } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
-const { filterValues, getMode } = require('../utils/functions');
+const { filterValues, getMode, distance } = require('../utils/functions');
 const aqiCalculator = require('../utils/functions/aqi/aqi-calculator');
 const { httpCodes } = require('../configs');
 
@@ -497,6 +497,14 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
     return;
   }
 
+  const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
+
+  const distanceInKm = distance.getDistanceFromCoordinates(nearestLat, nearestLon, latitude, longitude);
+  if (distanceInKm > 20) {
+    next(new ApiError('Further than 20km!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
   const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
   const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
   const aqiValue = aqiCalculator(aqiData);
@@ -560,7 +568,14 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     return;
   }
 
-  console.log(nearestAQIPoints);
+  const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
+
+  const distanceInKm = distance.getDistanceFromCoordinates(nearestLat, nearestLon, latitude, longitude);
+  console.log(distanceInKm);
+  if (distanceInKm > 20) {
+    response.status(httpCodes.OK).json({ success: true, data: { furtherThan20km: true }, error: null });
+    return;
+  }
 
   const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
   const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
@@ -643,7 +658,13 @@ const createCurrentAQI = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  console.log(nearestAQIPoints);
+  const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
+
+  const distanceInKm = distance.getDistanceFromCoordinates(nearestLat, nearestLon, latitude, longitude);
+  if (distanceInKm > 20) {
+    response.status(httpCodes.OK).json({ success: true, data: { furtherThan20km: true }, error: null });
+    return;
+  }
 
   const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
   const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];

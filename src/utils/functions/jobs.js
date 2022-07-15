@@ -32,7 +32,6 @@ const getAQI = async () => {
       information: {},
     });
   } catch (error) {
-    console.log(error);
     await Cronjob.create({
       type: 'GET_AQI',
       success: false,

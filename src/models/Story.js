@@ -27,6 +27,9 @@ const StorySchema = new mongoose.Schema({
   audio: {
     ...File,
   },
+  shortAudio: {
+    ...File,
+  },
   backgroundImage: {
     ...File,
   },
