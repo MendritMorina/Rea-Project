@@ -16,6 +16,7 @@ const { httpCodes } = require('../configs');
  * @access      Public.
  */
 const getAll = asyncHandler(async (request, response) => {
+  console.log('test');
   const { page, limit, pagination, select, sort } = request.query;
 
   const options = {
@@ -30,7 +31,6 @@ const getAll = asyncHandler(async (request, response) => {
   const query = {};
   if (request.query.name) query['name'] = { $regex: request.query.name, $options: 'i' };
 
-  console.log(request.query.name);
   const informativeAggregate = InformativeRecommendation.aggregate([
     { $match: { isDeleted: false, ...query } },
     {
@@ -66,7 +66,6 @@ const getAll = asyncHandler(async (request, response) => {
 
   const informativeRecommendations = await InformativeRecommendation.aggregatePaginate(informativeAggregate, options);
 
-  console.log(informativeRecommendations);
   response.status(httpCodes.OK).json({ success: true, data: { informativeRecommendations }, error: null });
   return;
 });
