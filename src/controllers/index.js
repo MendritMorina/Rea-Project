@@ -1,6 +1,5 @@
 // Imports: local files.
 const authController = require('./auth');
-const recommendationController = require('./recommendations');
 const baseRecommendationController = require('./baseRecommendations');
 const informativeRecommendationController = require('./InformativeRecommendations');
 const recommendationCardController = require('./recommendationCards');
@@ -20,7 +19,6 @@ const bundler = {
   companyController,
   storyController,
   usedCouponController,
-  recommendationController,
   baseRecommendationController,
   informativeRecommendationController,
   recommendationCardController,

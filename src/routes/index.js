@@ -1,6 +1,5 @@
 // Imports: local files.
 const authRouter = require('./auth');
-const recommendationRouter = require('./recommendations');
 const recommendationCardRouter = require('./recommendationCards');
 const advertisementsRouter = require('./advertisements');
 const usersRouter = require('./users');
@@ -20,7 +19,6 @@ const bundler = {
   companyRouter,
   storyRouter,
   usedCouponRouter,
-  recommendationRouter,
   baseRecommendionRouter,
   informativeRecommendionRouter,
   recommendationCardRouter,

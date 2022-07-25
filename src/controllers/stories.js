@@ -292,7 +292,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
     return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
   }
 
-  const allowedFileTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
+  const allowedFileTypes = ['thumbnail', 'audio', 'backgroundImage', 'shortAudio'];
 
   if (!allowedFileTypes.includes(fileType)) {
     return {

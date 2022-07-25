@@ -27,12 +27,12 @@ const authorize = asyncHandler(async (request, response, next) => {
   }
 
   const uid = decodedToken.uid;
-  // const emailVerfied = decodedToken.email_verified;
+  const emailVerfied = decodedToken.email_verified;
 
-  // if (!emailVerfied) {
-  //   next(new ApiError('The email is not verified', httpCodes.UNAUTHORIZED));
-  //   return;
-  // }
+  if (!emailVerfied) {
+    next(new ApiError('The email is not verified', httpCodes.UNAUTHORIZED));
+    return;
+  }
 
   const firebaseUser = await getAuth().getUser(uid);
   if (!firebaseUser) {

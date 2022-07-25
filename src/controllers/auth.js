@@ -73,7 +73,6 @@ const authenticate = asyncHandler(async (request, response, next) => {
  */
 const update = asyncHandler(async (request, response, next) => {
   const userId = request.user._id;
-  // const userId = '628253c7a69fe7319f35261e';
   const {
     name,
     surname,
