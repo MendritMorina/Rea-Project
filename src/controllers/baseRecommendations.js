@@ -262,11 +262,11 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { baseRecommendationId } = request.params;
-  const { name, description, isPregnant, airQuality, toBeDeleted } = request.body;
+  const { name, description, age, gender, airQuality, isPregnant, haveDiseaseDiagnosis, toBeDeleted } = request.body;
 
-  const age = JSON.parse(request.body.age);
-  const gender = JSON.parse(request.body.gender);
-  const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
+  // const age = JSON.parse(request.body.age);
+  // const gender = JSON.parse(request.body.gender);
+  // const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
 
   const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false });
   if (!baseRecommendation) {
@@ -304,10 +304,10 @@ const updateOne = asyncHandler(async (request, response, next) => {
   //   return;
   // }
 
-  if (!haveDiseaseDiagnosis.includes('Nuk kam ndonjë diagnozë')) {
-    next(new ApiError('You cannot create a base recommendation where it has disease !', httpCodes.BAD_REQUEST));
-    return;
-  }
+  // if (!haveDiseaseDiagnosis.includes('Nuk kam ndonjë diagnozë')) {
+  //   next(new ApiError('You cannot create a base recommendation where it has disease !', httpCodes.BAD_REQUEST));
+  //   return;
+  // }
 
   if (airQuality && !staticValues.airQuality.includes(airQuality)) {
     next(
@@ -319,17 +319,17 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
+  // const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
 
-  for (const type of types) {
-    if (JSON.parse(request.body[type])) {
-      const result = checkValidValues(type, JSON.parse(request.body[type]));
-      if (result && result.error) {
-        next(new ApiError(result.error, result.code));
-        return;
-      }
-    }
-  }
+  // for (const type of types) {
+  //   if (JSON.parse(request.body[type])) {
+  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
+  //     if (result && result.error) {
+  //       next(new ApiError(result.error, result.code));
+  //       return;
+  //     }
+  //   }
+  // }
 
   const payload = {
     name,
