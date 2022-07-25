@@ -264,10 +264,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const { baseRecommendationId } = request.params;
   const { name, description, age, gender, airQuality, isPregnant, haveDiseaseDiagnosis, toBeDeleted } = request.body;
 
-  // const age = JSON.parse(request.body.age);
-  // const gender = JSON.parse(request.body.gender);
-  // const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
-
   const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false });
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found!', httpCodes.NOT_FOUND));
@@ -294,21 +290,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // if (hasChildrenDisease.includes('Nuk kam ndonjë diagnozë') && hasChildrenDisease.length >= 2) {
-  //   next(
-  //     new ApiError(
-  //       'You cannot include -Nuk kam ndonjë diagnozë- with other values in has children disease!',
-  //       httpCodes.BAD_REQUEST
-  //     )
-  //   );
-  //   return;
-  // }
-
-  // if (!haveDiseaseDiagnosis.includes('Nuk kam ndonjë diagnozë')) {
-  //   next(new ApiError('You cannot create a base recommendation where it has disease !', httpCodes.BAD_REQUEST));
-  //   return;
-  // }
-
   if (airQuality && !staticValues.airQuality.includes(airQuality)) {
     next(
       new ApiError(
@@ -319,18 +300,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
-
-  // for (const type of types) {
-  //   if (JSON.parse(request.body[type])) {
-  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
-  //     if (result && result.error) {
-  //       next(new ApiError(result.error, result.code));
-  //       return;
-  //     }
-  //   }
-  // }
-
   const payload = {
     name,
     description,
@@ -339,8 +308,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     gender,
     airQuality,
     isPregnant,
-    //hasChildren,
-    //hasChildrenDisease,
     updatedBy: userId,
     updatedAt: new Date(Date.now()),
   };
