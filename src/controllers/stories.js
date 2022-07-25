@@ -104,7 +104,7 @@ const create = asyncHandler(async (request, response, next) => {
   }
 
   const fileTypes = request.files ? Object.keys(request.files) : [];
-  const types = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
+  const types = ['thumbnail', 'audio', 'backgroundImage', 'shortAudio'];
 
   // if (!fileTypes[0] || !fileTypes[1] || !fileTypes[2] || !fileTypes[4]) {
   //   next(new ApiError(`One of these is missing thumbnail, backgroundImage, audio, shortAudio`, httpCodes.BAD_REQUEST));
@@ -175,7 +175,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const availableValues = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
+  const availableValues = ['thumbnail', 'audio', 'backgroundImage', 'shortAudio'];
   const toBeDeletedinfo = toBeDeleted && toBeDeleted.length ? toBeDeleted : [];
 
   if (toBeDeletedinfo.length > 0) {
@@ -189,7 +189,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   if (request.files) {
     const fileTypes = request.files ? Object.keys(request.files) : [];
 
-    const requiredTypes = ['thumbnail', 'audio', 'backgroundImage', 'narratorPhoto', 'shortAudio'];
+    const requiredTypes = ['thumbnail', 'audio', 'backgroundImage', 'shortAudio'];
 
     for (const fileType of fileTypes) {
       if (!requiredTypes.includes(fileType)) {
