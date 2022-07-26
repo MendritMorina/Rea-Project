@@ -12,6 +12,8 @@ const storyController = require('./stories');
 const usedCouponController = require('./usedCoupons');
 const aqiController = require('./aqi');
 const subscriptionsController = require('./subscriptions');
+const notificationsController = require('./notifications');
+const notificationTypesController = require('./notificationTypes');
 
 // Bundler object that is used to export all controllers inside ./sr/controllers.
 const bundler = {
@@ -28,6 +30,8 @@ const bundler = {
   userController,
   aqiController,
   subscriptionsController,
+  notificationsController,
+  notificationTypesController,
 };
 
 // Exports of this file.

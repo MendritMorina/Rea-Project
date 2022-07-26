@@ -76,6 +76,16 @@ const UserSchema = new mongoose.Schema({
     required: false,
     default: [],
   },
+  fcmToken: {
+    type: String,
+    required: false,
+    default: null,
+  },
+  notificationTypes: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'NotificationTypes' }],
+    required: false,
+    default: [],
+  },
   ...Base,
 });
 

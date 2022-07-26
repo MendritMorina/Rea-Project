@@ -6,7 +6,7 @@ const { Admin, User } = require('../models');
 const { ApiError } = require('../utils/classes');
 const { asyncHandler } = require('../middlewares');
 const { httpCodes, staticValues } = require('../configs');
-const { jwt, checkValidValues } = require('../utils/functions');
+const { jwt, checkValidValues, firebase } = require('../utils/functions');
 
 /**
  * @description Authenticate an user .
@@ -14,7 +14,7 @@ const { jwt, checkValidValues } = require('../utils/functions');
  * @access      Public.
  */
 const authenticate = asyncHandler(async (request, response, next) => {
-  const { name, surname } = request.body;
+  const { name, surname, fcmToken } = request.body;
   const { authorization } = request.headers;
 
   if (!authorization) {
@@ -51,11 +51,27 @@ const authenticate = asyncHandler(async (request, response, next) => {
 
   const user = await User.findOne({ firebaseUid: uid, isDeleted: false });
   if (user) {
+    if (user.fcmToken !== fcmToken) {
+      const updatePayload = { $set: { fcmToken } };
+      const updatedUser = await User.findByIdAndUpdate(user._id, updatePayload).populate('notificationTypes');
+      if (!updatedUser) {
+        next(new ApiError('Failed to add token to user!', httpCodes.INTERNAL_ERROR));
+        return;
+      }
+
+      const firebaseAdmin = firebase.initAdmin();
+
+      for (const type of updatedUser.notificationTypes) {
+        if (user.fcmToken) await firebaseAdmin.messaging().unsubscribeFromTopic(user.fcmToken, type.name);
+        await firebaseAdmin.messaging().subscribeToTopic(fcmToken, type.name);
+      }
+    }
+
     response.status(httpCodes.OK).json({ success: true, data: { token }, error: null });
     return;
   }
 
-  const payload = { name, surname, email: firebaseUser.email, firebaseUid: firebaseUser.uid, providerId };
+  const payload = { name, surname, email: firebaseUser.email, firebaseUid: firebaseUser.uid, providerId, fcmToken };
   const createdUser = await User.create(payload);
   if (!createdUser) {
     next(new ApiError('Failed to create user!', httpCodes.INTERNAL_ERROR));
@@ -73,7 +89,6 @@ const authenticate = asyncHandler(async (request, response, next) => {
  */
 const update = asyncHandler(async (request, response, next) => {
   const userId = request.user._id;
-  // const userId = '628253c7a69fe7319f35261e';
   const {
     name,
     surname,
