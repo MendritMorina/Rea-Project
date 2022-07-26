@@ -471,6 +471,11 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   return;
 });
 
+/**
+ * @description Get Base RecommendationCards.
+ * @route       GET /api/recommendationcards/baseRecommendationCards
+ * @access      Private.
+ */
 const getBaseRecommendationCards = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
   const { longitude, latitude } = request.query;
@@ -496,6 +501,8 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
     next(new ApiError('Failed to find nearest point!', httpCodes.NOT_FOUND));
     return;
   }
+
+  console.log(nearestAQIPoint);
 
   const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
 
@@ -526,6 +533,7 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
   };
 
   const baseRecommendation = await BaseRecommendation.findOne(query).populate('recommendationCards');
+  console.log(baseRecommendation);
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
     return;
@@ -533,7 +541,7 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
 
   const baseRecommendationCards = baseRecommendation.recommendationCards;
 
-  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendation }, error: null });
+  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendationCards }, error: null });
   return;
 });
 

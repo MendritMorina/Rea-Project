@@ -130,10 +130,6 @@ const create = asyncHandler(async (request, response, next) => {
 
   const { name, description, age, gender, airQuality, isPregnant, haveDiseaseDiagnosis } = request.body;
 
-  // const age = JSON.parse(request.body.age);
-  // const gender = JSON.parse(request.body.gender);
-  // const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
-
   const baseRecommendationExists = (await BaseRecommendation.countDocuments({ name, isDeleted: false })) > 0;
   if (baseRecommendationExists) {
     next(new ApiError('Base Recommendation with given name already exists!', httpCodes.BAD_REQUEST));
@@ -149,55 +145,6 @@ const create = asyncHandler(async (request, response, next) => {
     );
     return;
   }
-
-  if (haveDiseaseDiagnosis.includes('Nuk kam ndonjë diagnozë') && haveDiseaseDiagnosis.length >= 2) {
-    next(
-      new ApiError(
-        'You cannot include -Nuk kam ndonjë diagnozë- with other in have disease diagnos!',
-        httpCodes.BAD_REQUEST
-      )
-    );
-    return;
-  }
-
-  // if (hasChildrenDisease.includes('Nuk kam ndonjë diagnozë') && hasChildrenDisease.length >= 2) {
-  //   next(new ApiError('You cannot include Asnjёra with other values in has children disease!', httpCodes.BAD_REQUEST));
-  //   return;
-  // }
-
-  if (
-    // !hasChildren &&
-    // hasChildrenDisease &&
-    // hasChildrenDisease.length > 0 &&
-    // !hasChildrenDisease.includes('Nuk kam ndonjë diagnozë')
-    haveDiseaseDiagnosis.includes('Nuk kam ndonjë diagnozë')
-  ) {
-    next(new ApiError('You cannot create a base recommendation where it has disease !', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
-    next(
-      new ApiError(
-        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
-        httpCodes.BAD_REQUEST
-      )
-    );
-    return;
-  }
-
-  // const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
-
-  // for (const type of types) {
-  //   if (request.body[type]) {
-  //     console.log(JSON.parse(request.body[type]));
-  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
-  //     if (result && result.error) {
-  //       next(new ApiError(result.error, result.code));
-  //       return;
-  //     }
-  //   }
-  // }
 
   const payload = {
     name,
@@ -220,11 +167,11 @@ const create = asyncHandler(async (request, response, next) => {
   const fileTypes = request.files ? Object.keys(request.files) : [];
   const requiredTypes = ['thumbnail'];
 
-  // if (fileTypes.length !== 1) {
-  //   await baseRecommendation.remove();
-  //   next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
-  //   return;
-  // }
+  if (fileTypes.length !== 1) {
+    await baseRecommendation.remove();
+    next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
+    return;
+  }
 
   for (const fileType of fileTypes) {
     if (!requiredTypes.includes(fileType)) {
@@ -280,26 +227,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (haveDiseaseDiagnosis.includes('Nuk kam ndonjë diagnozë') && haveDiseaseDiagnosis.length >= 2) {
-    next(
-      new ApiError(
-        'You cannot include -Nuk kam ndonjë diagnozë- with other  in have disease diagnos!',
-        httpCodes.BAD_REQUEST
-      )
-    );
-    return;
-  }
-
-  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
-    next(
-      new ApiError(
-        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
-        httpCodes.BAD_REQUEST
-      )
-    );
-    return;
-  }
-
   const payload = {
     name,
     description,
@@ -339,10 +266,10 @@ const updateOne = asyncHandler(async (request, response, next) => {
     const fileTypes = request.files ? Object.keys(request.files) : [];
     const requiredTypes = ['thumbnail'];
 
-    if (fileTypes.length !== 1) {
-      next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
-      return;
-    }
+    // if (fileTypes.length !== 1) {
+    //   next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
+    //   return;
+    // }
 
     for (const fileType of fileTypes) {
       if (!requiredTypes.includes(fileType)) {

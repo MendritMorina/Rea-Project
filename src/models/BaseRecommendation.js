@@ -37,25 +37,10 @@ const BaseRecommendationSchema = new mongoose.Schema({
     required: true,
     default: [],
   },
-  energySource: {
-    type: Array,
-    required: true,
-    default: [],
-  },
   isPregnant: {
     type: Boolean,
     required: true,
     default: false,
-  },
-  hasChildren: {
-    type: Boolean,
-    required: true,
-    default: false,
-  },
-  hasChildrenDisease: {
-    type: Array,
-    required: false,
-    default: [],
   },
   recommendationCards: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'RecommendationCard' }],
