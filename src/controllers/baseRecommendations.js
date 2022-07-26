@@ -162,17 +162,17 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
+  // const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
 
-  for (const type of types) {
-    if (request.body[type]) {
-      const result = checkValidValues(type, JSON.parse(request.body[type]));
-      if (result && result.error) {
-        next(new ApiError(result.error, result.code));
-        return;
-      }
-    }
-  }
+  // for (const type of types) {
+  //   if (request.body[type]) {
+  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
+  //     if (result && result.error) {
+  //       next(new ApiError(result.error, result.code));
+  //       return;
+  //     }
+  //   }
+  // }
 
   const payload = {
     name,
