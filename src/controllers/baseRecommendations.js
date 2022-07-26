@@ -53,11 +53,11 @@ const getAll = asyncHandler(async (request, response) => {
         airQuality: { $first: '$airQuality' },
         gender: { $first: '$gender' },
         age: { $first: '$age' },
-        energySource: { $first: '$energySource' },
+        // energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
         isPregnant: { $first: '$isPregnant' },
-        hasChildren: { $first: '$hasChildren' },
-        hasChildrenDisease: { $first: '$hasChildrenDisease' },
+        // hasChildren: { $first: '$hasChildren' },
+        // hasChildrenDisease: { $first: '$hasChildrenDisease' },
         informativeRecommendations: { $first: '$informativeRecommendations' },
         recommendationCards: { $push: '$recommendationCards' },
       },
@@ -99,11 +99,11 @@ const getOne = asyncHandler(async (request, response, next) => {
         airQuality: { $first: '$airQuality' },
         gender: { $first: '$gender' },
         age: { $first: '$age' },
-        energySource: { $first: '$energySource' },
+        // energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
         isPregnant: { $first: '$isPregnant' },
-        hasChildren: { $first: '$hasChildren' },
-        hasChildrenDisease: { $first: '$hasChildrenDisease' },
+        // hasChildren: { $first: '$hasChildren' },
+        // hasChildrenDisease: { $first: '$hasChildrenDisease' },
         informativeRecommendations: { $first: '$informativeRecommendations' },
         recommendationCards: { $push: '$recommendationCards' },
       },
@@ -417,23 +417,6 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // const deletedBaseRecommendationCards = await RecommendationCard.updateMany(
-  //   { recommendation: baseRecommendation._id },
-  //   {
-  //     $set: {
-  //       isDeleted: true,
-  //       recommendation: null,
-  //       updatedBy: userId,
-  //       updatedAt: new Date(Date.now()),
-  //     },
-  //   }
-  // );
-
-  // if (!deletedBaseRecommendationCards) {
-  //   next(new ApiError('Failed to delete the recommendation cards!', httpCodes.INTERNAL_ERROR));
-  //   return;
-  // }
-
   response
     .status(httpCodes.OK)
     .json({ success: true, data: { baseRecommendation: deletedBaseRecommendation }, error: null });
@@ -461,21 +444,6 @@ async function fileResult(recommendationCard, userId, req, fileTypes) {
 }
 
 const uploadFile = async (baseRecommendationId, userId, request, fileType) => {
-  // if (!request.files[fileType]) {
-  //   return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
-  // }
-
-  // const allowedFileTypes = ['photo', 'thumbnail'];
-
-  // if (!allowedFileTypes.includes(fileType)) {
-  //   return {
-  //     success: false,
-  //     data: null,
-  //     error: `File Type ${fileType} must be of ${allowedFileTypes}`,
-  //     code: httpCodes.BAD_REQUEST,
-  //   };
-  // }
-
   const { data, mimetype, name, size } = request.files[fileType];
 
   const type = mimetype.split('/').pop();

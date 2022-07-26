@@ -733,15 +733,15 @@ function airQualityFromAQI(aqi) {
   let airQuality = '';
 
   if (aqi < 51) {
-    airQuality = 'E mire';
+    airQuality = 'E mirë';
   } else if (aqi >= 51 && aqi < 100) {
     airQuality = 'E pranueshme';
   } else if (aqi >= 101 && aqi < 150) {
     airQuality = 'Mesatare';
   } else if (aqi >= 151 && aqi < 200) {
-    airQuality = 'E dobet';
+    airQuality = 'E dobët';
   } else if (aqi >= 200 && aqi < 300) {
-    airQuality = 'Shume e dobet';
+    airQuality = 'Shume e dobët';
   } else {
     airQuality = 'Jashtëzakonisht e dobët';
   }
