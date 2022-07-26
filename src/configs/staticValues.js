@@ -10,11 +10,11 @@ const staticValues = {
     'Nuk kam ndonjë diagnozë',
   ],
   hasChildrenDisease: [
-    'Sëmundje të frymëmarrjes/mushkërive',
+    'Sëmundje të mushkërive',
     'Sëmundje të kardiovaskulare',
     'Diabet',
     'Sëmundje neurologjike',
-    'Nuk kam ndonjë diagnozë',
+    'Nuk ka ndonjë diagnozë',
   ],
   energySource: ['Qymyr', 'Dru', 'Gaz', 'Tjetër'],
   airQuality: ['E mire', 'E pranueshme', 'Mesatare', 'E dobet', 'Shume e dobet', 'Jashtëzakonisht e dobët'],

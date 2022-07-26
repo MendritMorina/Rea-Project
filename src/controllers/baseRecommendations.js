@@ -51,12 +51,13 @@ const getAll = asyncHandler(async (request, response) => {
         description: { $first: '$description' },
         thumbnail: { $first: '$thumbnail' },
         airQuality: { $first: '$airQuality' },
-        // gender: { $first: '$gender' },
-        // age: { $first: '$age' },
+        gender: { $first: '$gender' },
+        age: { $first: '$age' },
+        energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
         isPregnant: { $first: '$isPregnant' },
-        // hasChildren: { $first: '$hasChildren' },
-        // hasChildrenDisease: { $first: '$hasChildrenDisease' },
+        hasChildren: { $first: '$hasChildren' },
+        hasChildrenDisease: { $first: '$hasChildrenDisease' },
         informativeRecommendations: { $first: '$informativeRecommendations' },
         recommendationCards: { $push: '$recommendationCards' },
       },
@@ -96,12 +97,13 @@ const getOne = asyncHandler(async (request, response, next) => {
         description: { $first: '$description' },
         thumbnail: { $first: '$thumbnail' },
         airQuality: { $first: '$airQuality' },
-        // gender: { $first: '$gender' },
-        // age: { $first: '$age' },
+        gender: { $first: '$gender' },
+        age: { $first: '$age' },
+        energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
         isPregnant: { $first: '$isPregnant' },
-        // hasChildren: { $first: '$hasChildren' },
-        // hasChildrenDisease: { $first: '$hasChildrenDisease' },
+        hasChildren: { $first: '$hasChildren' },
+        hasChildrenDisease: { $first: '$hasChildrenDisease' },
         informativeRecommendations: { $first: '$informativeRecommendations' },
         recommendationCards: { $push: '$recommendationCards' },
       },
@@ -128,7 +130,11 @@ const getOne = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
 
-  const { name, description, age, gender, airQuality, isPregnant, haveDiseaseDiagnosis } = request.body;
+  const { name, description, airQuality, isPregnant } = request.body;
+
+  const age = JSON.parse(request.body.age);
+  const gender = JSON.parse(request.body.gender);
+  const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
 
   const baseRecommendationExists = (await BaseRecommendation.countDocuments({ name, isDeleted: false })) > 0;
   if (baseRecommendationExists) {
@@ -145,6 +151,28 @@ const create = asyncHandler(async (request, response, next) => {
     );
     return;
   }
+
+  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
+    next(
+      new ApiError(
+        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  // const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
+
+  // for (const type of types) {
+  //   if (request.body[type]) {
+  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
+  //     if (result && result.error) {
+  //       next(new ApiError(result.error, result.code));
+  //       return;
+  //     }
+  //   }
+  // }
 
   const payload = {
     name,
@@ -209,7 +237,13 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { baseRecommendationId } = request.params;
-  const { name, description, age, gender, airQuality, isPregnant, haveDiseaseDiagnosis, toBeDeleted } = request.body;
+  const { name, description, isPregnant, airQuality, hasChildren, toBeDeleted } = request.body;
+
+  const age = JSON.parse(request.body.age);
+  const gender = JSON.parse(request.body.gender);
+  const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
+  const energySource = JSON.parse(request.body.energySource);
+  const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
 
   const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false });
   if (!baseRecommendation) {
@@ -227,14 +261,59 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  if (haveDiseaseDiagnosis.includes('Asnjёra') && haveDiseaseDiagnosis.length >= 2) {
+    next(new ApiError('You cannot include Asnjёra with other  in have disease diagnos!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  if (hasChildrenDisease.includes('Asnjёra') && hasChildrenDisease.length >= 2) {
+    next(new ApiError('You cannot include Asnjёra with other values in has children disease!', httpCodes.BAD_REQUEST));
+    return;
+  }
+
+  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0 && !hasChildrenDisease.includes('Asnjёra')) {
+    next(
+      new ApiError(
+        'You cannot create a base recommendation where it has children disease and has no children!',
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
+    next(
+      new ApiError(
+        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+
+  for (const type of types) {
+    if (JSON.parse(request.body[type])) {
+      const result = checkValidValues(type, JSON.parse(request.body[type]));
+      if (result && result.error) {
+        next(new ApiError(result.error, result.code));
+        return;
+      }
+    }
+  }
+
   const payload = {
     name,
     description,
     haveDiseaseDiagnosis,
+    energySource,
     age,
     gender,
     airQuality,
     isPregnant,
+    hasChildren,
+    hasChildrenDisease,
     updatedBy: userId,
     updatedAt: new Date(Date.now()),
   };
@@ -266,10 +345,10 @@ const updateOne = asyncHandler(async (request, response, next) => {
     const fileTypes = request.files ? Object.keys(request.files) : [];
     const requiredTypes = ['thumbnail'];
 
-    // if (fileTypes.length !== 1) {
-    //   next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
-    //   return;
-    // }
+    if (fileTypes.length !== 1) {
+      next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
+      return;
+    }
 
     for (const fileType of fileTypes) {
       if (!requiredTypes.includes(fileType)) {
