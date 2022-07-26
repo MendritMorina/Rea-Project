@@ -237,13 +237,11 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { baseRecommendationId } = request.params;
-  const { name, description, isPregnant, airQuality, hasChildren, toBeDeleted } = request.body;
+  const { name, description, isPregnant, airQuality, toBeDeleted } = request.body;
 
   const age = JSON.parse(request.body.age);
   const gender = JSON.parse(request.body.gender);
   const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
-  const energySource = JSON.parse(request.body.energySource);
-  const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
 
   const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false });
   if (!baseRecommendation) {
@@ -261,26 +259,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (haveDiseaseDiagnosis.includes('Asnjёra') && haveDiseaseDiagnosis.length >= 2) {
-    next(new ApiError('You cannot include Asnjёra with other  in have disease diagnos!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  if (hasChildrenDisease.includes('Asnjёra') && hasChildrenDisease.length >= 2) {
-    next(new ApiError('You cannot include Asnjёra with other values in has children disease!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0 && !hasChildrenDisease.includes('Asnjёra')) {
-    next(
-      new ApiError(
-        'You cannot create a base recommendation where it has children disease and has no children!',
-        httpCodes.BAD_REQUEST
-      )
-    );
-    return;
-  }
-
   if (airQuality && !staticValues.airQuality.includes(airQuality)) {
     next(
       new ApiError(
@@ -291,29 +269,26 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+  // const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
 
-  for (const type of types) {
-    if (JSON.parse(request.body[type])) {
-      const result = checkValidValues(type, JSON.parse(request.body[type]));
-      if (result && result.error) {
-        next(new ApiError(result.error, result.code));
-        return;
-      }
-    }
-  }
+  // for (const type of types) {
+  //   if (JSON.parse(request.body[type])) {
+  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
+  //     if (result && result.error) {
+  //       next(new ApiError(result.error, result.code));
+  //       return;
+  //     }
+  //   }
+  // }
 
   const payload = {
     name,
     description,
     haveDiseaseDiagnosis,
-    energySource,
     age,
     gender,
     airQuality,
     isPregnant,
-    hasChildren,
-    hasChildrenDisease,
     updatedBy: userId,
     updatedAt: new Date(Date.now()),
   };
