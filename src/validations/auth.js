@@ -7,7 +7,7 @@ const validator = {
     body: Joi.object({
       name: Joi.string().required(),
       surname: Joi.string().required(),
-      token: Joi.string().required(),
+      fcmToken: Joi.string().optional(),
     }),
   },
   update: {
