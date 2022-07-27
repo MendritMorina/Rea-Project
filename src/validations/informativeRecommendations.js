@@ -38,9 +38,9 @@ const validator = {
         .required(),
     }),
     body: Joi.object({
-      name: Joi.string().required(),
-      description: Joi.string().required(),
-      airQuality: Joi.string().required(),
+      name: Joi.string().optional(),
+      description: Joi.string().optional(),
+      airQuality: Joi.string().optional(),
       isPregnant: Joi.boolean().optional().default(false),
       hasChildren: Joi.boolean().optional().default(false),
       isGeneric: Joi.boolean().optional().default(false),

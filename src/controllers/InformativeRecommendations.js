@@ -128,7 +128,7 @@ const getOne = asyncHandler(async (request, response, next) => {
   const informativeRecommendation = await InformativeRecommendation.aggregatePaginate(query, { pagination: false });
 
   if (!informativeRecommendation && !informativeRecommendation.docs) {
-    next(new ApiError('Base Recommendation with given id not found!', httpCodes.NOT_FOUND));
+    next(new ApiError('Recommendation with given id not found!', httpCodes.NOT_FOUND));
     return;
   }
 
@@ -276,14 +276,14 @@ const updateOne = asyncHandler(async (request, response, next) => {
     isDeleted: false,
   });
   if (!informativeRecommendation) {
-    next(new ApiError('Informative Recommendation not found!', httpCodes.NOT_FOUND));
+    next(new ApiError('Base Recommendation not found!', httpCodes.NOT_FOUND));
     return;
   }
 
   if (isPregnant && !gender.includes('Femër')) {
     next(
       new ApiError(
-        "You cannot create a informative recommendation where is pregnant is equal to true and gender doesn't incude female!",
+        "You cannot create a base recommendation where is pregnant is equal to true and gender doesn't incude female!",
         httpCodes.BAD_REQUEST
       )
     );
@@ -300,7 +300,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+  // const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
 
   // for (const type of types) {
   //   if (JSON.parse(request.body[type])) {
@@ -316,12 +316,12 @@ const updateOne = asyncHandler(async (request, response, next) => {
     name,
     description,
     haveDiseaseDiagnosis,
-    energySource,
     age,
-    isGeneric,
     gender,
     airQuality,
     isPregnant,
+    isGeneric,
+    energySource,
     hasChildren,
     hasChildrenDisease,
     updatedBy: userId,
@@ -374,7 +374,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
           editedInformativeRecommendation[fileType] &&
           request.files[fileType].name === editedInformativeRecommendation[fileType].name
         ) {
-          next(new ApiError('BaseRecommendation file has same name!', httpCodes.BAD_REQUEST));
+          next(new ApiError('InformativeRecommendation file has same name!', httpCodes.BAD_REQUEST));
           return;
         }
       }
@@ -391,8 +391,8 @@ const updateOne = asyncHandler(async (request, response, next) => {
     }
   }
 
-  const editedFileInformativeRecommendation = await BaseRecommendation.findOne({
-    _id: editedBaseRecommendation._id,
+  const editedFileInformativeRecommendation = await InformativeRecommendation.findOne({
+    _id: editedInformativeRecommendation._id,
     isDeleted: false,
   }).populate('recommendationCards');
   if (!editedFileInformativeRecommendation) {

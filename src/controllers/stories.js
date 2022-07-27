@@ -343,7 +343,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
   const isAudio = fileType === 'audio' || fileType === 'shortAudio';
   if (isAudio) {
     const metadata = await mm.parseFile(filePath);
-    duration = metadata && metadata.format && metadata.format.duration ? metadata.format.duration : 0;
+    duration = metadata && metadata.format && metadata.format.duration ? metadata.format.duration / 60 : 0;
   }
 
   const updatedStory = await Story.findOneAndUpdate(
