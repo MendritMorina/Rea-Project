@@ -19,6 +19,40 @@ const InformativeRecommendationSchema = new mongoose.Schema({
   thumbnail: {
     ...File,
   },
+  airQuality: {
+    type: String,
+    required: false,
+    enum: ['E mirë', 'E pranueshme', 'Mesatare', 'E dobët', 'Shume e dobët'],
+  },
+  age: {
+    type: Array,
+    required: true,
+  },
+  energySource: {
+    type: Array,
+    required: true,
+    default: [],
+  },
+  haveDiseaseDiagnosis: {
+    type: Array,
+    required: true,
+    default: [],
+  },
+  hasChildren: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  hasChildrenDisease: {
+    type: Array,
+    required: false,
+    default: [],
+  },
+  isPregnant: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
   baseRecommendations: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BaseRecommendation' }],
     required: true,

@@ -129,11 +129,14 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
-  const { name, description, isGeneric } = request.body;
 
-  const baseRecommendationsId = request.body.baseRecommendationsId
-    ? JSON.parse(request.body.baseRecommendationsId)
-    : null;
+  const { name, description, airQuality, isGeneric, isPregnant, hasChildren } = request.body;
+
+  const age = JSON.parse(request.body.age);
+  const gender = JSON.parse(request.body.gender);
+  const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
+  const energySource = JSON.parse(request.body.energySource);
+  const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
 
   const informativeRecommendationExists =
     (await InformativeRecommendation.countDocuments({ name, isDeleted: false })) > 0;
@@ -142,10 +145,50 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  if (isPregnant && !gender.includes('Femër')) {
+    next(
+      new ApiError(
+        "You cannot create a informative recommendation where is pregnant is equal to true and gender doesn't incude female!",
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
+    next(
+      new ApiError(
+        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
+        httpCodes.BAD_REQUEST
+      )
+    );
+    return;
+  }
+
+  // const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+
+  // for (const type of types) {
+  //   if (request.body[type]) {
+  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
+  //     if (result && result.error) {
+  //       next(new ApiError(result.error, result.code));
+  //       return;
+  //     }
+  //   }
+  // }
+
   const payload = {
     name,
     description,
+    age,
+    gender,
+    airQuality,
+    haveDiseaseDiagnosis,
     isGeneric,
+    energySource,
+    isPregnant,
+    hasChildren,
+    hasChildrenDisease,
     createdBy: userId,
     createdAt: new Date(Date.now()),
   };
@@ -156,82 +199,43 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (baseRecommendationsId) {
-    for (const baseRecommendationId of baseRecommendationsId) {
-      const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
-        { _id: baseRecommendationId },
-        {
-          $push: { informativeRecommendations: informativeRecommendation._id },
-        }
-      );
-
-      if (!updatedBaseRecommendation) {
-        next(new ApiError('Failed to update Base Recommendation!', httpCodes.INTERNAL_ERROR));
-        return;
-      }
-
-      const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
-        { _id: informativeRecommendation._id },
-        {
-          $push: { baseRecommendations: updatedBaseRecommendation._id },
-        }
-      );
-
-      if (!updatedInformativeRecommendation) {
-        next(new ApiError('Failed to update Informative Recommendation!', httpCodes.INTERNAL_ERROR));
-        return;
-      }
-    }
-  }
-
-  const latestUpdatedInformativeRecommendation = await InformativeRecommendation.findOne({
-    _id: informativeRecommendation._id,
-    isDeleted: false,
-  });
-  if (!latestUpdatedInformativeRecommendation) {
-    next(new ApiError('Informative Recommendation with given id not found!', httpCodes.NOT_FOUND));
-    return;
-  }
-
   const fileTypes = request.files ? Object.keys(request.files) : [];
   const requiredTypes = ['thumbnail'];
 
   if (fileTypes.length !== 1) {
-    await latestUpdatedInformativeRecommendation.remove();
-    next(new ApiError('You must input the file Type!', httpCodes.BAD_REQUEST));
+    await informativeRecommendation.remove();
+    next(new ApiError('You must input the required file Type!', httpCodes.BAD_REQUEST));
     return;
   }
 
   for (const fileType of fileTypes) {
     if (!requiredTypes.includes(fileType)) {
-      await latestUpdatedInformativeRecommendation.remove();
+      await informativeRecommendation.remove();
       next(new ApiError(`File Type ${fileType} must be of ${requiredTypes} File Types!`, httpCodes.BAD_REQUEST));
       return;
     }
   }
 
-  const fileResults = await fileResult(latestUpdatedInformativeRecommendation._id, userId, request, fileTypes);
+  const fileResults = await fileResult(informativeRecommendation._id, userId, request, fileTypes);
   for (let key in fileResults) {
     const fileUploadResult = fileResults[key];
     if (fileUploadResult && !fileUploadResult.success) {
-      await latestUpdatedInformativeRecommendation.remove();
+      await informativeRecommendation.remove();
       next(new ApiError(fileUploadResult.error, httpCodes.INTERNAL_ERROR));
       return;
     }
   }
 
-  const updatedLatestUpdatedInformativeRecommendation = await InformativeRecommendation.findOne({
-    _id: latestUpdatedInformativeRecommendation._id,
+  const updatedInformativeRecommendation = await BaseRecommendation.findOne({
+    _id: informativeRecommendation._id,
     isDeleted: false,
   });
-  if (!updatedLatestUpdatedInformativeRecommendation) {
+  if (!updatedInformativeRecommendation) {
     next(new ApiError('Informative Recommendation after file upload not found!', httpCodes.NOT_FOUND));
     return;
   }
 
-  response
-    .status(httpCodes.CREATED)
-    .json({ success: true, data: { updatedLatestUpdatedInformativeRecommendation }, error: null });
+  response.status(200).json({ success: true, data: { updatedInformativeRecommendation }, error: null });
   return;
 });
 

@@ -19,15 +19,15 @@ const validator = {
     body: Joi.object({
       name: Joi.string().required(),
       description: Joi.string().required(),
-      // baseRecommendationsId: Joi.array()
-      //   .optional()
-      //   .items(
-      //     Joi.string()
-      //       .regex(/^[0-9a-fA-F]{24}$/)
-      //       .required()
-      //   )
-      //   .default(null),
-      baseRecommendationsId: Joi.string().optional().default(''),
+      airQuality: Joi.string().required(),
+      isPregnant: Joi.boolean().optional().default(false),
+      hasChildren: Joi.boolean().optional().default(false),
+      isGeneric: Joi.boolean().optional().default(false),
+      age: Joi.string().optional().default(''),
+      gender: Joi.string().optional().default(''),
+      haveDiseaseDiagnosis: Joi.string().optional().default(''),
+      energySource: Joi.string().optional().default(''),
+      hasChildrenDisease: Joi.string().optional().default(''),
       isGeneric: Joi.boolean().optional().default(false),
     }),
   },
@@ -38,14 +38,17 @@ const validator = {
         .required(),
     }),
     body: Joi.object({
-      name: Joi.string().optional(),
-      description: Joi.string().optional(),
-      pullFromId: Joi.string()
-        .regex(/^[0-9a-fA-F]{24}$/)
-        .optional(),
-      pushToId: Joi.string()
-        .regex(/^[0-9a-fA-F]{24}$/)
-        .optional(),
+      name: Joi.string().required(),
+      description: Joi.string().required(),
+      airQuality: Joi.string().required(),
+      isPregnant: Joi.boolean().optional().default(false),
+      hasChildren: Joi.boolean().optional().default(false),
+      isGeneric: Joi.boolean().optional().default(false),
+      age: Joi.string().optional().default(''),
+      gender: Joi.string().optional().default(''),
+      haveDiseaseDiagnosis: Joi.string().optional().default(''),
+      energySource: Joi.string().optional().default(''),
+      hasChildrenDisease: Joi.string().optional().default(''),
       isGeneric: Joi.boolean().optional().default(false),
     }),
   },
