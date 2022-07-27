@@ -55,7 +55,7 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const notification = await Notification.create({ title, body, type, createdBy: adminId });
+  const notification = await Notification.create({ title, body, type: notificationType._id, createdBy: adminId });
   if (!notification) {
     next(new ApiError('Failed to create new notification!', httpCodes.INTERNAL_ERROR));
     return;
