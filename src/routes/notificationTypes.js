@@ -14,12 +14,12 @@ const routes = [
   {
     path: '/',
     method: httpVerbs.GET,
-    middlewares: [authorizeAdmin, validate(notificationTypesValidator.getAll), notificationTypesController.getAll],
+    middlewares: [validate(notificationTypesValidator.getAll), notificationTypesController.getAll],
   },
   {
     path: '/:notificationTypeId',
     method: httpVerbs.GET,
-    middlewares: [authorizeAdmin, validate(notificationTypesValidator.getOne), notificationTypesController.getOne],
+    middlewares: [validate(notificationTypesValidator.getOne), notificationTypesController.getOne],
   },
   {
     path: '/subscribe',
