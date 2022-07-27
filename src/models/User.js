@@ -82,7 +82,7 @@ const UserSchema = new mongoose.Schema({
     default: null,
   },
   notificationTypes: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'NotificationTypes' }],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'NotificationType' }],
     required: false,
     default: [],
   },

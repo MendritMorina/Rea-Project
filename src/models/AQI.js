@@ -9,6 +9,16 @@ const AQISchema = new mongoose.Schema({
     required: true,
     default: Date.now,
   },
+  longitude: {
+    type: Number,
+    required: false,
+    default: null,
+  },
+  latitude: {
+    type: Number,
+    required: false,
+    default: null,
+  },
   location: {
     type: {
       type: String,
@@ -60,6 +70,8 @@ AQISchema.plugin(mongooseAggregatePaginate);
 
 // Indexes.
 AQISchema.index({ location: '2dsphere' });
+AQISchema.index({ longitude: 1 });
+AQISchema.index({ latitude: 1 });
 
 // Exports of this file.
 module.exports = mongoose.model('AQISchema', AQISchema);
