@@ -516,20 +516,14 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
 
   const userInfo = {
     haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
-    energySource: user.energySource,
-    hasChildrenDisease: user.hasChildrenDisease,
+    isPregnant: user.isPregnant,
   };
 
   const query = {
     $and: [
       { airQuality: airQuality },
       { haveDiseaseDiagnosis: { $in: userInfo.haveDiseaseDiagnosis } },
-      { energySource: { $in: userInfo.energySource } },
-      { hasChildrenDisease: { $in: userInfo.hasChildrenDisease } },
-
-      // { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
-      // { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
-      // { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
+      { isPregnant: userInfo.isPregnant },
     ],
   };
 
