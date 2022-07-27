@@ -5,8 +5,8 @@ const { Joi } = require('express-validation');
 const validator = {
   authenticate: {
     body: Joi.object({
-      name: Joi.string().required(),
-      surname: Joi.string().required(),
+      name: Joi.string().optional(),
+      surname: Joi.string().optional(),
       fcmToken: Joi.string().optional(),
     }),
   },
