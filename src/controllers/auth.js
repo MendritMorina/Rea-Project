@@ -167,6 +167,14 @@ const update = asyncHandler(async (request, response, next) => {
     updatedAt: new Date(Date.now()),
   };
 
+  if (user.email !== email) {
+    const emailExists = (await User.countDocuments({ _id: { $ne: user._id }, email: email, isDeleted: false })) > 0;
+    if (emailExists) {
+      next(new ApiError('This email is already registered in our app!', httpCodes.BAD_REQUEST));
+      return;
+    }
+  }
+
   const editedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: payload }, { new: true });
   if (!editedUser) {
     next(new ApiError('Failed to update user!', httpCodes.INTERNAL_ERROR));
