@@ -57,8 +57,8 @@ const getAll = asyncHandler(async (request, response) => {
         description: { $first: '$description' },
         thumbnail: { $first: '$thumbnail' },
         airQuality: { $first: '$airQuality' },
-        gender: { $first: '$gender' },
-        age: { $first: '$age' },
+        // gender: { $first: '$gender' },
+        // age: { $first: '$age' },
         isGeneric: { $first: '$isGeneric' },
         energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
@@ -112,8 +112,8 @@ const getOne = asyncHandler(async (request, response, next) => {
         description: { $first: '$description' },
         thumbnail: { $first: '$thumbnail' },
         airQuality: { $first: '$airQuality' },
-        gender: { $first: '$gender' },
-        age: { $first: '$age' },
+        //gender: { $first: '$gender' },
+        //age: { $first: '$age' },
         isGeneric: { $first: '$isGeneric' },
         energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
@@ -148,8 +148,8 @@ const create = asyncHandler(async (request, response, next) => {
 
   const { name, description, airQuality, isGeneric, isPregnant, hasChildren } = request.body;
 
-  const age = JSON.parse(request.body.age);
-  const gender = JSON.parse(request.body.gender);
+  //const age = JSON.parse(request.body.age);
+  //const gender = JSON.parse(request.body.gender);
   const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
   const energySource = JSON.parse(request.body.energySource);
   const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
@@ -196,8 +196,8 @@ const create = asyncHandler(async (request, response, next) => {
   const payload = {
     name,
     description,
-    age,
-    gender,
+    //  age,
+    //  gender,
     airQuality,
     haveDiseaseDiagnosis,
     isGeneric,
@@ -265,8 +265,8 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const { informativeRecommendationId } = request.params;
   const { name, description, isPregnant, isGeneric, airQuality, hasChildren, toBeDeleted } = request.body;
 
-  const age = JSON.parse(request.body.age);
-  const gender = JSON.parse(request.body.gender);
+  // const age = JSON.parse(request.body.age);
+  // const gender = JSON.parse(request.body.gender);
   const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
   const energySource = JSON.parse(request.body.energySource);
   const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
@@ -316,8 +316,8 @@ const updateOne = asyncHandler(async (request, response, next) => {
     name,
     description,
     haveDiseaseDiagnosis,
-    age,
-    gender,
+    // age,
+    // gender,
     airQuality,
     isPregnant,
     isGeneric,
@@ -400,6 +400,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  console.log(informativeRecommendation);
   response
     .status(httpCodes.OK)
     .json({ success: true, data: { informativeRecommendation: editedFileInformativeRecommendation }, error: null });
