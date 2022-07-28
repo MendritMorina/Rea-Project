@@ -4,7 +4,7 @@ const { getAuth } = require('firebase-admin/auth');
 // Imports: local files.
 const User = require('../models/User');
 const asyncHandler = require('./asyncHandler');
-const { httpCodes } = require('../configs');
+const { httpCodes, constants } = require('../configs');
 const { ApiError } = require('../utils/classes');
 
 const authorize = asyncHandler(async (request, response, next) => {
@@ -22,7 +22,7 @@ const authorize = asyncHandler(async (request, response, next) => {
 
   const decodedToken = await getAuth().verifyIdToken(token);
   if (!decodedToken) {
-    next(new ApiError('Unauthorized!', httpCodes.UNAUTHORIZED));
+    next(new ApiError(constants.TOKEN_EXPIRED, httpCodes.UNAUTHORIZED));
     return;
   }
 

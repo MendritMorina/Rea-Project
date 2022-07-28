@@ -5,7 +5,7 @@ const { getAuth } = require('firebase-admin/auth');
 const { Admin, User } = require('../models');
 const { ApiError } = require('../utils/classes');
 const { asyncHandler } = require('../middlewares');
-const { httpCodes, staticValues } = require('../configs');
+const { httpCodes, staticValues, constants } = require('../configs');
 const { jwt, checkValidValues, firebase } = require('../utils/functions');
 
 /**
@@ -30,7 +30,7 @@ const authenticate = asyncHandler(async (request, response, next) => {
 
   const decodedToken = await getAuth().verifyIdToken(token);
   if (!decodedToken) {
-    next(new ApiError('Unauthorized to access!', httpCodes.UNAUTHORIZED));
+    next(new ApiError(constants.TOKEN_EXPIRED, httpCodes.UNAUTHORIZED));
     return;
   }
 
