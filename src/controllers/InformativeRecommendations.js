@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 const { InformativeRecommendation, BaseRecommendation, RecommendationCard } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
-const { filterValues, getMode } = require('../utils/functions');
+const { filterValues, getMode, checkValidValues } = require('../utils/functions');
 const { httpCodes, staticValues } = require('../configs');
 
 /**
