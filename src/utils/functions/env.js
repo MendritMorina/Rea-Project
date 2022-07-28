@@ -32,11 +32,7 @@ const validateEnv = () => {
   const { requiredKeys } = env;
   if (!requiredKeys || !requiredKeys.length) return false;
 
-  return requiredKeys.every((key) => {
-    console.log('key', key);
-    console.log('condition', Boolean(process.env[key]));
-    return Boolean(process.env[key]);
-  });
+  return requiredKeys.every((key) => Boolean(process.env[key]));
 };
 
 // Exports of this file.
