@@ -528,7 +528,9 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
 
   const baseRecommendationCards = baseRecommendation.recommendationCards;
 
-  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendationCards }, error: null });
+  response
+    .status(httpCodes.OK)
+    .json({ success: true, data: { baseRecommendation, baseRecommendationCards }, error: null });
   return;
 });
 
