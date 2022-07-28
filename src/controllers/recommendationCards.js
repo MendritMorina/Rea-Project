@@ -471,6 +471,11 @@ const deleteOne = asyncHandler(async (request, response, next) => {
   return;
 });
 
+/**
+ * @description Get Base RecommendationCards.
+ * @route       GET /api/recommendationcards/baseRecommendationCards
+ * @access      Private.
+ */
 const getBaseRecommendationCards = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
   const { longitude, latitude } = request.query;
@@ -514,16 +519,11 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
   const aqiValue = aqiCalculator(aqiData);
   const airQuality = airQualityFromAQI(aqiValue);
 
-  const userInfo = {
-    haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
-    isPregnant: user.isPregnant,
-  };
-
   const query = {
     $and: [
       { airQuality: airQuality },
-      { haveDiseaseDiagnosis: { $in: userInfo.haveDiseaseDiagnosis } },
-      { isPregnant: userInfo.isPregnant },
+      { haveDiseaseDiagnosis: { $in: user.haveDiseaseDiagnosis } },
+      { isPregnant: user.isPregnant },
     ],
   };
 
@@ -535,7 +535,7 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
 
   const baseRecommendationCards = baseRecommendation.recommendationCards;
 
-  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendation }, error: null });
+  response.status(httpCodes.OK).json({ success: true, data: { baseRecommendationCards }, error: null });
   return;
 });
 
@@ -587,22 +587,14 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
   const aqiValue = aqiCalculator(aqiData);
   const airQuality = airQualityFromAQI(aqiValue);
 
-  const userInfo = {
-    haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
-    energySource: user.energySource,
-    hasChildrenDisease: user.hasChildrenDisease,
-  };
-
   const query = {
     $and: [
       { airQuality: airQuality },
-      { haveDiseaseDiagnosis: { $in: userInfo.haveDiseaseDiagnosis } },
-      { energySource: { $in: userInfo.energySource } },
-      { hasChildrenDisease: { $in: userInfo.hasChildrenDisease } },
-
-      // { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
-      // { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
-      // { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
+      { haveDiseaseDiagnosis: { $in: user.haveDiseaseDiagnosis } },
+      { energySource: { $in: user.energySource } },
+      { hasChildren: user.hasChildren },
+      { hasChildrenDisease: { $in: user.hasChildrenDisease } },
+      { isPregnant: user.isPregnant },
     ],
   };
 
@@ -619,6 +611,7 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
   const genericInfoRecs = await InformativeRecommendation.find({
     isDeleted: false,
     isGeneric: true,
+    airQuality: airQuality,
   }).populate('recommendationCards');
 
   const randoms = [...genericInfoRecs, ...informativeRecommendations];
@@ -739,15 +732,15 @@ function airQualityFromAQI(aqi) {
   let airQuality = '';
 
   if (aqi < 51) {
-    airQuality = 'E mire';
+    airQuality = 'E mirë';
   } else if (aqi >= 51 && aqi < 100) {
     airQuality = 'E pranueshme';
   } else if (aqi >= 101 && aqi < 150) {
     airQuality = 'Mesatare';
   } else if (aqi >= 151 && aqi < 200) {
-    airQuality = 'E dobet';
+    airQuality = 'E dobët';
   } else if (aqi >= 200 && aqi < 300) {
-    airQuality = 'Shume e dobet';
+    airQuality = 'Shume e dobët';
   } else {
     airQuality = 'Jashtëzakonisht e dobët';
   }

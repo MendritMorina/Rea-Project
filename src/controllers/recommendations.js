@@ -124,10 +124,6 @@ const getRandomOne = asyncHandler(async (request, response, next) => {
       { haveDiseaseDiagnosis: { $in: userInfo.haveDiseaseDiagnosis } },
       { energySource: { $in: userInfo.energySource } },
       { hasChildrenDisease: { $in: userInfo.hasChildrenDisease } },
-
-      { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
-      { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
-      { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
     ],
   };
 

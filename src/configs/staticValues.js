@@ -1,24 +1,23 @@
 // static values object that is used to store questions used for user in our API.
 
 const staticValues = {
-  age: ['0-19', '20-29', '30-39', '40-49', '50-59', '>65'],
-
+  age: ['0-19', '20-29', '30-39', '40-49', '50-59', '60 <'],
   haveDiseaseDiagnosis: [
-    'Sëmundje të frymëmarrjes/mushkërive',
-    'Sëmundje të zemrës (kardiovaskulare)',
-    'Diabetin',
+    'Sëmundje të mushkërive',
+    'Sëmundje kardiovaskulare',
+    'Diabet',
     'Sëmundje neurologjike',
-    'Asnjёra',
+    'Nuk kam ndonjë diagnozë',
   ],
   hasChildrenDisease: [
-    'Sëmundje të frymëmarrjes/mushkërive',
-    'Sëmundje të zemrës (kardiovaskulare)',
-    'Diabetin',
+    'Sëmundje të mushkërive',
+    'Sëmundje të kardiovaskulare',
+    'Diabet',
     'Sëmundje neurologjike',
-    'Asnjёra',
+    'Nuk ka ndonjë diagnozë',
   ],
-  energySource: ['Qymyr', 'Gas', 'Rrymë elektrike', 'Zjarr/Dru'],
-  airQuality: ['E mire', 'E pranueshme', 'Mesatare', 'E dobet', 'Shume e dobet', 'Jashtëzakonisht e dobët'],
+  energySource: ['Qymyr', 'Dru', 'Gaz', 'Tjetër'],
+  airQuality: ['E mirë', 'E pranueshme', 'Mesatare', 'E dobët', 'Shume e dobët', 'Jashtëzakonisht e dobët'],
   gender: ['Mashkull', 'Femër'],
 };
 

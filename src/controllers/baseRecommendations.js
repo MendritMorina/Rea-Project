@@ -4,7 +4,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 
 // Imports: local files.
-const { BaseRecommendation, RecommendationCard, InformativeRecommendation } = require('../models');
+const { BaseRecommendation, RecommendationCard } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { filterValues, checkValidValues, getMode } = require('../utils/functions');
@@ -26,7 +26,7 @@ const getAll = asyncHandler(async (request, response) => {
       ? filterValues(select, [])
       : 'name description thumbnail airQuality gender age haveDiseaseDiagnosis energySource isPregnant hasChildren hasChildrenDisease',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
-    populate: 'informativeRecommendations recommendationCards',
+    populate: 'recommendationCards',
   };
 
   const query = {};
@@ -53,12 +53,11 @@ const getAll = asyncHandler(async (request, response) => {
         airQuality: { $first: '$airQuality' },
         gender: { $first: '$gender' },
         age: { $first: '$age' },
-        energySource: { $first: '$energySource' },
+        // energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
         isPregnant: { $first: '$isPregnant' },
-        hasChildren: { $first: '$hasChildren' },
-        hasChildrenDisease: { $first: '$hasChildrenDisease' },
-        informativeRecommendations: { $first: '$informativeRecommendations' },
+        // hasChildren: { $first: '$hasChildren' },
+        // hasChildrenDisease: { $first: '$hasChildrenDisease' },
         recommendationCards: { $push: '$recommendationCards' },
       },
     },
@@ -99,12 +98,11 @@ const getOne = asyncHandler(async (request, response, next) => {
         airQuality: { $first: '$airQuality' },
         gender: { $first: '$gender' },
         age: { $first: '$age' },
-        energySource: { $first: '$energySource' },
+        // energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
         isPregnant: { $first: '$isPregnant' },
-        hasChildren: { $first: '$hasChildren' },
-        hasChildrenDisease: { $first: '$hasChildrenDisease' },
-        informativeRecommendations: { $first: '$informativeRecommendations' },
+        // hasChildren: { $first: '$hasChildren' },
+        // hasChildrenDisease: { $first: '$hasChildrenDisease' },
         recommendationCards: { $push: '$recommendationCards' },
       },
     },
@@ -130,13 +128,11 @@ const getOne = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
 
-  const { name, description, airQuality, isPregnant, hasChildren } = request.body;
+  const { name, description, airQuality, isPregnant } = request.body;
 
   const age = JSON.parse(request.body.age);
   const gender = JSON.parse(request.body.gender);
   const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
-  const energySource = JSON.parse(request.body.energySource);
-  const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
 
   const baseRecommendationExists = (await BaseRecommendation.countDocuments({ name, isDeleted: false })) > 0;
   if (baseRecommendationExists) {
@@ -154,26 +150,6 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (haveDiseaseDiagnosis.includes('Asnjёra') && haveDiseaseDiagnosis.length >= 2) {
-    next(new ApiError('You cannot include Asnjёra with other in have disease diagnos!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  if (hasChildrenDisease.includes('Asnjёra') && hasChildrenDisease.length >= 2) {
-    next(new ApiError('You cannot include Asnjёra with other values in has children disease!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0 && !hasChildrenDisease.includes('Asnjёra')) {
-    next(
-      new ApiError(
-        'You cannot create a base recommendation where it has children disease and has no children!',
-        httpCodes.BAD_REQUEST
-      )
-    );
-    return;
-  }
-
   if (airQuality && !staticValues.airQuality.includes(airQuality)) {
     next(
       new ApiError(
@@ -184,7 +160,7 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
 
   for (const type of types) {
     if (request.body[type]) {
@@ -203,10 +179,7 @@ const create = asyncHandler(async (request, response, next) => {
     gender,
     airQuality,
     haveDiseaseDiagnosis,
-    energySource,
     isPregnant,
-    hasChildren,
-    hasChildrenDisease,
     createdBy: userId,
     createdAt: new Date(Date.now()),
   };
@@ -262,13 +235,11 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { baseRecommendationId } = request.params;
-  const { name, description, isPregnant, airQuality, hasChildren, toBeDeleted } = request.body;
+  const { name, description, isPregnant, airQuality, toBeDeleted } = request.body;
 
   const age = JSON.parse(request.body.age);
   const gender = JSON.parse(request.body.gender);
   const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
-  const energySource = JSON.parse(request.body.energySource);
-  const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
 
   const baseRecommendation = await BaseRecommendation.findOne({ _id: baseRecommendationId, isDeleted: false });
   if (!baseRecommendation) {
@@ -286,26 +257,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (haveDiseaseDiagnosis.includes('Asnjёra') && haveDiseaseDiagnosis.length >= 2) {
-    next(new ApiError('You cannot include Asnjёra with other  in have disease diagnos!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  if (hasChildrenDisease.includes('Asnjёra') && hasChildrenDisease.length >= 2) {
-    next(new ApiError('You cannot include Asnjёra with other values in has children disease!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  if (!hasChildren && hasChildrenDisease && hasChildrenDisease.length > 0 && !hasChildrenDisease.includes('Asnjёra')) {
-    next(
-      new ApiError(
-        'You cannot create a base recommendation where it has children disease and has no children!',
-        httpCodes.BAD_REQUEST
-      )
-    );
-    return;
-  }
-
   if (airQuality && !staticValues.airQuality.includes(airQuality)) {
     next(
       new ApiError(
@@ -316,7 +267,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
 
   for (const type of types) {
     if (JSON.parse(request.body[type])) {
@@ -332,13 +283,10 @@ const updateOne = asyncHandler(async (request, response, next) => {
     name,
     description,
     haveDiseaseDiagnosis,
-    energySource,
     age,
     gender,
     airQuality,
     isPregnant,
-    hasChildren,
-    hasChildrenDisease,
     updatedBy: userId,
     updatedAt: new Date(Date.now()),
   };
@@ -436,26 +384,12 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  for (const informativeRecommendation of baseRecommendation.informativeRecommendations) {
-    const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
-      { _id: informativeRecommendation._id },
-      { $pull: { baseRecommendations: baseRecommendation._id } }
-    );
-    if (!updatedInformativeRecommendation) {
-      next(
-        new ApiError('Failed to pull base recommendation from informative recommendation!', httpCodes.INTERNAL_ERROR)
-      );
-      return;
-    }
-  }
-
   const deletedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
     { _id: baseRecommendation._id },
     {
       $set: {
         isDeleted: true,
         recommendationCards: [],
-        informativeRecommendations: [],
         updatedBy: userId,
         updatedAt: new Date(Date.now()),
       },
@@ -466,23 +400,6 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     next(new ApiError('Failed to delete base recommendation!', httpCodes.INTERNAL_ERROR));
     return;
   }
-
-  // const deletedBaseRecommendationCards = await RecommendationCard.updateMany(
-  //   { recommendation: baseRecommendation._id },
-  //   {
-  //     $set: {
-  //       isDeleted: true,
-  //       recommendation: null,
-  //       updatedBy: userId,
-  //       updatedAt: new Date(Date.now()),
-  //     },
-  //   }
-  // );
-
-  // if (!deletedBaseRecommendationCards) {
-  //   next(new ApiError('Failed to delete the recommendation cards!', httpCodes.INTERNAL_ERROR));
-  //   return;
-  // }
 
   response
     .status(httpCodes.OK)
@@ -511,21 +428,6 @@ async function fileResult(recommendationCard, userId, req, fileTypes) {
 }
 
 const uploadFile = async (baseRecommendationId, userId, request, fileType) => {
-  // if (!request.files[fileType]) {
-  //   return { success: false, data: null, error: `File name must be ${fileType}`, code: httpCodes.BAD_REQUEST };
-  // }
-
-  // const allowedFileTypes = ['photo', 'thumbnail'];
-
-  // if (!allowedFileTypes.includes(fileType)) {
-  //   return {
-  //     success: false,
-  //     data: null,
-  //     error: `File Type ${fileType} must be of ${allowedFileTypes}`,
-  //     code: httpCodes.BAD_REQUEST,
-  //   };
-  // }
-
   const { data, mimetype, name, size } = request.files[fileType];
 
   const type = mimetype.split('/').pop();

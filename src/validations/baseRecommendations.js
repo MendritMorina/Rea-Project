@@ -30,8 +30,8 @@ const validator = {
       age: Joi.string().optional().default(''),
       gender: Joi.string().optional().default(''),
       haveDiseaseDiagnosis: Joi.string().optional().default(''),
-      energySource: Joi.string().optional().default(''),
-      hasChildrenDisease: Joi.string().optional().default(''),
+      // energySource: Joi.string().optional().default(''),
+      // hasChildrenDisease: Joi.string().optional().default(''),
     }),
   },
   updateBaseRecommendation: {
@@ -55,8 +55,8 @@ const validator = {
       age: Joi.string().optional().default(''),
       gender: Joi.string().optional().default(''),
       haveDiseaseDiagnosis: Joi.string().optional().default(''),
-      energySource: Joi.string().optional().default(''),
-      hasChildrenDisease: Joi.string().optional().default(''),
+      // energySource: Joi.string().optional().default(''),
+      // hasChildrenDisease: Joi.string().optional().default(''),
     }),
   },
   validateBaseRecommendationId: {
