@@ -590,10 +590,12 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
       { haveDiseaseDiagnosis: { $in: user.haveDiseaseDiagnosis } },
       { energySource: { $in: user.energySource } },
       { hasChildren: user.hasChildren },
-      { hasChildrenDisease: { $in: user.hasChildrenDisease } },
       { isPregnant: user.isPregnant },
     ],
   };
+
+  if (user.hasChildren && user.hasChildrenDisease && user.hasChildrenDisease.length)
+    query['$and'].push({ hasChildrenDisease: { $in: user.hasChildrenDisease } });
 
   const informativeRecommendations = await InformativeRecommendation.find(query).populate('recommendationCards');
 
