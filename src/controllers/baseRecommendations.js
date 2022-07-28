@@ -76,18 +76,17 @@ const getAll = asyncHandler(async (request, response) => {
  */
 const getOne = asyncHandler(async (request, response, next) => {
   const { baseRecommendationId } = request.params;
-
   const query = BaseRecommendation.aggregate([
     { $match: { _id: new mongoose.Types.ObjectId(baseRecommendationId), isDeleted: false } },
     {
       $lookup: {
-        from: 'recommendationcards',
+        from: 'recommendationCards',
         localField: 'recommendationCards',
         foreignField: '_id',
         as: 'recommendationCards',
       },
     },
-    { $unwind: '$recommendationCards' },
+    { $unwind: { path: '$recommendationCards', preserveNullAndEmptyArrays: true } },
     { $sort: { 'recommendationCards.order': 1 } },
     {
       $group: {
@@ -98,22 +97,21 @@ const getOne = asyncHandler(async (request, response, next) => {
         airQuality: { $first: '$airQuality' },
         gender: { $first: '$gender' },
         age: { $first: '$age' },
-        // energySource: { $first: '$energySource' },
+        energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
         isPregnant: { $first: '$isPregnant' },
-        // hasChildren: { $first: '$hasChildren' },
-        // hasChildrenDisease: { $first: '$hasChildrenDisease' },
+        hasChildren: { $first: '$hasChildren' },
+        hasChildrenDisease: { $first: '$hasChildrenDisease' },
+        informativeRecommendations: { $first: '$informativeRecommendations' },
         recommendationCards: { $push: '$recommendationCards' },
       },
     },
   ]);
   const baseRecommendation = await BaseRecommendation.aggregatePaginate(query, { pagination: false });
-
   if (!baseRecommendation && !baseRecommendation.docs) {
     next(new ApiError('Base Recommendation with given id not found!', httpCodes.NOT_FOUND));
     return;
   }
-
   response
     .status(httpCodes.OK)
     .json({ success: true, data: { baseRecommendation: baseRecommendation.docs[0] }, error: null });
