@@ -24,6 +24,10 @@ const InformativeRecommendationSchema = new mongoose.Schema({
     required: false,
     enum: ['E mirë', 'E pranueshme', 'Mesatare', 'E dobët', 'Shume e dobët'],
   },
+  gender: {
+    type: Array,
+    required: true,
+  },
   age: {
     type: Array,
     required: true,
