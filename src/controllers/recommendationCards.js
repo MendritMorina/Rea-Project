@@ -486,31 +486,35 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
     return;
   }
 
-  const nearestAQIPoints = await AQI.find({
+  const nearestAQIPoint = await AQI.findOne({
     location: {
       $near: {
         $geometry: {
           type: 'Point',
           coordinates: [longitude, latitude],
         },
+        $maxDistance: 20000,
       },
     },
-  }).sort({ createdAt: -1 });
-  const nearestAQIPoint = nearestAQIPoints[0];
+  });
   if (!nearestAQIPoint) {
-    next(new ApiError('Failed to find nearest point!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
-
-  const distanceInKm = distance.getDistanceFromCoordinates(nearestLat, nearestLon, latitude, longitude);
-  if (distanceInKm > 20) {
     response.status(httpCodes.OK).json({ success: true, data: { furtherThan20km: true }, error: null });
     return;
   }
 
-  const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
+  const otherAQIs = await AQI.find({
+    longitude: nearestAQIPoint.longitude,
+    latitude: nearestAQIPoint.latitude,
+  })
+    .sort('-_id')
+    .limit(1);
+  const currentAQINearest = otherAQIs && otherAQIs.length ? otherAQIs[0] : null;
+  if (!currentAQINearest) {
+    next(new ApiError('Couldnt find nearest point!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const { localtime: datetime, pm25, pm10, so2, no2, o3 } = currentAQINearest;
   const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
   const aqiValue = aqiCalculator(aqiData);
   const airQuality = airQualityFromAQI(aqiValue);
@@ -550,31 +554,35 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     return;
   }
 
-  const nearestAQIPoints = await AQI.find({
+  const nearestAQIPoint = await AQI.findOne({
     location: {
       $near: {
         $geometry: {
           type: 'Point',
           coordinates: [longitude, latitude],
         },
+        $maxDistance: 20000,
       },
     },
-  }).sort({ createdAt: -1 });
-  const nearestAQIPoint = nearestAQIPoints[0];
+  });
   if (!nearestAQIPoint) {
-    next(new ApiError('Failed to find nearest point!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
-
-  const distanceInKm = distance.getDistanceFromCoordinates(nearestLat, nearestLon, latitude, longitude);
-  if (distanceInKm > 20) {
     response.status(httpCodes.OK).json({ success: true, data: { furtherThan20km: true }, error: null });
     return;
   }
 
-  const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
+  const otherAQIs = await AQI.find({
+    longitude: nearestAQIPoint.longitude,
+    latitude: nearestAQIPoint.latitude,
+  })
+    .sort('-_id')
+    .limit(1);
+  const currentAQINearest = otherAQIs && otherAQIs.length ? otherAQIs[0] : null;
+  if (!currentAQINearest) {
+    next(new ApiError('Couldnt find nearest point!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const { localtime: datetime, pm25, pm10, so2, no2, o3 } = currentAQINearest;
   const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
   const aqiValue = aqiCalculator(aqiData);
   const airQuality = airQualityFromAQI(aqiValue);
@@ -636,31 +644,35 @@ const createCurrentAQI = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const nearestAQIPoints = await AQI.find({
+  const nearestAQIPoint = await AQI.findOne({
     location: {
       $near: {
         $geometry: {
           type: 'Point',
           coordinates: [longitude, latitude],
         },
+        $maxDistance: 20000,
       },
     },
-  }).sort({ createdAt: -1 });
-  const nearestAQIPoint = nearestAQIPoints[0];
+  });
   if (!nearestAQIPoint) {
-    next(new ApiError('Failed to find nearest point!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
-
-  const distanceInKm = distance.getDistanceFromCoordinates(nearestLat, nearestLon, latitude, longitude);
-  if (distanceInKm > 20) {
     response.status(httpCodes.OK).json({ success: true, data: { furtherThan20km: true }, error: null });
     return;
   }
 
-  const { localtime: datetime, pm25, pm10, so2, no2, o3 } = nearestAQIPoint;
+  const otherAQIs = await AQI.find({
+    longitude: nearestAQIPoint.longitude,
+    latitude: nearestAQIPoint.latitude,
+  })
+    .sort('-_id')
+    .limit(1);
+  const currentAQINearest = otherAQIs && otherAQIs.length ? otherAQIs[0] : null;
+  if (!currentAQINearest) {
+    next(new ApiError('Couldnt find nearest point!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const { localtime: datetime, pm25, pm10, so2, no2, o3 } = currentAQINearest;
   const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
 
   const aqiValue = aqiCalculator(aqiData);

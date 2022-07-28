@@ -18,7 +18,19 @@ const getAQI = async () => {
 
       const { localtime, x, y, pm10, pm25, no2, so2, o3, index, name } = aqiData[i];
       const geometry = { type: 'Point', coordinates: [x, y] };
-      const geoJSON = { localtime, location: { ...geometry }, pm10, pm25, no2, so2, o3, index, name };
+      const geoJSON = {
+        localtime,
+        location: { ...geometry },
+        pm10,
+        pm25,
+        no2,
+        so2,
+        o3,
+        index,
+        name,
+        longitude: x,
+        latitude: y,
+      };
 
       await AQI.create(geoJSON);
     }

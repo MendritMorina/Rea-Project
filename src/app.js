@@ -31,6 +31,8 @@ const {
   usedCouponRouter,
   aqiRouter,
   subscriptionsRouter,
+  notificationsRouter,
+  notificationTypesRouter,
 } = require('./routes');
 
 // Use general middleware.
@@ -51,6 +53,8 @@ app.use('/api/stories', storyRouter);
 app.use('/api/usedCoupons', usedCouponRouter);
 app.use('/api/aqi', aqiRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
+app.use('/api/notifications', notificationsRouter);
+app.use('/api/notification_types', notificationTypesRouter);
 
 // Use error handling middleware.
 app.use(errorHandler);
