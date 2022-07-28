@@ -384,7 +384,7 @@ const uploadFile = async (advertisementId, userId, request, fileType) => {
   }
 
   const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
-  const fileURL = `${publicURL}/advertisements/${fileName}`;
+  const fileURL = `${publicURL}/public/advertisements/${fileName}`;
 
   const updatedAdvertisement = await Advertisement.findOneAndUpdate(
     { _id: advertisement._id },

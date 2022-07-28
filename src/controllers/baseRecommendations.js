@@ -460,7 +460,7 @@ const uploadFile = async (baseRecommendationId, userId, request, fileType) => {
   }
 
   const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
-  const fileURL = `${publicURL}/baserecommendations/${fileName}`;
+  const fileURL = `${publicURL}/public/baserecommendations/${fileName}`;
 
   const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
     { _id: baseRecommendation._id },

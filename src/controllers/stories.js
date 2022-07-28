@@ -336,7 +336,7 @@ const uploadFile = async (storyId, adminId, request, fileType) => {
   }
 
   const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
-  const fileURL = `${publicURL}/stories/${fileName}`;
+  const fileURL = `${publicURL}/public/stories/${fileName}`;
 
   let duration = 0;
 

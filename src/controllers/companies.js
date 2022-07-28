@@ -215,7 +215,7 @@ const uploadLogo = async (companyId, adminId, request) => {
   }
 
   const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
-  const fileURL = `${publicURL}/companies/${fileName}`;
+  const fileURL = `${publicURL}/public/companies/${fileName}`;
 
   const updatedCompany = await Company.findOneAndUpdate(
     { _id: company._id },
