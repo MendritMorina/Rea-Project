@@ -3,14 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Imports: local files.
-const {
-  RecommendationCard,
-  Recommendation,
-  BaseRecommendation,
-  InformativeRecommendation,
-  User,
-  AQI,
-} = require('../models');
+const { RecommendationCard, BaseRecommendation, InformativeRecommendation, User, AQI } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { filterValues, getMode, distance } = require('../utils/functions');
@@ -589,6 +582,8 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
 
   const query = {
     $and: [
+      { isGeneric: false },
+      { isDeleted: false },
       { airQuality: airQuality },
       { haveDiseaseDiagnosis: { $in: user.haveDiseaseDiagnosis } },
       { energySource: { $in: user.energySource } },
@@ -598,16 +593,8 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     ],
   };
 
-  const baseRecommendation = await BaseRecommendation.findOne(query).populate({
-    path: 'informativeRecommendations',
-    populate: [{ path: 'recommendationCards' }],
-  });
-  if (!baseRecommendation) {
-    next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
-    return;
-  }
+  const informativeRecommendations = await InformativeRecommendation.find(query).populate('recommendationCards');
 
-  const informativeRecommendations = baseRecommendation.informativeRecommendations;
   const genericInfoRecs = await InformativeRecommendation.find({
     isDeleted: false,
     isGeneric: true,

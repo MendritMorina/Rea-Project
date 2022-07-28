@@ -1,6 +1,5 @@
 // Imports: local files.
 const authValidator = require('./auth');
-const recommendationValidator = require('./recommendations');
 const recommendationCardValidator = require('./recommendationCards');
 const advertisementsValidator = require('./advertisements');
 const couponValidator = require('./coupons');
@@ -20,7 +19,6 @@ const bundler = {
   companyValidator,
   storyValidator,
   usedCouponValidator,
-  recommendationValidator,
   recommendationCardValidator,
   advertisementsValidator,
   informativeRecommendationValidator,
