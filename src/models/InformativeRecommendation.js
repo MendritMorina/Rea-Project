@@ -53,11 +53,6 @@ const InformativeRecommendationSchema = new mongoose.Schema({
     required: true,
     default: false,
   },
-  baseRecommendations: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BaseRecommendation' }],
-    required: true,
-    default: [],
-  },
   recommendationCards: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'RecommendationCard' }],
     required: true,

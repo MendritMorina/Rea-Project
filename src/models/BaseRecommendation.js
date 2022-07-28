@@ -47,11 +47,6 @@ const BaseRecommendationSchema = new mongoose.Schema({
     required: true,
     default: [],
   },
-  informativeRecommendations: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'InformativeRecommendation' }],
-    required: true,
-    default: [],
-  },
   ...Base,
 });
 

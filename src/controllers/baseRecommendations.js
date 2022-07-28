@@ -4,7 +4,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 
 // Imports: local files.
-const { BaseRecommendation, RecommendationCard, InformativeRecommendation } = require('../models');
+const { BaseRecommendation, RecommendationCard } = require('../models');
 const { asyncHandler } = require('../middlewares');
 const { ApiError } = require('../utils/classes');
 const { filterValues, checkValidValues, getMode } = require('../utils/functions');
@@ -26,7 +26,7 @@ const getAll = asyncHandler(async (request, response) => {
       ? filterValues(select, [])
       : 'name description thumbnail airQuality gender age haveDiseaseDiagnosis energySource isPregnant hasChildren hasChildrenDisease',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
-    populate: 'informativeRecommendations recommendationCards',
+    populate: 'recommendationCards',
   };
 
   const query = {};
@@ -58,7 +58,6 @@ const getAll = asyncHandler(async (request, response) => {
         isPregnant: { $first: '$isPregnant' },
         // hasChildren: { $first: '$hasChildren' },
         // hasChildrenDisease: { $first: '$hasChildrenDisease' },
-        informativeRecommendations: { $first: '$informativeRecommendations' },
         recommendationCards: { $push: '$recommendationCards' },
       },
     },
@@ -104,7 +103,6 @@ const getOne = asyncHandler(async (request, response, next) => {
         isPregnant: { $first: '$isPregnant' },
         // hasChildren: { $first: '$hasChildren' },
         // hasChildrenDisease: { $first: '$hasChildrenDisease' },
-        informativeRecommendations: { $first: '$informativeRecommendations' },
         recommendationCards: { $push: '$recommendationCards' },
       },
     },
@@ -162,17 +160,17 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
 
-  // for (const type of types) {
-  //   if (request.body[type]) {
-  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
-  //     if (result && result.error) {
-  //       next(new ApiError(result.error, result.code));
-  //       return;
-  //     }
-  //   }
-  // }
+  for (const type of types) {
+    if (request.body[type]) {
+      const result = checkValidValues(type, JSON.parse(request.body[type]));
+      if (result && result.error) {
+        next(new ApiError(result.error, result.code));
+        return;
+      }
+    }
+  }
 
   const payload = {
     name,
@@ -269,17 +267,17 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
 
-  // for (const type of types) {
-  //   if (JSON.parse(request.body[type])) {
-  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
-  //     if (result && result.error) {
-  //       next(new ApiError(result.error, result.code));
-  //       return;
-  //     }
-  //   }
-  // }
+  for (const type of types) {
+    if (JSON.parse(request.body[type])) {
+      const result = checkValidValues(type, JSON.parse(request.body[type]));
+      if (result && result.error) {
+        next(new ApiError(result.error, result.code));
+        return;
+      }
+    }
+  }
 
   const payload = {
     name,
@@ -386,26 +384,12 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  for (const informativeRecommendation of baseRecommendation.informativeRecommendations) {
-    const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
-      { _id: informativeRecommendation._id },
-      { $pull: { baseRecommendations: baseRecommendation._id } }
-    );
-    if (!updatedInformativeRecommendation) {
-      next(
-        new ApiError('Failed to pull base recommendation from informative recommendation!', httpCodes.INTERNAL_ERROR)
-      );
-      return;
-    }
-  }
-
   const deletedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
     { _id: baseRecommendation._id },
     {
       $set: {
         isDeleted: true,
         recommendationCards: [],
-        informativeRecommendations: [],
         updatedBy: userId,
         updatedAt: new Date(Date.now()),
       },

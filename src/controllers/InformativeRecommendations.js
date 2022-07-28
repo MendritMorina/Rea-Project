@@ -22,9 +22,9 @@ const getAll = asyncHandler(async (request, response) => {
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
     pagination: pagination,
-    select: select ? filterValues(select, []) : 'name description thumbnail baseRecommendations isGeneric',
+    select: select ? filterValues(select, []) : 'name description thumbnail isGeneric',
     sort: sort ? request.query.sort.split(',').join(' ') : 'name',
-    populate: 'baseRecommendations recommendationCards',
+    populate: 'recommendationCards',
   };
 
   const query = {};
@@ -40,14 +40,6 @@ const getAll = asyncHandler(async (request, response) => {
         as: 'recommendationCards',
       },
     },
-    {
-      $lookup: {
-        from: 'baserecommendations',
-        localField: 'baseRecommendations',
-        foreignField: '_id',
-        as: 'baseRecommendations',
-      },
-    },
     { $unwind: '$recommendationCards' },
     { $sort: { 'recommendationCards.order': 1 } },
     {
@@ -57,8 +49,8 @@ const getAll = asyncHandler(async (request, response) => {
         description: { $first: '$description' },
         thumbnail: { $first: '$thumbnail' },
         airQuality: { $first: '$airQuality' },
-        // gender: { $first: '$gender' },
-        // age: { $first: '$age' },
+        gender: { $first: '$gender' },
+        age: { $first: '$age' },
         isGeneric: { $first: '$isGeneric' },
         energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
@@ -95,14 +87,6 @@ const getOne = asyncHandler(async (request, response, next) => {
         as: 'recommendationCards',
       },
     },
-    {
-      $lookup: {
-        from: 'baserecommendations',
-        localField: 'baseRecommendations',
-        foreignField: '_id',
-        as: 'baseRecommendations',
-      },
-    },
     { $unwind: '$recommendationCards' },
     { $sort: { 'recommendationCards.order': 1 } },
     {
@@ -112,8 +96,8 @@ const getOne = asyncHandler(async (request, response, next) => {
         description: { $first: '$description' },
         thumbnail: { $first: '$thumbnail' },
         airQuality: { $first: '$airQuality' },
-        //gender: { $first: '$gender' },
-        //age: { $first: '$age' },
+        gender: { $first: '$gender' },
+        age: { $first: '$age' },
         isGeneric: { $first: '$isGeneric' },
         energySource: { $first: '$energySource' },
         haveDiseaseDiagnosis: { $first: '$haveDiseaseDiagnosis' },
@@ -148,8 +132,8 @@ const create = asyncHandler(async (request, response, next) => {
 
   const { name, description, airQuality, isGeneric, isPregnant, hasChildren } = request.body;
 
-  //const age = JSON.parse(request.body.age);
-  //const gender = JSON.parse(request.body.gender);
+  const age = JSON.parse(request.body.age);
+  const gender = JSON.parse(request.body.gender);
   const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
   const energySource = JSON.parse(request.body.energySource);
   const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
@@ -181,23 +165,23 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
 
-  // for (const type of types) {
-  //   if (request.body[type]) {
-  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
-  //     if (result && result.error) {
-  //       next(new ApiError(result.error, result.code));
-  //       return;
-  //     }
-  //   }
-  // }
+  for (const type of types) {
+    if (request.body[type]) {
+      const result = checkValidValues(type, JSON.parse(request.body[type]));
+      if (result && result.error) {
+        next(new ApiError(result.error, result.code));
+        return;
+      }
+    }
+  }
 
   const payload = {
     name,
     description,
-    //  age,
-    //  gender,
+    age,
+    gender,
     airQuality,
     haveDiseaseDiagnosis,
     isGeneric,
@@ -251,7 +235,7 @@ const create = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  response.status(200).json({ success: true, data: { updatedInformativeRecommendation }, error: null });
+  response.status(httpCodes.CREATED).json({ success: true, data: { updatedInformativeRecommendation }, error: null });
   return;
 });
 
@@ -265,8 +249,8 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const { informativeRecommendationId } = request.params;
   const { name, description, isPregnant, isGeneric, airQuality, hasChildren, toBeDeleted } = request.body;
 
-  // const age = JSON.parse(request.body.age);
-  // const gender = JSON.parse(request.body.gender);
+  const age = JSON.parse(request.body.age);
+  const gender = JSON.parse(request.body.gender);
   const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
   const energySource = JSON.parse(request.body.energySource);
   const hasChildrenDisease = JSON.parse(request.body.hasChildrenDisease);
@@ -300,24 +284,24 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // const types = ['age', 'gender', 'haveDiseaseDiagnosis'];
+  const types = ['age', 'gender', 'haveDiseaseDiagnosis', 'energySource', 'hasChildrenDisease'];
 
-  // for (const type of types) {
-  //   if (JSON.parse(request.body[type])) {
-  //     const result = checkValidValues(type, JSON.parse(request.body[type]));
-  //     if (result && result.error) {
-  //       next(new ApiError(result.error, result.code));
-  //       return;
-  //     }
-  //   }
-  // }
+  for (const type of types) {
+    if (request.body[type]) {
+      const result = checkValidValues(type, JSON.parse(request.body[type]));
+      if (result && result.error) {
+        next(new ApiError(result.error, result.code));
+        return;
+      }
+    }
+  }
 
   const payload = {
     name,
     description,
     haveDiseaseDiagnosis,
-    // age,
-    // gender,
+    age,
+    gender,
     airQuality,
     isPregnant,
     isGeneric,
@@ -400,7 +384,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  console.log(informativeRecommendation);
   response
     .status(httpCodes.OK)
     .json({ success: true, data: { informativeRecommendation: editedFileInformativeRecommendation }, error: null });
@@ -425,24 +408,12 @@ const deleteOne = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  // for (const baseRecommendation of informativeRecommendation.baseRecommendations) {
-  //   const updatedBaseRecommendation = await BaseRecommendation.findOneAndUpdate(
-  //     { _id: baseRecommendation._id },
-  //     { $pull: { informativeRecommendations: informativeRecommendation._id } }
-  //   );
-  //   if (!updatedBaseRecommendation) {
-  //     next(new ApiError('Failed to update base recommendation!', httpCodes.INTERNAL_ERROR));
-  //     return;
-  //   }
-  // }
-
   const deletedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
     { _id: informativeRecommendation._id },
     {
       $set: {
         isDeleted: true,
         recommendationCards: [],
-        baseRecommendations: [],
         updatedBy: userId,
         updatedAt: new Date(Date.now()),
       },

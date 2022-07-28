@@ -502,8 +502,6 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
     return;
   }
 
-  console.log(nearestAQIPoint);
-
   const [nearestLon, nearestLat] = [nearestAQIPoint.location.coordinates[0], nearestAQIPoint.location.coordinates[1]];
 
   const distanceInKm = distance.getDistanceFromCoordinates(nearestLat, nearestLon, latitude, longitude);
@@ -517,23 +515,15 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
   const aqiValue = aqiCalculator(aqiData);
   const airQuality = airQualityFromAQI(aqiValue);
 
-  const userInfo = {
-    haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
-    energySource: user.energySource,
-    hasChildrenDisease: user.hasChildrenDisease,
-  };
-
   const query = {
     $and: [
       { airQuality: airQuality },
-      { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
-      { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
-      { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
+      { haveDiseaseDiagnosis: { $in: user.haveDiseaseDiagnosis } },
+      { isPregnant: user.isPregnant },
     ],
   };
 
   const baseRecommendation = await BaseRecommendation.findOne(query).populate('recommendationCards');
-  console.log(baseRecommendation);
   if (!baseRecommendation) {
     next(new ApiError('Base Recommendation not found based on user information!', httpCodes.NOT_FOUND));
     return;
@@ -589,18 +579,14 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
   const aqiValue = aqiCalculator(aqiData);
   const airQuality = airQualityFromAQI(aqiValue);
 
-  const userInfo = {
-    haveDiseaseDiagnosis: user.haveDiseaseDiagnosis,
-    energySource: user.energySource,
-    hasChildrenDisease: user.hasChildrenDisease,
-  };
-
   const query = {
     $and: [
       { airQuality: airQuality },
-      { haveDiseaseDiagnosis: { $size: userInfo.haveDiseaseDiagnosis.length, $all: userInfo.haveDiseaseDiagnosis } },
-      { energySource: { $size: userInfo.energySource.length, $all: userInfo.energySource } },
-      { hasChildrenDisease: { $size: userInfo.hasChildrenDisease.length, $all: userInfo.hasChildrenDisease } },
+      { haveDiseaseDiagnosis: { $in: user.haveDiseaseDiagnosis } },
+      { energySource: { $in: user.energySource } },
+      { hasChildren: user.hasChildren },
+      { hasChildrenDisease: { $in: user.hasChildrenDisease } },
+      { isPregnant: user.isPregnant },
     ],
   };
 
@@ -617,6 +603,7 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
   const genericInfoRecs = await InformativeRecommendation.find({
     isDeleted: false,
     isGeneric: true,
+    airQuality: airQuality,
   }).populate('recommendationCards');
 
   const randoms = [...genericInfoRecs, ...informativeRecommendations];
