@@ -80,7 +80,7 @@ const getOne = asyncHandler(async (request, response, next) => {
     { $match: { _id: new mongoose.Types.ObjectId(baseRecommendationId), isDeleted: false } },
     {
       $lookup: {
-        from: 'recommendationCards',
+        from: 'recommendationcards',
         localField: 'recommendationCards',
         foreignField: '_id',
         as: 'recommendationCards',
