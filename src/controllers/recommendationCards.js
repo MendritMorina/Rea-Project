@@ -470,6 +470,7 @@ const deleteOne = asyncHandler(async (request, response, next) => {
  * @access      Private.
  */
 const getBaseRecommendationCards = asyncHandler(async (request, response, next) => {
+  console.log('uhaaaa');
   const { _id: userId } = request.user;
   const { longitude, latitude } = request.query;
 
@@ -527,6 +528,8 @@ const getBaseRecommendationCards = asyncHandler(async (request, response, next) 
   }
 
   const baseRecommendationCards = baseRecommendation.recommendationCards;
+
+  console.log('uhaaaa', baseRecommendation);
 
   response
     .status(httpCodes.OK)
