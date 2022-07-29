@@ -20,8 +20,14 @@ const authorize = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const decodedToken = await getAuth().verifyIdToken(token);
-  if (!decodedToken) {
+  let decodedToken = null;
+  try {
+    decodedToken = await getAuth().verifyIdToken(token);
+    if (!decodedToken) {
+      next(new ApiError(constants.TOKEN_EXPIRED, httpCodes.UNAUTHORIZED));
+      return;
+    }
+  } catch (error) {
     next(new ApiError(constants.TOKEN_EXPIRED, httpCodes.UNAUTHORIZED));
     return;
   }
