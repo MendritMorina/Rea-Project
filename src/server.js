@@ -7,7 +7,7 @@ const isEnvSetup = env.validateEnv();
 if (!isEnvSetup) {
   console.log('===================================================================');
   console.log(`Your .env file is missing or it doesnt have the correct keys!`);
-  console.log('===================================================================');
+  console.log('=========================================== ========================');
   process.exit(1);
 }
 
@@ -33,6 +33,7 @@ console.log('===================================================================
     await startup.initAdmins();
     await startup.initPublicFolder();
     await startup.initNotificationTypes();
+    await startup.initializeMailchimpAudiences();
     await startup.addAppleSubscriptionTypes();
 
     const { nodeEnv, nodePort } = env.getByKeys(['nodeEnv', 'nodePort']);

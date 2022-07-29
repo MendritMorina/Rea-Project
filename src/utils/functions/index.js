@@ -10,6 +10,7 @@ const startup = require('./startup');
 const initJobs = require('./jobs');
 const distance = require('./distance');
 const firebase = require('./firebase');
+const mailchimp = require('./mailchimp');
 
 // Bundler object that is used to export all functions inside ./src/utils/functions.
 const bundler = {
@@ -24,6 +25,7 @@ const bundler = {
   checkValidValues,
   distance,
   firebase,
+  mailchimp,
 };
 
 // Exports of this file.

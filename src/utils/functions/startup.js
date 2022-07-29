@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Imports: local files.
+const mailchimp = require('./mailchimp');
 const { Admin, SubscriptionType, NotificationType } = require('../../models');
 const { subscriptions, notificationTypes } = require('../../configs');
 
@@ -58,6 +59,24 @@ const initNotificationTypes = async () => {
   }
 };
 
+// Function that is used to create default mailchimp audiences.
+const initializeMailchimpAudiences = async () => {
+  const { arr: defaultAudiences } = mailchimp.getInitialAudiences();
+
+  const promises = [];
+  for (const audience of defaultAudiences) promises.push(mailchimp.createAudience(audience));
+
+  const result = await Promise.all(promises);
+
+  let failCount = 0;
+  let successCount = 0;
+
+  result.forEach((res) => (res.success ? successCount++ : failCount++));
+
+  console.log(`(Mailchimp) Default Audiences, success count: ${successCount}!`);
+  console.log(`(Mailchimp) Default Audiences, fail count: ${failCount}!`);
+};
+
 // Function that is used to add initial subscription types in our API.
 const addAppleSubscriptionTypes = async () => {
   for (const key in subscriptions) {
@@ -71,4 +90,10 @@ const addAppleSubscriptionTypes = async () => {
 };
 
 // Exports of this file.
-module.exports = { initAdmins, initPublicFolder, initNotificationTypes, addAppleSubscriptionTypes };
+module.exports = {
+  initAdmins,
+  initPublicFolder,
+  initNotificationTypes,
+  initializeMailchimpAudiences,
+  addAppleSubscriptionTypes,
+};

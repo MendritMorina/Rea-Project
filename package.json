@@ -22,6 +22,7 @@
     "trailingComma": "es5"
   },
   "dependencies": {
+    "@mailchimp/mailchimp_marketing": "^3.0.75",
     "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.7",

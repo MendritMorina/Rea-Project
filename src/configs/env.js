@@ -25,6 +25,8 @@ const config = {
     publicDevUrl: process.env.PUBLIC_DEV_URL,
     appIbi: process.env.APP_IBI,
     appSubSecret: process.env.APP_SUB_SECRET,
+    mailchimpApiKey: process.env.MAILCHIMP_API_KEY,
+    mailchimpServerPrefix: process.env.MAILCHIMP_SERVER_PREFIX,
   },
   staging: {
     nodeEnv: process.env.NODE_ENV,
@@ -42,6 +44,8 @@ const config = {
     publicDevUrl: process.env.PUBLIC_DEV_URL,
     appIbi: process.env.APP_IBI,
     appSubSecret: process.env.APP_SUB_SECRET,
+    mailchimpApiKey: process.env.MAILCHIMP_API_KEY,
+    mailchimpServerPrefix: process.env.MAILCHIMP_SERVER_PREFIX,
   },
   production: {
     nodeEnv: process.env.NODE_ENV,
@@ -59,6 +63,8 @@ const config = {
     publicDevUrl: process.env.PUBLIC_DEV_URL,
     appIbi: process.env.APP_IBI,
     appSubSecret: process.env.APP_SUB_SECRET,
+    mailchimpApiKey: process.env.MAILCHIMP_API_KEY,
+    mailchimpServerPrefix: process.env.MAILCHIMP_SERVER_PREFIX,
   },
   requiredKeys: [
     'NODE_ENV',
@@ -76,6 +82,8 @@ const config = {
     'PUBLIC_DEV_URL',
     'APP_IBI',
     'APP_SUB_SECRET',
+    'MAILCHIMP_API_KEY',
+    'MAILCHIMP_SERVER_PREFIX',
   ],
 };
 

@@ -6,7 +6,7 @@ const { Admin, User } = require('../models');
 const { ApiError } = require('../utils/classes');
 const { asyncHandler } = require('../middlewares');
 const { httpCodes, staticValues, constants } = require('../configs');
-const { jwt, checkValidValues, firebase } = require('../utils/functions');
+const { jwt, checkValidValues, firebase, mailchimp } = require('../utils/functions');
 
 /**
  * @description Authenticate an user .
@@ -75,6 +75,16 @@ const authenticate = asyncHandler(async (request, response, next) => {
   const createdUser = await User.create(payload);
   if (!createdUser) {
     next(new ApiError('Failed to create user!', httpCodes.INTERNAL_ERROR));
+    return;
+  }
+
+  const currentMode = process.env.NODE_ENV;
+  const currentAudience = mailchimp.getInitialAudiences()[currentMode];
+
+  const mailchimpUser = { email: createdUser.email, firstName: name || 'NA', lastName: surname || 'NA' };
+  const mailchimpResult = await mailchimp.createContact(mailchimpUser, currentAudience);
+  if (!mailchimpResult.success) {
+    next(new ApiError(mailchimpResult.error, mailchimpResult.code));
     return;
   }
 
