@@ -19,7 +19,7 @@ const createApple = asyncHandler(async (request, response, next) => {
 
   const user = await User.findById(_id).populate('currentSubscription').populate('subscriptionsHistory');
   if (!user) {
-    next(new ApiError(messages.MSG_NOT_FOUND(userSingular, 'Id'), statusCodes.CODE_NOT_FOUND));
+    next(new ApiError(messages.MSG_NOT_FOUND(userSingular, 'Id'), httpCodes.NOT_FOUND));
     return;
   }
 
@@ -29,7 +29,7 @@ const createApple = asyncHandler(async (request, response, next) => {
     const userChangedSubscription = user.currentSubscription.productId !== productId;
 
     if (!(subscriptionExpired || userChangedSubscription)) {
-      next(new ApiError('Already have a subscription!', statusCodes.CODE_BAD_REQUEST));
+      next(new ApiError('Already have a subscription!', httpCodes.BAD_REQUEST));
       return;
     }
 
@@ -47,7 +47,7 @@ const createApple = asyncHandler(async (request, response, next) => {
 
   iap.verifyPayment(platform, payment, async function (error, iapResponse) {
     if (error) {
-      next(new ApiError('Failed to verify receipt', statusCodes.CODE_BAD_REQUEST));
+      next(new ApiError('Failed to verify receipt', httpCodes.BAD_REQUEST));
       return;
     }
 
