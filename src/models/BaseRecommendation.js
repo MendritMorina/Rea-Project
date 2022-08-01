@@ -22,7 +22,7 @@ const BaseRecommendationSchema = new mongoose.Schema({
   airQuality: {
     type: String,
     required: false,
-    enum: ['E mirë', 'E pranueshme', 'Mesatare', 'E dobët', 'Shume e dobët'],
+    enum: ['E mirë', 'E pranueshme', 'Mesatare', 'E dobët', 'Shume e dobët', 'Jashtëzakonisht e dobët'],
   },
   gender: {
     type: Array,
