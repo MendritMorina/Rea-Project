@@ -190,6 +190,8 @@ const checkSubscriptions = async () => {
   }
 };
 
+getAQI();
+
 // Function that is used to init all jobs.
 const initJobs = () => {
   schedule.scheduleJob('0 * * * *', async () => {
