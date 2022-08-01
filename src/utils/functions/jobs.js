@@ -43,6 +43,8 @@ const getAQI = async () => {
       success: true,
       information: {},
     });
+
+    console.log('GET AQI FINISHED');
   } catch (error) {
     await Cronjob.create({
       type: 'GET_AQI',
@@ -189,6 +191,8 @@ const checkSubscriptions = async () => {
     });
   }
 };
+
+getAQI();
 
 // Function that is used to init all jobs.
 const initJobs = () => {
