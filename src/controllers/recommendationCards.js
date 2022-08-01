@@ -75,7 +75,7 @@ const getOne = asyncHandler(async (request, response, next) => {
  */
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
-  const { recommendationId, type } = request.body;
+  const { recommendationId, type, order, reorderId } = request.body;
 
   let recommendationCard = null;
 
@@ -89,6 +89,8 @@ const create = asyncHandler(async (request, response, next) => {
     const payload = {
       type,
       recommendation: baseRecommendation._id,
+      order: order,
+      reorderId: reorderId,
       createdBy: userId,
       createdAt: new Date(Date.now()),
     };
@@ -195,7 +197,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { recommendationCardId } = request.params;
   //const { name, description, recommendationId, type, toBeDeleted } = request.body;
-  const { recommendationId: recommendation, toBeDeleted } = request.body;
+  const { recommendationId: recommendation, toBeDeleted, order } = request.body;
 
   const recommendationCard = await RecommendationCard.findOne({ _id: recommendationCardId, isDeleted: false });
 
@@ -228,6 +230,7 @@ const updateOne = asyncHandler(async (request, response, next) => {
   const payload = {
     recommendation,
     //recommendation: recommendationId ? recommendationId : recommendationCard.recommendation,
+    order,
     updatedBy: userId,
     updatedAt: new Date(Date.now()),
   };
