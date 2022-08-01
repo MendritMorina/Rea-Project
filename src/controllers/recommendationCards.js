@@ -125,6 +125,8 @@ const create = asyncHandler(async (request, response, next) => {
     const payload = {
       type,
       recommendation: informativeRecommendation._id,
+      order: order,
+      reorderId: reorderId,
       createdBy: userId,
       createdAt: new Date(Date.now()),
     };
