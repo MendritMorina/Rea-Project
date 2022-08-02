@@ -813,7 +813,9 @@ const uploadFile = async (recommendationCardId, userId, request, fileType) => {
   }
 
   const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
-  const fileURL = `${publicURL}/public/recommendationcards/${fileName}`;
+  const modeURL =
+    getMode() === 'production' ? `public/recommendationcards/${fileName}` : `recommendationcards/${fileName}`;
+  const fileURL = `${publicURL}/${modeURL}`;
 
   const updatedRecommendationCard = await RecommendationCard.findOneAndUpdate(
     { _id: recommendationCard._id },

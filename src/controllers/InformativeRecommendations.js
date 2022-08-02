@@ -506,7 +506,11 @@ const uploadFile = async (informativeRecommendationId, userId, request, fileType
   }
 
   const publicURL = getMode() === 'production' ? process.env.PUBLIC_PROD_URL : process.env.PUBLIC_DEV_URL;
-  const fileURL = `${publicURL}/public/informativerecommendations/${fileName}`;
+  const modeURL =
+    getMode() === 'production'
+      ? `public/informativerecommendations/${fileName}`
+      : `informativerecommendations/${fileName}`;
+  const fileURL = `${publicURL}/${modeURL}`;
 
   const updatedInformativeRecommendation = await InformativeRecommendation.findOneAndUpdate(
     { _id: informativeRecommendation._id },
