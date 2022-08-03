@@ -13,8 +13,6 @@ const getAQI = async () => {
     const aqi = await axios.get('https://airqualitykosova.rks-gov.net/dataservices/open/ForecastDataJSON?offsetHour=0');
     const aqiData = aqi.data;
 
-    console.log('aqiData', aqiData);
-
     for (let i = 0; i < aqiData.length; i++) {
       if (!aqiData[i]) continue;
 
@@ -45,8 +43,6 @@ const getAQI = async () => {
       success: true,
       information: {},
     });
-
-    console.log('GET AQI FINISHED');
   } catch (error) {
     await Cronjob.create({
       type: 'GET_AQI',
