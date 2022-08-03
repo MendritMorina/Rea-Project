@@ -190,7 +190,7 @@ const checkSubscriptions = async () => {
   }
 };
 
-getAQI();
+// getAQI();
 
 // Function that is used to init all jobs.
 const initJobs = () => {
