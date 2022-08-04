@@ -77,11 +77,11 @@ const authenticate = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const emailExists = (await User.countDocuments({ email: firebaseUser.email, isDeleted: false })) > 0;
-  if (emailExists) {
-    next(new ApiError('Given email already exists!', httpCodes.INTERNAL_ERROR));
-    return;
-  }
+  // const emailExists = (await User.countDocuments({ email: firebaseUser.email, isDeleted: false })) > 0;
+  // if (emailExists) {
+  //   next(new ApiError('Given email already exists!', httpCodes.INTERNAL_ERROR));
+  //   return;
+  // }
 
   const payload = { name, surname, email: firebaseUser.email, firebaseUid: firebaseUser.uid, providerId, fcmToken };
   const createdUser = await User.create(payload);
