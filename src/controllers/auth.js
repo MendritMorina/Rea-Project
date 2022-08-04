@@ -95,10 +95,10 @@ const authenticate = asyncHandler(async (request, response, next) => {
 
   const mailchimpUser = { email: createdUser.email, firstName: name || 'NA', lastName: surname || 'NA' };
   const mailchimpResult = await mailchimp.createContact(mailchimpUser, currentAudience);
-  if (!mailchimpResult.success) {
-    next(new ApiError(mailchimpResult.error, mailchimpResult.code));
-    return;
-  }
+  // if (!mailchimpResult.success) {
+  //   next(new ApiError(mailchimpResult.error, mailchimpResult.code));
+  //   return;
+  // }
 
   response.status(httpCodes.CREATED).json({ success: true, data: { token }, error: null });
   return;
