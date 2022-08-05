@@ -56,6 +56,13 @@ const authenticate = asyncHandler(async (request, response, next) => {
   }
 
   const user = await User.findOne({ firebaseUid: uid, isDeleted: false });
+  console.log('===========================================');
+  console.log('===========================================');
+  console.log('decodedtoken in signup', decodedToken);
+  console.log('user', user);
+  console.log('===========================================');
+  console.log('===========================================');
+  console.log('===========================================');
   if (user) {
     if (user.fcmToken !== fcmToken) {
       const updatePayload = { $set: { fcmToken } };
@@ -260,6 +267,12 @@ const getMe = asyncHandler(async (request, response, next) => {
 
   const user = await User.findOne({ _id: userId, isDeleted: false });
   if (!user) {
+    console.log('============================================');
+    console.log('============================================');
+    console.log('user is not registered get me endpoint');
+    console.log(request.user);
+    console.log('============================================');
+    console.log('============================================');
     next(new ApiError('User is not registred in database!', httpCodes.NOT_FOUND));
     return;
   }
