@@ -14,6 +14,12 @@ const { jwt, checkValidValues, firebase, mailchimp } = require('../utils/functio
  * @access      Public.
  */
 const authenticate = asyncHandler(async (request, response, next) => {
+  console.log('===========================================');
+  console.log('===========================================');
+  console.log('signup 1');
+  console.log('===========================================');
+  console.log('===========================================');
+  console.log('===========================================');
   const { name, surname, fcmToken } = request.body;
   const { authorization } = request.headers;
 
@@ -22,11 +28,24 @@ const authenticate = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  console.log('===========================================');
+  console.log('===========================================');
+  console.log('signup 2');
+  console.log('===========================================');
+  console.log('===========================================');
+  console.log('===========================================');
   const [bearer, token] = authorization.split(' ');
   if (!bearer || bearer !== 'Bearer' || !token) {
     next(new ApiError('Wrong auth header!', httpCodes.UNAUTHORIZED));
     return;
   }
+
+  console.log('===========================================');
+  console.log('===========================================');
+  console.log('signup 3');
+  console.log('===========================================');
+  console.log('===========================================');
+  console.log('===========================================');
 
   let decodedToken = null;
   try {
@@ -35,7 +54,20 @@ const authenticate = asyncHandler(async (request, response, next) => {
       next(new ApiError(constants.TOKEN_EXPIRED, httpCodes.UNAUTHORIZED));
       return;
     }
+
+    console.log('===========================================');
+    console.log('===========================================');
+    console.log('signup 4');
+    console.log('===========================================');
+    console.log('===========================================');
+    console.log('===========================================');
   } catch (error) {
+    console.log('===========================================');
+    console.log('===========================================');
+    console.log('signup 5');
+    console.log('===========================================');
+    console.log('===========================================');
+    console.log('===========================================');
     next(new ApiError(constants.TOKEN_EXPIRED, httpCodes.UNAUTHORIZED));
     return;
   }
@@ -51,11 +83,24 @@ const authenticate = asyncHandler(async (request, response, next) => {
 
   const allowedProviders = ['password', 'google.com', 'facebook.com', 'apple.com'];
   if (!allowedProviders.includes(providerId)) {
+    console.log('===========================================');
+    console.log('===========================================');
+    console.log('signup 6', 'not allowed provider');
+    console.log('===========================================');
+    console.log('===========================================');
+    console.log('===========================================');
     next(new ApiError('Not allowed provider', httpCodes.UNAUTHORIZED));
     return;
   }
 
   const user = await User.findOne({ firebaseUid: uid, isDeleted: false });
+  console.log('===========================================');
+  console.log('===========================================');
+  console.log('decodedtoken in signup', decodedToken);
+  console.log('user', user);
+  console.log('===========================================');
+  console.log('===========================================');
+  console.log('===========================================');
   if (user) {
     if (user.fcmToken !== fcmToken) {
       const updatePayload = { $set: { fcmToken } };
@@ -260,6 +305,12 @@ const getMe = asyncHandler(async (request, response, next) => {
 
   const user = await User.findOne({ _id: userId, isDeleted: false });
   if (!user) {
+    console.log('============================================');
+    console.log('============================================');
+    console.log('user is not registered get me endpoint');
+    console.log(request.user);
+    console.log('============================================');
+    console.log('============================================');
     next(new ApiError('User is not registred in database!', httpCodes.NOT_FOUND));
     return;
   }
