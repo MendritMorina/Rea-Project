@@ -49,7 +49,7 @@ const authenticate = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const allowedProviders = ['password', 'google.com', 'facebook.com'];
+  const allowedProviders = ['password', 'google.com', 'facebook.com', 'apple.com'];
   if (!allowedProviders.includes(providerId)) {
     next(new ApiError('Not allowed provider', httpCodes.UNAUTHORIZED));
     return;
