@@ -48,13 +48,6 @@ const authorize = asyncHandler(async (request, response, next) => {
 
   const user = await User.findOne({ isDeleted: false, firebaseUid: uid });
   if (!user) {
-    console.log('============================================');
-    console.log('============================================');
-    console.log('user is not registered in authorize middleware');
-    console.log(firebaseUser);
-    console.log(uid);
-    console.log('============================================');
-    console.log('============================================');
     next(new ApiError('User is not registred in database!', httpCodes.UNAUTHORIZED));
     return;
   }
