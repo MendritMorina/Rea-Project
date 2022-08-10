@@ -35,11 +35,6 @@ const authorize = asyncHandler(async (request, response, next) => {
   const uid = decodedToken.uid;
   const emailVerfied = decodedToken.email_verified;
 
-  if (!emailVerfied) {
-    next(new ApiError('The email is not verified', httpCodes.UNAUTHORIZED));
-    return;
-  }
-
   const firebaseUser = await getAuth().getUser(uid);
   if (!firebaseUser) {
     next(new ApiError('Firebase user was not found!', httpCodes.UNAUTHORIZED));
@@ -49,6 +44,11 @@ const authorize = asyncHandler(async (request, response, next) => {
   const user = await User.findOne({ isDeleted: false, firebaseUid: uid });
   if (!user) {
     next(new ApiError('User is not registred in database!', httpCodes.UNAUTHORIZED));
+    return;
+  }
+
+  if (user.email && !emailVerfied) {
+    next(new ApiError('The email is not verified', httpCodes.UNAUTHORIZED));
     return;
   }
 
