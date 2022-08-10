@@ -49,6 +49,12 @@ const authenticate = asyncHandler(async (request, response, next) => {
     return;
   }
 
+  console.log('==========================');
+  console.log('==========================');
+  console.log(firebaseUser);
+  console.log('==========================');
+  console.log('==========================');
+
   const allowedProviders = ['password', 'google.com', 'facebook.com', 'apple.com'];
   if (!allowedProviders.includes(providerId)) {
     next(new ApiError('Not allowed provider', httpCodes.UNAUTHORIZED));
