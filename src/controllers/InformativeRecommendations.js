@@ -132,8 +132,9 @@ const getOne = asyncHandler(async (request, response, next) => {
 const create = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
 
-  const { name, description, airQuality, isGeneric, isPregnant, hasChildren } = request.body;
+  const { name, description, isGeneric, isPregnant, hasChildren } = request.body;
 
+  const airQuality = JSON.parse(request.body.airQuality);
   const age = JSON.parse(request.body.age);
   const gender = JSON.parse(request.body.gender);
   const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
@@ -151,16 +152,6 @@ const create = asyncHandler(async (request, response, next) => {
     next(
       new ApiError(
         "You cannot create a informative recommendation where is pregnant is equal to true and gender doesn't incude female!",
-        httpCodes.BAD_REQUEST
-      )
-    );
-    return;
-  }
-
-  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
-    next(
-      new ApiError(
-        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
         httpCodes.BAD_REQUEST
       )
     );
@@ -249,8 +240,9 @@ const create = asyncHandler(async (request, response, next) => {
 const updateOne = asyncHandler(async (request, response, next) => {
   const userId = request.admin._id;
   const { informativeRecommendationId } = request.params;
-  const { name, description, isPregnant, isGeneric, airQuality, hasChildren, toBeDeleted } = request.body;
+  const { name, description, isPregnant, isGeneric, hasChildren, toBeDeleted } = request.body;
 
+  const airQuality = JSON.parse(request.body.airQuality);
   const age = JSON.parse(request.body.age);
   const gender = JSON.parse(request.body.gender);
   const haveDiseaseDiagnosis = JSON.parse(request.body.haveDiseaseDiagnosis);
@@ -270,16 +262,6 @@ const updateOne = asyncHandler(async (request, response, next) => {
     next(
       new ApiError(
         "You cannot create a base recommendation where is pregnant is equal to true and gender doesn't incude female!",
-        httpCodes.BAD_REQUEST
-      )
-    );
-    return;
-  }
-
-  if (airQuality && !staticValues.airQuality.includes(airQuality)) {
-    next(
-      new ApiError(
-        `The value of ${airQuality} is not in allowed values : ${staticValues.airQuality} !`,
         httpCodes.BAD_REQUEST
       )
     );

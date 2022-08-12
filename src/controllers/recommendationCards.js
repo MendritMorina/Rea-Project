@@ -591,7 +591,7 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
     $and: [
       { isGeneric: false },
       { isDeleted: false },
-      { airQuality: airQuality },
+      { airQuality: { $in: [airQuality] } },
       { haveDiseaseDiagnosis: { $in: user.haveDiseaseDiagnosis } },
       { energySource: { $in: user.energySource } },
       { hasChildren: user.hasChildren },
@@ -607,7 +607,7 @@ const getRandomInformativeRecommendationCards = asyncHandler(async (request, res
   const genericInfoRecs = await InformativeRecommendation.find({
     isDeleted: false,
     isGeneric: true,
-    airQuality: airQuality,
+    airQuality: { $in: [airQuality] },
   }).populate('recommendationCards');
 
   const randoms = [...genericInfoRecs, ...informativeRecommendations];

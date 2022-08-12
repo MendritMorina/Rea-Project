@@ -20,9 +20,8 @@ const InformativeRecommendationSchema = new mongoose.Schema({
     ...File,
   },
   airQuality: {
-    type: String,
+    type: Array,
     required: false,
-    enum: ['E mirë', 'E pranueshme', 'Mesatare', 'E dobët', 'Shume e dobët', 'Jashtëzakonisht e dobët'],
   },
   gender: {
     type: Array,
