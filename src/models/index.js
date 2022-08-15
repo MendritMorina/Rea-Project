@@ -15,6 +15,7 @@ const AQI = require('./AQI');
 const Cronjob = require('./Cronjob');
 const Notification = require('./Notification');
 const NotificationType = require('./NotificationType');
+const PredictionAQI = require('./PredictionAQI');
 
 // Bundler object that is used to export all models inside ./src/models.
 const bundler = {
@@ -34,6 +35,7 @@ const bundler = {
   Cronjob,
   Notification,
   NotificationType,
+  PredictionAQI,
 };
 
 // Exports of this file.

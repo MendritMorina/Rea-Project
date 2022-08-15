@@ -11,6 +11,7 @@ const baseRecommendationValidator = require('./baseRecommendations');
 const subscriptionsValidator = require('./subscriptions');
 const notificationsValidator = require('./notifications');
 const notificationTypesValidator = require('./notificationTypes');
+const aqiValidator = require('./aqi');
 
 // Bundler object that is used to export all validations inside ./src/validations.
 const bundler = {
@@ -26,6 +27,7 @@ const bundler = {
   subscriptionsValidator,
   notificationsValidator,
   notificationTypesValidator,
+  aqiValidator,
 };
 // Exports of this file.
 module.exports = bundler;

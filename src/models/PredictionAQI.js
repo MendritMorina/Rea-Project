@@ -1,9 +1,10 @@
+// Imports: third-party packages.
 const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
 const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
 
-// AQI Schema that is used to represent single AQI in our API.
-const AQISchema = new mongoose.Schema({
+// Prediction AQI Schema that is used to represent single Prediction AQI in our API.
+const PredictionAQISchema = new mongoose.Schema({
   localtime: {
     type: Date,
     required: true,
@@ -65,13 +66,13 @@ const AQISchema = new mongoose.Schema({
 });
 
 // Plugins.
-AQISchema.plugin(mongoosePaginate);
-AQISchema.plugin(mongooseAggregatePaginate);
+PredictionAQISchema.plugin(mongoosePaginate);
+PredictionAQISchema.plugin(mongooseAggregatePaginate);
 
 // Indexes.
-AQISchema.index({ location: '2dsphere' });
-AQISchema.index({ longitude: 1 });
-AQISchema.index({ latitude: 1 });
+PredictionAQISchema.index({ location: '2dsphere' });
+PredictionAQISchema.index({ longitude: 1 });
+PredictionAQISchema.index({ latitude: 1 });
 
 // Exports of this file.
-module.exports = mongoose.model('AQISchema', AQISchema);
+module.exports = mongoose.model('PredictionAQISchema', PredictionAQISchema);

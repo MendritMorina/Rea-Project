@@ -5,7 +5,7 @@ const appleReceiptVerify = require('node-apple-receipt-verify');
 
 // Imports: local files.
 const env = require('./env');
-const { AQI, Cronjob, User, Subscription, SubscriptionType } = require('../../models');
+const { AQI, Cronjob, User, Subscription, SubscriptionType, PredictionAQI } = require('../../models');
 const { subscriptions } = require('../../configs');
 
 const getAQI = async () => {
@@ -190,7 +190,55 @@ const checkSubscriptions = async () => {
   }
 };
 
+const getPredictionAQI = async () => {
+  try {
+    const aqi = await axios.get(
+      'https://airqualitykosova.rks-gov.net/dataservices/open/ForecastDataJSON?offsetHour=36'
+    );
+    const aqiData = aqi.data;
+
+    const now = new Date(Date.now());
+    for (let i = 0; i < aqiData.length; i++) {
+      if (!aqiData[i]) continue;
+
+      const { localtime, x, y, pm10, pm25, no2, so2, o3, index, name } = aqiData[i];
+      const geometry = { type: 'Point', coordinates: [x, y] };
+      const geoJSON = {
+        localtime,
+        location: { ...geometry },
+        pm10,
+        pm25,
+        no2,
+        so2,
+        o3,
+        index,
+        name,
+        longitude: x,
+        latitude: y,
+      };
+
+      await PredictionAQI.create(geoJSON);
+    }
+
+    // const before12hours = new Date(Date.now() - 1000 * 60 * 60 * 12);
+    await PredictionAQI.deleteMany({ createdAt: { $lte: now } });
+
+    await Cronjob.create({
+      type: 'GET_PREDICTION_AQI',
+      success: true,
+      information: {},
+    });
+  } catch (error) {
+    await Cronjob.create({
+      type: 'GET_PREDICTION_AQI',
+      success: false,
+      information: { error: error.message || 'Server Error' },
+    });
+  }
+};
+
 // getAQI();
+// getPredictionAQI();
 
 // Function that is used to init all jobs.
 const initJobs = () => {
@@ -200,6 +248,10 @@ const initJobs = () => {
 
   schedule.scheduleJob('0 20 * * *', async function (fireDate) {
     await checkSubscriptions();
+  });
+
+  schedule.scheduleJob('0 0 * * *', async function (fireDate) {
+    await getPredictionAQI();
   });
 };
 

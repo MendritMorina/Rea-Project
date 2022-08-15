@@ -1,10 +1,12 @@
 // Imports: local files.
+const aqiCalculator = require('../utils/functions/aqi/aqi-calculator');
+const { PredictionAQI } = require('../models');
 const { httpCodes } = require('../configs');
 const { asyncHandler } = require('../middlewares');
 
 /**
  * @description Get Aqilinks.
- * @route       GET /api/links.
+ * @route       GET /api/aqi/links.
  * @access      Public.
  */
 const getAqiLinks = asyncHandler(async (request, response) => {
@@ -64,5 +66,72 @@ const getAqiLinks = asyncHandler(async (request, response) => {
   return;
 });
 
+/**
+ * @description Get predictions.
+ * @route       GET /api/aqi/predictions.
+ * @access      Private.
+ */
+const getPredictions = asyncHandler(async (request, response, next) => {
+  const { longitude, latitude } = request.query;
+
+  const nearestAQIPoint = await PredictionAQI.findOne({
+    location: {
+      $near: {
+        $geometry: {
+          type: 'Point',
+          coordinates: [longitude, latitude],
+        },
+        $maxDistance: 20000,
+      },
+    },
+  });
+  if (!nearestAQIPoint) {
+    response.status(httpCodes.OK).json({ success: true, data: { furtherThan20km: true }, error: null });
+    return;
+  }
+
+  const otherAQIs = await PredictionAQI.find({
+    longitude: nearestAQIPoint.longitude,
+    latitude: nearestAQIPoint.latitude,
+  })
+    .sort('-_id')
+    .limit(1);
+  const currentAQINearest = otherAQIs && otherAQIs.length ? otherAQIs[0] : null;
+  if (!currentAQINearest) {
+    next(new ApiError('Couldnt find nearest point!', httpCodes.NOT_FOUND));
+    return;
+  }
+
+  const { localtime: datetime, pm25, pm10, so2, no2, o3 } = currentAQINearest;
+  const aqiData = [{ datetime, pm25, pm10, so2, no2, o3 }];
+  const aqiValue = aqiCalculator(aqiData);
+  const airQuality = airQualityFromAQI(aqiValue);
+
+  const message = `Cilësia e ajrit është: ${airQuality}!`;
+  response.status(httpCodes.OK).json({ success: true, data: { message }, error: null });
+  return;
+});
+
 // Exports of this file.
-module.exports = { getAqiLinks };
+module.exports = { getAqiLinks, getPredictions };
+
+// Helpers for this controller.
+function airQualityFromAQI(aqi) {
+  let airQuality = '';
+
+  if (aqi < 51) {
+    airQuality = 'E mirë';
+  } else if (aqi >= 51 && aqi < 100) {
+    airQuality = 'E pranueshme';
+  } else if (aqi >= 101 && aqi < 150) {
+    airQuality = 'Mesatare';
+  } else if (aqi >= 151 && aqi < 200) {
+    airQuality = 'E dobët';
+  } else if (aqi >= 200 && aqi < 300) {
+    airQuality = 'Shume e dobët';
+  } else {
+    airQuality = 'Jashtëzakonisht e dobët';
+  }
+
+  return airQuality;
+}
