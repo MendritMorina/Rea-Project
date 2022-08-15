@@ -5,7 +5,7 @@ const { httpCodes } = require('../configs');
 const { asyncHandler } = require('../middlewares');
 
 /**
- * @description Get Aqilinks.
+ * @description Get aqi links.
  * @route       GET /api/aqi/links.
  * @access      Public.
  */
