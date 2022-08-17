@@ -14,7 +14,7 @@ const staticValues = {
     'Sëmundje kardiovaskulare',
     'Diabet',
     'Sëmundje neurologjike',
-    'Nuk kam ndonjë diagnozë',
+    'Nuk ka ndonjë diagnozë',
   ],
   energySource: ['Qymyr', 'Dru', 'Gaz', 'Tjetër'],
   airQuality: ['E mirë', 'E pranueshme', 'Mesatare', 'E dobët', 'Shume e dobët', 'Jashtëzakonisht e dobët'],
