@@ -26,16 +26,16 @@ const createApple = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const otherSubscription = await Subscription.findOne({ user: { $ne: _id }, transactionId, productId });
-  if (otherSubscription) {
-    const otherUser = await User.findOne({ _id: otherSubscription.user, isActive: true }).populate(
-      'currentSubscription'
-    );
-    if (otherUser && otherUser.currentSubscription && otherUser.currentSubscription.isActive) {
-      next(new ApiError('This subscription is already in use elsewhere!', httpCodes.BAD_REQUEST));
-      return;
-    }
-  }
+  // const otherSubscription = await Subscription.findOne({ user: { $ne: _id }, transactionId, productId });
+  // if (otherSubscription) {
+  //   const otherUser = await User.findOne({ _id: otherSubscription.user, isActive: true }).populate(
+  //     'currentSubscription'
+  //   );
+  //   if (otherUser && otherUser.currentSubscription && otherUser.currentSubscription.isActive) {
+  //     next(new ApiError('This subscription is already in use elsewhere!', httpCodes.BAD_REQUEST));
+  //     return;
+  //   }
+  // }
 
   let updateUser = false;
   if (user.currentSubscription) {
@@ -128,6 +128,11 @@ const restoreApple = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
   const { transactionId, productId, receipt } = request.body;
 
+  const subscription = await Subscription.create({
+    user: userId,
+    expirationDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
+  });
+
   console.log('transactionId', transactionId);
   console.log('productId', productId);
 
@@ -137,97 +142,115 @@ const restoreApple = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (
-    (currentUser.currentSubscription && currentUser.currentSubscription.isActive) ||
-    (currentUser.subscriptionsHistory && currentUser.subscriptionsHistory.length)
-  ) {
-    next(new ApiError('You are already subscribed or have subscribed in the past!', httpCodes.BAD_REQUEST));
-    return;
-  }
-
-  const targetSubscription = await Subscription.findOne({ user: { $ne: userId }, transactionId, productId });
-  if (!targetSubscription) {
-    next(new ApiError('Subscription with given transaction id was not found!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  const oldUser = await User.findOne({ _id: targetSubscription.user, isActive: true }).populate('currentSubscription');
-  if (!oldUser) {
-    next(new ApiError('Your previous account was not found!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  if (
-    !oldUser.currentSubscription ||
-    !oldUser.currentSubscription.isActive ||
-    oldUser.currentSubscription.transactionId !== transactionId
-  ) {
-    next(new ApiError('Old transaction is not active anymore or not found!', httpCodes.NOT_FOUND));
-    return;
-  }
-
-  oldUser.currentSubscription = null;
-  oldUser.subscriptionsHistory = [];
-  await oldUser.save();
-
-  const platform = 'apple';
-  const payment = {
-    receipt: receipt,
-    productId: productId,
-    packageName: env.getByKey('appIbi'),
-    secret: env.getByKey('appSubSecret'),
-    excludeOldTransactions: true,
+  let updatePayload = {
+    $set: {
+      currentSubscription: subscription._id,
+      subscriptionsHistory: [subscription._id],
+      lastEditBy: userId,
+      lastEditAt: new Date(Date.now()).toISOString(),
+    },
   };
 
-  iap.verifyPayment(platform, payment, async function (error, iapResponse) {
-    if (error) {
-      next(new ApiError('Failed to verify receipt!', httpCodes.BAD_REQUEST));
-      return;
-    }
-
-    // const { productId, transactionId, purchaseDate, expirationDate, pendingRenewalInfo, latestReceiptInfo } =
-    //   iapResponse;
-
-    const subType = subscriptions[iapResponse.productId];
-    const subscriptionType = await SubscriptionType.findOne({ name: subType.name });
-    if (!subscriptionType) {
-      next(new ApiError('Subscription type with given name was not found!', httpCodes.NOT_FOUND));
-      return;
-    }
-
-    const newSubscription = await Subscription.create({
-      type: subscriptionType._id,
-      user: userId,
-      productId: iapResponse.productId,
-      transactionId: iapResponse.transactionId,
-      originalTransactionId: iapResponse.latestReceiptInfo[0].original_transaction_id,
-      purchaseDate: iapResponse.purchaseDate,
-      expirationDate: iapResponse.expirationDate,
-      receipt: receipt,
-    });
-    if (!newSubscription) {
-      next(new ApiError('Failed to create new subscription!', httpCodes.INTERNAL_ERROR));
-      return;
-    }
-
-    let updatePayload = {
-      $set: {
-        currentSubscription: newSubscription._id,
-        subscriptionsHistory: [newSubscription._id],
-        lastEditBy: userId,
-        lastEditAt: new Date(Date.now()).toISOString(),
-      },
-    };
-
-    const updatedUser = await User.findByIdAndUpdate(userId, updatePayload, { new: true });
-    if (!updatedUser) {
-      next(new ApiError('Failed to update user!', httpCodes.INTERNAL_ERROR));
-      return;
-    }
-
-    response.status(httpCodes.CREATED).json({ success: true, data: { user: updatedUser }, error: null });
+  const updatedUser = await User.findByIdAndUpdate(userId, updatePayload, { new: true });
+  if (!updatedUser) {
+    next(new ApiError('Failed to update user!', httpCodes.INTERNAL_ERROR));
     return;
-  });
+  }
+
+  response.status(httpCodes.CREATED).json({ success: true, data: { user: updatedUser }, error: null });
+  return;
+
+  // if (
+  //   (currentUser.currentSubscription && currentUser.currentSubscription.isActive) ||
+  //   (currentUser.subscriptionsHistory && currentUser.subscriptionsHistory.length)
+  // ) {
+  //   next(new ApiError('You are already subscribed or have subscribed in the past!', httpCodes.BAD_REQUEST));
+  //   return;
+  // }
+
+  // const targetSubscription = await Subscription.findOne({ user: { $ne: userId }, transactionId, productId });
+  // if (!targetSubscription) {
+  //   next(new ApiError('Subscription with given transaction id was not found!', httpCodes.NOT_FOUND));
+  //   return;
+  // }
+
+  // const oldUser = await User.findOne({ _id: targetSubscription.user, isActive: true }).populate('currentSubscription');
+  // if (!oldUser) {
+  //   next(new ApiError('Your previous account was not found!', httpCodes.NOT_FOUND));
+  //   return;
+  // }
+
+  // if (
+  //   !oldUser.currentSubscription ||
+  //   !oldUser.currentSubscription.isActive ||
+  //   oldUser.currentSubscription.transactionId !== transactionId
+  // ) {
+  //   next(new ApiError('Old transaction is not active anymore or not found!', httpCodes.NOT_FOUND));
+  //   return;
+  // }
+
+  // oldUser.currentSubscription = null;
+  // oldUser.subscriptionsHistory = [];
+  // await oldUser.save();
+
+  // const platform = 'apple';
+  // const payment = {
+  //   receipt: receipt,
+  //   productId: productId,
+  //   packageName: env.getByKey('appIbi'),
+  //   secret: env.getByKey('appSubSecret'),
+  //   excludeOldTransactions: true,
+  // };
+
+  // iap.verifyPayment(platform, payment, async function (error, iapResponse) {
+  //   if (error) {
+  //     next(new ApiError('Failed to verify receipt!', httpCodes.BAD_REQUEST));
+  //     return;
+  //   }
+
+  //   // const { productId, transactionId, purchaseDate, expirationDate, pendingRenewalInfo, latestReceiptInfo } =
+  //   //   iapResponse;
+
+  //   const subType = subscriptions[iapResponse.productId];
+  //   const subscriptionType = await SubscriptionType.findOne({ name: subType.name });
+  //   if (!subscriptionType) {
+  //     next(new ApiError('Subscription type with given name was not found!', httpCodes.NOT_FOUND));
+  //     return;
+  //   }
+
+  //   const newSubscription = await Subscription.create({
+  //     type: subscriptionType._id,
+  //     user: userId,
+  //     productId: iapResponse.productId,
+  //     transactionId: iapResponse.transactionId,
+  //     originalTransactionId: iapResponse.latestReceiptInfo[0].original_transaction_id,
+  //     purchaseDate: iapResponse.purchaseDate,
+  //     expirationDate: iapResponse.expirationDate,
+  //     receipt: receipt,
+  //   });
+  //   if (!newSubscription) {
+  //     next(new ApiError('Failed to create new subscription!', httpCodes.INTERNAL_ERROR));
+  //     return;
+  //   }
+
+  //   let updatePayload = {
+  //     $set: {
+  //       currentSubscription: newSubscription._id,
+  //       subscriptionsHistory: [newSubscription._id],
+  //       lastEditBy: userId,
+  //       lastEditAt: new Date(Date.now()).toISOString(),
+  //     },
+  //   };
+
+  //   const updatedUser = await User.findByIdAndUpdate(userId, updatePayload, { new: true });
+  //   if (!updatedUser) {
+  //     next(new ApiError('Failed to update user!', httpCodes.INTERNAL_ERROR));
+  //     return;
+  //   }
+
+  //   response.status(httpCodes.CREATED).json({ success: true, data: { user: updatedUser }, error: null });
+  //   return;
+  // });
 });
 
 /**

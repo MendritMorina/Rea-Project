@@ -11,12 +11,14 @@ const SubscriptionSchema = new mongoose.Schema({
   type: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'SubscriptionType',
-    required: true,
+    required: false,
+    default: null,
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
+    default: null,
   },
   productId: {
     type: String,
