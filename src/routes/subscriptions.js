@@ -17,6 +17,11 @@ const routes = [
     middlewares: [authorize, validate(subscriptionsValidator.createApple), subscriptionsController.createApple],
   },
   {
+    path: '/apple/restore',
+    method: httpVerbs.POST,
+    middlewares: [authorize, validate(subscriptionsValidator.restoreApple), subscriptionsController.restoreApple],
+  },
+  {
     path: '/me',
     method: httpVerbs.POST,
     middlewares: [authorize, subscriptionsController.me],
