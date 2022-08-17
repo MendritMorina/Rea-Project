@@ -17,6 +17,9 @@ const createApple = asyncHandler(async (request, response, next) => {
   const { receipt, productId, originalTransactionId } = request.body;
   const { _id } = request.user;
 
+  console.log('originalTransactionId in create', originalTransactionId);
+  console.log('productId in create', productId);
+
   const user = await User.findById(_id).populate('currentSubscription').populate('subscriptionsHistory');
   if (!user) {
     next(new ApiError('User with given id was not found!', httpCodes.NOT_FOUND));
