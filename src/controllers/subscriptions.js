@@ -126,6 +126,7 @@ const restoreApple = asyncHandler(async (request, response, next) => {
   const { originalTransactionId, productId, receipt } = request.body;
 
   console.log('originalTransactionId', originalTransactionId);
+  console.log('productId', productId);
 
   const currentUser = await User.findOne({ _id: userId, isActive: true }).populate('currentSubscription');
   if (!currentUser) {
