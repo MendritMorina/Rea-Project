@@ -14,10 +14,10 @@ const { httpCodes, subscriptions } = require('../configs');
  * @access      Public.
  */
 const createApple = asyncHandler(async (request, response, next) => {
-  const { receipt, productId, originalTransactionId } = request.body;
+  const { receipt, productId, transactionId } = request.body;
   const { _id } = request.user;
 
-  console.log('originalTransactionId in create', originalTransactionId);
+  console.log('transactionId in create', transactionId);
   console.log('productId in create', productId);
 
   const user = await User.findById(_id).populate('currentSubscription').populate('subscriptionsHistory');
@@ -26,7 +26,7 @@ const createApple = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const otherSubscription = await Subscription.findOne({ user: { $ne: _id }, originalTransactionId, productId });
+  const otherSubscription = await Subscription.findOne({ user: { $ne: _id }, transactionId, productId });
   if (otherSubscription) {
     const otherUser = await User.findOne({ _id: otherSubscription.user, isActive: true }).populate(
       'currentSubscription'
@@ -126,9 +126,9 @@ const createApple = asyncHandler(async (request, response, next) => {
  */
 const restoreApple = asyncHandler(async (request, response, next) => {
   const { _id: userId } = request.user;
-  const { originalTransactionId, productId, receipt } = request.body;
+  const { transactionId, productId, receipt } = request.body;
 
-  console.log('originalTransactionId', originalTransactionId);
+  console.log('transactionId', transactionId);
   console.log('productId', productId);
 
   const currentUser = await User.findOne({ _id: userId, isActive: true }).populate('currentSubscription');
@@ -145,7 +145,7 @@ const restoreApple = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  const targetSubscription = await Subscription.findOne({ user: { $ne: userId }, originalTransactionId, productId });
+  const targetSubscription = await Subscription.findOne({ user: { $ne: userId }, transactionId, productId });
   if (!targetSubscription) {
     next(new ApiError('Subscription with given transaction id was not found!', httpCodes.NOT_FOUND));
     return;
@@ -160,7 +160,7 @@ const restoreApple = asyncHandler(async (request, response, next) => {
   if (
     !oldUser.currentSubscription ||
     !oldUser.currentSubscription.isActive ||
-    oldUser.currentSubscription.originalTransactionId !== originalTransactionId
+    oldUser.currentSubscription.transactionId !== transactionId
   ) {
     next(new ApiError('Old transaction is not active anymore or not found!', httpCodes.NOT_FOUND));
     return;
