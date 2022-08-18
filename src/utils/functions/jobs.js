@@ -238,7 +238,7 @@ const getPredictionAQI = async () => {
 };
 
 // getAQI();
-// getPredictionAQI();
+getPredictionAQI();
 
 // Function that is used to init all jobs.
 const initJobs = () => {
