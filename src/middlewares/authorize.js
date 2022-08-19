@@ -47,7 +47,7 @@ const authorize = asyncHandler(async (request, response, next) => {
     return;
   }
 
-  if (user.email && !emailVerfied) {
+  if (user.providerId === 'password' && user.email && !emailVerfied) {
     next(new ApiError('The email is not verified', httpCodes.UNAUTHORIZED));
     return;
   }
