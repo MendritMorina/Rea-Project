@@ -107,7 +107,7 @@ const getPredictions = asyncHandler(async (request, response, next) => {
   const aqiValue = aqiCalculator(aqiData);
   const airQuality = airQualityFromAQI(aqiValue);
 
-  const message = `Cilësia e ajrit është: ${airQuality}!`;
+  const message = `Cilësia e ajrit gjatë ditës është: ${airQuality}!`;
   response.status(httpCodes.OK).json({ success: true, data: { message, value: aqiValue }, error: null });
   return;
 });
