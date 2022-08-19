@@ -14,7 +14,7 @@ const validator = {
     body: Joi.object({
       name: Joi.string().optional(),
       surname: Joi.string().optional(),
-      email: Joi.string().email().optional(),
+      // email: Joi.string().email().optional(),
       age: Joi.string().optional(),
       gender: Joi.string().optional(),
       aqi: Joi.number().optional().default(0),

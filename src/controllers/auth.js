@@ -114,7 +114,7 @@ const update = asyncHandler(async (request, response, next) => {
   const {
     name,
     surname,
-    email,
+    // email,
     age,
     gender,
     aqi,
@@ -176,7 +176,7 @@ const update = asyncHandler(async (request, response, next) => {
   const payload = {
     name,
     surname,
-    email,
+    // email,
     age,
     gender,
     isPregnant,
@@ -189,13 +189,13 @@ const update = asyncHandler(async (request, response, next) => {
     updatedAt: new Date(Date.now()),
   };
 
-  if (user.email !== email) {
-    const emailExists = (await User.countDocuments({ _id: { $ne: user._id }, email: email, isDeleted: false })) > 0;
-    if (emailExists) {
-      next(new ApiError('This email is already registered in our app!', httpCodes.BAD_REQUEST));
-      return;
-    }
-  }
+  // if (user.email !== email) {
+  //   const emailExists = (await User.countDocuments({ _id: { $ne: user._id }, email: email, isDeleted: false })) > 0;
+  //   if (emailExists) {
+  //     next(new ApiError('This email is already registered in our app!', httpCodes.BAD_REQUEST));
+  //     return;
+  //   }
+  // }
 
   const editedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: payload }, { new: true });
   if (!editedUser) {
@@ -204,7 +204,7 @@ const update = asyncHandler(async (request, response, next) => {
   }
 
   const updatedFirebaseUser = await getAuth().updateUser(firebaseUser.uid, {
-    email,
+    // email,
     displayName: `${name} ${surname}`,
   });
   if (!updatedFirebaseUser) {
