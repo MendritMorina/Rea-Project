@@ -7,7 +7,8 @@ const validator = {
     body: Joi.object({
       receipt: Joi.string().required(),
       productId: Joi.string().required(),
-      transactionId: Joi.string().required(),
+      transactionId: Joi.string().optional(),
+      originalTransactionId: Joi.string().optional(),
     }),
   },
   restoreApple: {
@@ -15,6 +16,7 @@ const validator = {
       receipt: Joi.string().required(),
       productId: Joi.string().required(),
       transactionId: Joi.string().required(),
+      originalTransactionId: Joi.string().optional(),
     }),
   },
 };
